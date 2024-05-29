@@ -1,0 +1,69 @@
+{
+  "name": "vsvim",
+  "displayName": "vs-vim",
+  "description": "Very simple Vim",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "keybindings": [
+      {
+        "key": "escape",
+        "command": "vim.goToNormalMode",
+        "when": "editorTextFocus && vim.currentMode==Insert"
+      },
+      {
+        "key": "i",
+        "command": "vim.goToInsertMode",
+        "when": "editorTextFocus && vim.currentMode==Normal"
+      },
+      {
+        "key": "v",
+        "command": "vim.goToVisualMode",
+        "when": "editorTextFocus && vim.currentMode==Normal"
+      },
+      {
+        "key": "v",
+        "command": "vim.goToNormalMode",
+        "when": "editorTextFocus && vim.currentMode==Visual"
+      }
+    ],
+    "commands": [
+      {
+        "command": "helloworld.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "title": "waassssupp!!",
+        "command": "supp.timeDate"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.87.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "@vscode/test-cli": "^0.0.6",
+    "@vscode/test-electron": "^2.3.9"
+  }
+}
