@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { Mode, VimState } from './mode';
+import { Action } from './action';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -12,6 +13,11 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "helloworld" is now active!');
 
 	VimState.init();
+	Action.setup(context);
+
+	context.subscriptions.push(vscode.commands.registerCommand('type', (text) => {
+		VimState.type(text.text);
+	}));
 
 	let disposable = vscode.commands.registerCommand('helloworld.helloWorld', () => {
 		vscode.window.showInformationMessage('Hello VS code!');
@@ -19,20 +25,19 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 
 	let d1 = vscode.commands.registerCommand('vim.goToNormalMode', () => {
-		VimState.setMode(Mode.Normal);
+		VimState.setMode('NORMAL');
 	});
 	context.subscriptions.push(d1);
 
 	let d2 = vscode.commands.registerCommand('vim.goToInsertMode', () => {
-		VimState.setMode(Mode.Insert);
+		VimState.setMode('INSERT');
 	});
 	context.subscriptions.push(d2);
 
 	let d3 = vscode.commands.registerCommand('vim.goToVisualMode', () => {
-		VimState.setMode(Mode.Visual);
+		VimState.setMode('VISUAL');
 	});
 	context.subscriptions.push(d3);
-
 
 }
 
