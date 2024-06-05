@@ -31,6 +31,11 @@ const motionKeymap: Keymap[] = [
 ];
 
 const insertModeKeymap: Keymap[] = [
+    {
+        key: ['j', 'f'],
+        action: () => VimState.setMode('NORMAL'),
+        // mode: ['INSERT']
+    }
 ];
 
 export class KeyHandler {
@@ -53,6 +58,36 @@ export class KeyHandler {
     execute(key: string): Boolean {
         console.log("key: ", key);
         if (VimState.currentMode === 'INSERT') {
+            if (!this.expectingSequence) {
+                for (let km of this.insertModeMap) {
+                    if (km.key[0] === key) {
+                        if (km.key.length === 1) {
+                            km.action();
+                            return true;
+                        }
+                        this.expectingSequence = true;
+                        this.currentSequence.push(key);
+                        setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
+                        return true;
+                    }
+                }
+            } else {
+                this.currentSequence.push(key);
+                for (let km of this.insertModeMap) {
+                    if (km.key.length < this.currentSequence.length) {
+                        continue;
+                    }
+                    if (km.key.every((k, i) => k === this.currentSequence[i])) {
+                        if (km.key.length === this.currentSequence.length) {
+                            km.action();
+                            this.clearSequence();
+                        }
+                        return true;
+                    }
+                }
+                this.flushSequence();
+                return true;
+            }
         } else if (VimState.currentMode === 'NORMAL') {
             for (let km of this.normalModeMap) {
                 if (!this.expectingSequence) {
@@ -81,4 +116,19 @@ export class KeyHandler {
         return false;
     }
 
+    // If key sequence isn't macthed or timeout occurs, 
+    // delegate sequence to be typed by vscode.
+    flushSequence() {
+        console.log("Fushing sequence: ", this.currentSequence);
+        this.expectingSequence = false;
+        if (this.currentSequence.length) {
+            vscode.commands.executeCommand('default:type', { text: this.currentSequence.join('') });
+            this.currentSequence = [];
+        }
+    }
+
+    clearSequence() {
+        this.expectingSequence = false;
+        this.currentSequence = [];
+    }
 }

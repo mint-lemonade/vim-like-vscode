@@ -2,6 +2,7 @@
   "name": "vsvim",
   "displayName": "vs-vim",
   "description": "Very simple Vim",
+  "publisher": "self",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.87.0"
@@ -16,24 +17,19 @@
   "contributes": {
     "keybindings": [
       {
-        "key": "escape",
-        "command": "vim.goToNormalMode",
-        "when": "editorTextFocus && vim.currentMode==Insert"
-      },
-      {
         "key": "i",
         "command": "vim.goToInsertMode",
-        "when": "editorTextFocus && vim.currentMode==Normal"
+        "when": "editorTextFocus && vim.currentMode==NORMAL"
       },
       {
         "key": "v",
         "command": "vim.goToVisualMode",
-        "when": "editorTextFocus && vim.currentMode==Normal"
+        "when": "editorTextFocus && vim.currentMode==NORMAL"
       },
       {
         "key": "v",
         "command": "vim.goToNormalMode",
-        "when": "editorTextFocus && vim.currentMode==Visual"
+        "when": "editorTextFocus && vim.currentMode==VISUAL"
       }
     ],
     "commands": [
