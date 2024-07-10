@@ -1,7 +1,7 @@
 
 import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
-import { MotionHandler } from "./motion";
+import { executeMotion, MotionHandler } from "./motion";
 
 type Keymap = {
     key: string[],
@@ -13,21 +13,46 @@ type Keymap = {
 const motionKeymap: Keymap[] = [
     {
         key: ['h'],
-        action: MotionHandler.moveLeft,
+        action: () => executeMotion(MotionHandler.moveLeft),
         // mode: ['NORMAL']
     }, {
         key: ['l'],
-        action: MotionHandler.moveRight,
+        action: () => executeMotion(MotionHandler.moveRight),
         // mode: ['NORMAL']
     }, {
         key: ['j'],
-        action: MotionHandler.moveDown,
+        action: () => executeMotion(MotionHandler.moveDown),
         // mode: ['NORMAL']
     }, {
         key: ['k'],
-        action: MotionHandler.moveUp,
+        action: () => executeMotion(MotionHandler.moveUp),
+        // mode: ['NORMAL']
+    }, {
+        key: ['w'],
+        action: () => executeMotion(MotionHandler.findWordBoundry, 'next-start', 'word'),
+        // mode: ['NORMAL']
+    }, {
+        key: ['W'],
+        action: () => executeMotion(MotionHandler.findWordBoundry, 'next-start', 'WORD'),
+        // mode: ['NORMAL']
+    }, {
+        key: ['e'],
+        action: () => executeMotion(MotionHandler.findWordBoundry, 'next-end', 'word'),
+        // mode: ['NORMAL']
+    }, {
+        key: ['E'],
+        action: () => executeMotion(MotionHandler.findWordBoundry, 'next-end', 'WORD'),
+        // mode: ['NORMAL']
+    }, {
+        key: ['b'],
+        action: () => executeMotion(MotionHandler.findWordBoundry, 'prev-start', 'word'),
+        // mode: ['NORMAL']
+    }, {
+        key: ['B'],
+        action: () => executeMotion(MotionHandler.findWordBoundry, 'prev-start', 'WORD'),
         // mode: ['NORMAL']
     }
+
 ];
 
 const insertModeKeymap: Keymap[] = [
@@ -47,6 +72,9 @@ export class KeyHandler {
     expectingSequence: Boolean;
     sequenceTimeout: number = 500; // in milliseconds
 
+    debounceTime: number = 10; // in milliseconds
+    lastKeyTimeStamp: number = 0;
+
     constructor() {
         this.normalModeMap.push(...motionKeymap);
         this.visualModeMap.push(...motionKeymap);
@@ -56,7 +84,6 @@ export class KeyHandler {
 
     // returns false if no mapping was found and no action was executed. true otherwise.
     execute(key: string): Boolean {
-        console.log("key: ", key);
         if (VimState.currentMode === 'INSERT') {
             if (!this.expectingSequence) {
                 for (let km of this.insertModeMap) {
@@ -89,6 +116,8 @@ export class KeyHandler {
                 return true;
             }
         } else if (VimState.currentMode === 'NORMAL') {
+            console.log("key: ", key);
+            // if (this.debounceKey()) { return false; }
             for (let km of this.normalModeMap) {
                 if (!this.expectingSequence) {
                     if (km.key[0] === key) {
@@ -101,6 +130,8 @@ export class KeyHandler {
                 }
             }
         } else if (VimState.currentMode === 'VISUAL') {
+            console.log("key: ", key);
+            // if (this.debounceKey()) { return false; }
             for (let km of this.visualModeMap) {
                 if (!this.expectingSequence) {
                     if (km.key[0] === key) {
@@ -119,7 +150,6 @@ export class KeyHandler {
     // If key sequence isn't macthed or timeout occurs, 
     // delegate sequence to be typed by vscode.
     flushSequence() {
-        console.log("Fushing sequence: ", this.currentSequence);
         this.expectingSequence = false;
         if (this.currentSequence.length) {
             vscode.commands.executeCommand('default:type', { text: this.currentSequence.join('') });
@@ -130,5 +160,16 @@ export class KeyHandler {
     clearSequence() {
         this.expectingSequence = false;
         this.currentSequence = [];
+    }
+
+    debounceKey() {
+        let currentTime = new Date().getTime();
+        if (this.lastKeyTimeStamp < currentTime - this.debounceTime) {
+            this.lastKeyTimeStamp = currentTime;
+            return false;
+        } else {
+            this.lastKeyTimeStamp = currentTime;
+            return true;
+        }
     }
 }
