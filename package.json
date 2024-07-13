@@ -19,7 +19,7 @@
       {
         "key": "i",
         "command": "vim.goToInsertMode",
-        "when": "editorTextFocus && vim.currentMode==NORMAL"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
       },
       {
         "key": "v",

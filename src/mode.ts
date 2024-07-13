@@ -125,7 +125,7 @@ export class VimState {
                 endPosition = this.vimCursor.active.translate(0, 1);
             }
         } else {
-            console.error(`Cannot sync cursor in ${this.currentMode} mode!`);
+            VimState.updateVisualModeCursor();
             return;
         }
 
