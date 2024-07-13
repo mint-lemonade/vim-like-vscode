@@ -130,7 +130,7 @@ export class MotionHandler {
                     onNonWhitespaceInvalidSeq = false;
                 }
 
-                if (whitespace.test(line.text[c])) {
+                if (whitespace.test(line.text[c]) || line.isEmptyOrWhitespace) {
                     // skip whitespace and reset search state.
                     onNonWhitespaceInvalidSeq = false;
                     onWord = false;
@@ -164,8 +164,8 @@ export class MotionHandler {
                         c = 0; // set at start
                         break;
                     }
-                    curPos = curPos.with(curPos.line - 1, line.text.length - 1);
-                    line = this.editor.document.lineAt(curPos.line);
+                    line = this.editor.document.lineAt(curPos.line - 1);
+                    curPos = curPos.with(curPos.line - 1, line.text.length);
                     // set as length instead of last char index as as c will
                     // decrement at start of next iteration.
                     c = line.text.length;
@@ -203,7 +203,7 @@ export const executeMotion = (motion: Motion, ...args: any[]) => {
     if (!moveTo) { return; }
 
     // make sure vim cursor doesnt go past last char of line.
-    let last_char_idx = editor.document.lineAt(moveTo.position.line).text.length - 1;
+    let last_char_idx = Math.max(editor.document.lineAt(moveTo.position.line).text.length - 1, 0);
     if (moveTo.position.character >= last_char_idx) {
         moveTo.position = moveTo.position.translate(0, last_char_idx - moveTo.position.character);
     }
