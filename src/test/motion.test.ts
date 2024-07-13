@@ -81,6 +81,7 @@ suite('Motion Testing', async () => {
             // these jumps to next line.
             [new vscode.Position(0, 64), new vscode.Position(1, 0)],
             [new vscode.Position(3, 42), new vscode.Position(4, 0)],
+            [new vscode.Position(7, 43), new vscode.Position(9, 0)], // skip empty line
 
         ];
         for (let [i, data] of testData.entries()) {
@@ -167,6 +168,7 @@ suite('Motion Testing', async () => {
             // these skip to prev line.
             [new vscode.Position(7, 8), new vscode.Position(6, 15)],
             [new vscode.Position(6, 0), new vscode.Position(5, 29)],
+            [new vscode.Position(9, 0), new vscode.Position(7, 45)], // skip empty line
 
         ];
         for (let [i, data] of testData.entries()) {
