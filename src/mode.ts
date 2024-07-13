@@ -28,6 +28,16 @@ export class VimState {
         //     anchor: vscode.window.activeTextEditor.selection.active,
         //     active: editor.selection.active
         // };
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            console.log("Aactive editor Changes!");
+            if (!editor) { return; }
+            setTimeout(() => {
+                console.log("anchor: ", editor.selection.anchor);
+                console.log("active: ", editor.selection.active);
+                this.vimCursor.active = editor.selection.active;
+                this.vimCursor.anchor = editor.selection.anchor;
+            });
+        });
     }
 
     static setMode(mode: Mode) {
