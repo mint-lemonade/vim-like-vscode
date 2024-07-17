@@ -22,6 +22,7 @@ export class VimState {
 
     static init() {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+        this.syncVimCursor();
         this.setMode('NORMAL');
         this.keyMap = new KeyHandler();
         // this.vimCursor = {
@@ -34,9 +35,18 @@ export class VimState {
             setTimeout(() => {
                 console.log("anchor: ", editor.selection.anchor);
                 console.log("active: ", editor.selection.active);
-                this.vimCursor.active = editor.selection.active;
-                this.vimCursor.anchor = editor.selection.anchor;
+                // this.vimCursor.active = editor.selection.active;
+                // this.vimCursor.anchor = editor.selection.anchor;
+                this.syncVimCursor();
             });
+        });
+
+        vscode.window.onDidChangeTextEditorSelection((e) => {
+            console.log("Selection Changed!");
+            console.log("Kind: ", e.kind);
+            if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
+                this.syncVimCursor();
+            }
         });
     }
 
@@ -50,7 +60,7 @@ export class VimState {
             switch (mode) {
                 case 'NORMAL': {
                     editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
-                    this.syncVimCursor();
+                    // this.syncVimCursor();
                     break;
                 }
 
@@ -153,7 +163,11 @@ export class VimState {
                 active: editor.selection.active,
                 visualModeTextDecoration: null
             };
+            return;
         }
+        this.vimCursor.active = editor.selection.active;
+        this.vimCursor.anchor = editor.selection.anchor;
+        this.updateVisualModeCursor();
     }
 
     // static updateVimCursor(anchor: vscode.Position | null, active: vscode.Position | null) {
