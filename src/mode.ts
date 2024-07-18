@@ -5,6 +5,7 @@ export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 
 export class VimState {
     static currentMode: Mode = 'NORMAL';
+    static lastMode: Mode;
     static statusBar: vscode.StatusBarItem;
     static keyMap: KeyHandler;
 
@@ -25,25 +26,18 @@ export class VimState {
         this.syncVimCursor();
         this.setMode('NORMAL');
         this.keyMap = new KeyHandler();
-        // this.vimCursor = {
-        //     anchor: vscode.window.activeTextEditor.selection.active,
-        //     active: editor.selection.active
-        // };
+
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             console.log("Aactive editor Changes!");
             if (!editor) { return; }
             setTimeout(() => {
                 console.log("anchor: ", editor.selection.anchor);
                 console.log("active: ", editor.selection.active);
-                // this.vimCursor.active = editor.selection.active;
-                // this.vimCursor.anchor = editor.selection.anchor;
                 this.syncVimCursor();
             });
         });
 
         vscode.window.onDidChangeTextEditorSelection((e) => {
-            console.log("Selection Changed!");
-            console.log("Kind: ", e.kind);
             if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
                 this.syncVimCursor();
             }
@@ -51,6 +45,7 @@ export class VimState {
     }
 
     static setMode(mode: Mode) {
+        this.lastMode = this.currentMode;
         this.currentMode = mode;
         this.statusBar.text = `--${mode}--`;
         this.statusBar.tooltip = 'Vim Mode';
@@ -60,7 +55,6 @@ export class VimState {
             switch (mode) {
                 case 'NORMAL': {
                     editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
-                    // this.syncVimCursor();
                     break;
                 }
 
@@ -145,8 +139,8 @@ export class VimState {
                 endPosition = this.vimCursor.active.translate(0, 1);
             }
         } else {
-            VimState.updateVisualModeCursor();
-            return;
+            startPosition = this.vimCursor.anchor;
+            endPosition = this.vimCursor.active;
         }
 
         let newSelection = new vscode.Selection(startPosition, endPosition);
@@ -169,13 +163,4 @@ export class VimState {
         this.vimCursor.anchor = editor.selection.anchor;
         this.updateVisualModeCursor();
     }
-
-    // static updateVimCursor(anchor: vscode.Position | null, active: vscode.Position | null) {
-    //     if (anchor) {
-    //         this.vimCursor.anchor = anchor;
-    //     }
-    //     if (active) {
-    //         this.vimCursor.active = active;
-    //     }
-    // }
 }

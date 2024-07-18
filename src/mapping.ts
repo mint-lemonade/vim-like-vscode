@@ -2,6 +2,7 @@
 import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
 import { executeMotion, MotionHandler } from "./motion";
+import { Action } from './action';
 
 type Keymap = {
     key: string[],
@@ -63,6 +64,37 @@ const insertModeKeymap: Keymap[] = [
     }
 ];
 
+const normalModeKeymap: Keymap[] = [
+    {
+        key: ['i'],
+        action: () => Action.switchToInsertModeAt('before-cursor'),
+        // mode: ['INSERT']
+    },
+    {
+        key: ['I'],
+        action: () => Action.switchToInsertModeAt('line-start'),
+        // mode: ['INSERT']
+    },
+    {
+        key: ['a'],
+        action: () => Action.switchToInsertModeAt('after-cursor'),
+        // mode: ['INSERT']
+    },
+    {
+        key: ['A'],
+        action: () => Action.switchToInsertModeAt('line-end'),
+        // mode: ['INSERT']
+    },
+];
+
+const visualModeKeymap: Keymap[] = [
+    {
+        key: ['i'],
+        action: () => Action.switchToInsertModeAt('before-cursor'),
+        // mode: ['INSERT']
+    }
+];
+
 export class KeyHandler {
     insertModeMap: Keymap[] = [];
     normalModeMap: Keymap[] = [];
@@ -76,8 +108,8 @@ export class KeyHandler {
     lastKeyTimeStamp: number = 0;
 
     constructor() {
-        this.normalModeMap.push(...motionKeymap);
-        this.visualModeMap.push(...motionKeymap);
+        this.normalModeMap.push(...motionKeymap, ...normalModeKeymap);
+        this.visualModeMap.push(...motionKeymap, ...visualModeKeymap);
         this.insertModeMap.push(...insertModeKeymap);
         this.expectingSequence = false;
     }
