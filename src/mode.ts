@@ -112,6 +112,15 @@ export class VimState {
             };
             return;
         }
+
+
+        /**
+         * // TODO: set vim-cursor based on mode. 
+         * Since editor selection is adjusted when syncing vs-code selection
+         * from vim-vursor as char under vim-cursor is expected to be selected.
+         * So vim-cursor also needs to be adjusted when syncing
+         * back from vs-code selection.        
+         */
         this.vimCursor.active = editor.selection.active;
         this.vimCursor.anchor = editor.selection.anchor;
         this.updateVisualModeCursor();

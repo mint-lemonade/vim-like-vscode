@@ -85,6 +85,16 @@ const normalModeKeymap: Keymap[] = [
         action: () => Action.switchToInsertModeAt('line-end'),
         // mode: ['INSERT']
     },
+    {
+        key: ['o'],
+        action: () => Action.switchToInsertModeAt('new-line-below'),
+        // mode: ['INSERT']
+    },
+    {
+        key: ['O'],
+        action: () => Action.switchToInsertModeAt('new-line-above'),
+        // mode: ['INSERT']
+    },
 ];
 
 const visualModeKeymap: Keymap[] = [

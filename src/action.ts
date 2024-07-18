@@ -9,7 +9,7 @@ export class Action {
 
 
     }
-    static switchToInsertModeAt(cursorPos: CursorPos) {
+    static async switchToInsertModeAt(cursorPos: CursorPos) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         switch (cursorPos) {
@@ -24,6 +24,18 @@ export class Action {
             case 'line-end': {
                 let lineEndOffset = editor.document.lineAt(editor.selection.active).range.end;
                 VimState.vimCursor.active = lineEndOffset;
+                break;
+            }
+
+            case 'new-line-below': {
+                await vscode.commands.executeCommand('editor.action.insertLineAfter');
+                VimState.vimCursor.active = editor.selection.active;
+                break;
+            }
+
+            case 'new-line-above': {
+                await vscode.commands.executeCommand('editor.action.insertLineBefore');
+                VimState.vimCursor.active = editor.selection.active;
                 break;
             }
             // case 'before-cursor':
