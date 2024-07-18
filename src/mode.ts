@@ -44,6 +44,18 @@ export class VimState {
         });
     }
 
+    static type(text: string) {
+        if (this.currentMode === 'INSERT') {
+            if (!this.keyMap.execute(text)) {
+                vscode.commands.executeCommand('default:type', { text: text });
+            }
+            return;
+        } else {
+            this.keyMap.execute(text);
+            return;
+        }
+    }
+
     static setMode(mode: Mode) {
         this.lastMode = this.currentMode;
         this.currentMode = mode;
@@ -89,35 +101,20 @@ export class VimState {
         vscode.commands.executeCommand('setContext', "vim.currentMode", mode);
     }
 
-    static updateVisualModeCursor(position?: vscode.Position) {
-
+    static syncVimCursor() {
         let editor = vscode.window.activeTextEditor;
-        if (!editor || !this.vimCursor.visualModeTextDecoration) { return; }
-        editor.setDecorations(this.vimCursor.visualModeTextDecoration, []);
-        if (this.currentMode === 'VISUAL') {
-            let start;
-            let end;
-            if (editor.selection.active.isBefore(editor.selection.anchor)) {
-                start = editor.selection.active;
-                end = editor.selection.active.translate(0, 1);
-            } else {
-                start = editor.selection.active.translate(0, -1);
-                end = editor.selection.active;
-            }
-            editor.setDecorations(this.vimCursor.visualModeTextDecoration, [new vscode.Range(start, end)]);
-        }
-    }
-
-    static type(text: string) {
-        if (this.currentMode === 'INSERT') {
-            if (!this.keyMap.execute(text)) {
-                vscode.commands.executeCommand('default:type', { text: text });
-            }
-            return;
-        } else {
-            this.keyMap.execute(text);
+        if (!editor) { return; }
+        if (!this.vimCursor) {
+            this.vimCursor = {
+                anchor: editor.selection.active,
+                active: editor.selection.active,
+                visualModeTextDecoration: null
+            };
             return;
         }
+        this.vimCursor.active = editor.selection.active;
+        this.vimCursor.anchor = editor.selection.anchor;
+        this.updateVisualModeCursor();
     }
 
     static syncVsCodeCursorOrSelection() {
@@ -148,19 +145,22 @@ export class VimState {
         VimState.updateVisualModeCursor();
     }
 
-    static syncVimCursor() {
+    static updateVisualModeCursor(position?: vscode.Position) {
+
         let editor = vscode.window.activeTextEditor;
-        if (!editor) { return; }
-        if (!this.vimCursor) {
-            this.vimCursor = {
-                anchor: editor.selection.active,
-                active: editor.selection.active,
-                visualModeTextDecoration: null
-            };
-            return;
+        if (!editor || !this.vimCursor.visualModeTextDecoration) { return; }
+        editor.setDecorations(this.vimCursor.visualModeTextDecoration, []);
+        if (this.currentMode === 'VISUAL') {
+            let start;
+            let end;
+            if (editor.selection.active.isBefore(editor.selection.anchor)) {
+                start = editor.selection.active;
+                end = editor.selection.active.translate(0, 1);
+            } else {
+                start = editor.selection.active.translate(0, -1);
+                end = editor.selection.active;
+            }
+            editor.setDecorations(this.vimCursor.visualModeTextDecoration, [new vscode.Range(start, end)]);
         }
-        this.vimCursor.active = editor.selection.active;
-        this.vimCursor.anchor = editor.selection.anchor;
-        this.updateVisualModeCursor();
     }
 }
