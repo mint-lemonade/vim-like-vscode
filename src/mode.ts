@@ -136,6 +136,14 @@ export class VimState {
                 endPosition = this.vimCursor.active.translate(0, 1);
             }
         } else {
+            // If switching from VISUAL to INSERT mode, keep the
+            // selection as it is.
+            if (this.lastMode === 'VISUAL') {
+                VimState.updateVisualModeCursor();
+                return;
+            }
+            // If swithcing from NORMAL to INSERT mode, move the cursor
+            // to specfic position.
             startPosition = this.vimCursor.anchor;
             endPosition = this.vimCursor.active;
         }
