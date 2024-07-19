@@ -14,8 +14,10 @@ export class VimState {
     // - Vim block cursor do not moves last charcter of line. 
     // So we create our own respresentation of vim cursor.
     static vimCursor: {
-        anchor: vscode.Position,
-        active: vscode.Position
+        selections: {
+            anchor: vscode.Position,
+            active: vscode.Position
+        }[];
         // In VISUAL mode we switch the cursor to line cursor and use text 
         // decoration to mimic the block cursor.
         visualModeTextDecoration: vscode.TextEditorDecorationType | null;
@@ -73,7 +75,10 @@ export class VimState {
                 case 'VISUAL':
                     {
                         editor.options.cursorStyle = vscode.TextEditorCursorStyle.Line;
-                        this.vimCursor.anchor = editor.selection.anchor;
+                        editor.selections.forEach((sel, i) => {
+                            this.vimCursor.selections[i].anchor = sel.anchor;
+                        });
+                        // this.vimCursor.anchor = editor.selection.anchor;
 
                         // Setup text decoration to mimic the block cursor.
                         const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
@@ -106,11 +111,12 @@ export class VimState {
         if (!editor) { return; }
         if (!this.vimCursor) {
             this.vimCursor = {
-                anchor: editor.selection.active,
-                active: editor.selection.active,
+                selections: [],
+                // anchor: editor.selection.active,
+                // active: editor.selection.active,
                 visualModeTextDecoration: null
             };
-            return;
+            // return;
         }
 
 
@@ -121,8 +127,14 @@ export class VimState {
          * So vim-cursor also needs to be adjusted when syncing
          * back from vs-code selection.        
          */
-        this.vimCursor.active = editor.selection.active;
-        this.vimCursor.anchor = editor.selection.anchor;
+        this.vimCursor.selections = editor.selections.map(sel => {
+            return {
+                active: sel.active,
+                anchor: sel.anchor
+            };
+        });
+        // this.vimCursor.active = editor.selection.active;
+        // this.vimCursor.anchor = editor.selection.anchor;
         this.updateVisualModeCursor();
     }
 
@@ -130,35 +142,48 @@ export class VimState {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
 
-        let startPosition: vscode.Position;
-        let endPosition: vscode.Position;
-
-        if (this.currentMode === 'NORMAL') {
-            startPosition = this.vimCursor.active;
-            endPosition = this.vimCursor.active;
-        } else if (this.currentMode === 'VISUAL') {
-            if (this.vimCursor.active.isBefore(this.vimCursor.anchor)) {
-                startPosition = this.vimCursor.anchor.translate(0, 1);
-                endPosition = this.vimCursor.active;
-            } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
-                startPosition = this.vimCursor.anchor;
-                endPosition = this.vimCursor.active.translate(0, 1);
+        let startPosition: vscode.Position[] = [];
+        let endPosition: vscode.Position[] = [];
+        console.log("selections... ", this.vimCursor.selections);
+        this.vimCursor.selections.forEach((sel, i) => {
+            if (this.currentMode === 'NORMAL') {
+                startPosition[i] = sel.active;
+                endPosition[i] = sel.active;
+            } else if (this.currentMode === 'VISUAL') {
+                if (sel.active.isBefore(sel.anchor)) {
+                    startPosition[i] = sel.anchor.translate(0, 1);
+                    endPosition[i] = sel.active;
+                } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
+                    startPosition[i] = sel.anchor;
+                    endPosition[i] = sel.active.translate(0, 1);
+                }
+            } else {
+                // If switching from VISUAL to INSERT mode, keep the
+                // selection as it is.
+                if (this.lastMode === 'VISUAL') {
+                    VimState.updateVisualModeCursor();
+                    return;
+                }
+                // If swithcing from NORMAL to INSERT mode, move the cursor
+                // to specfic position.
+                startPosition[i] = sel.anchor;
+                endPosition[i] = sel.active;
             }
-        } else {
-            // If switching from VISUAL to INSERT mode, keep the
-            // selection as it is.
-            if (this.lastMode === 'VISUAL') {
-                VimState.updateVisualModeCursor();
-                return;
-            }
-            // If swithcing from NORMAL to INSERT mode, move the cursor
-            // to specfic position.
-            startPosition = this.vimCursor.anchor;
-            endPosition = this.vimCursor.active;
-        }
+        });
 
-        let newSelection = new vscode.Selection(startPosition, endPosition);
-        editor.selection = newSelection;
+
+        // let newSelection = new vscode.Selection(startPosition, endPosition);
+        // editor.selection = newSelection;
+        editor.selections = editor.selections.map((sel, i) => {
+            // sel.anchor = startPosition[i];
+            // sel.active = endPosition[i];
+            // return {
+            //     anchor: startPosition[i],
+            //     active: endPosition[i]
+            // };
+            return new vscode.Selection(startPosition[i], endPosition[i]);
+
+        });
         VimState.updateVisualModeCursor();
     }
 

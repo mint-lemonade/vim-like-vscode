@@ -12,43 +12,46 @@ export class Action {
     static async switchToInsertModeAt(cursorPos: CursorPos) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
-        switch (cursorPos) {
-            case 'after-cursor':
-                VimState.vimCursor.active = editor.selection.active.translate(0, 1);
-                break;
-            case 'line-start': {
-                let lineStartOffset = editor.document.lineAt(editor.selection.active).firstNonWhitespaceCharacterIndex;
-                VimState.vimCursor.active = editor.selection.active.with(undefined, lineStartOffset);
-                break;
-            }
-            case 'line-end': {
-                let lineEndOffset = editor.document.lineAt(editor.selection.active).range.end;
-                VimState.vimCursor.active = lineEndOffset;
-                break;
-            }
+        VimState.vimCursor.selections.forEach(async (sel, i) => {
 
-            case 'new-line-below': {
-                await vscode.commands.executeCommand('editor.action.insertLineAfter');
-                VimState.vimCursor.active = editor.selection.active;
-                break;
-            }
+            switch (cursorPos) {
+                case 'after-cursor':
+                    sel.active = editor.selections[i].active.translate(0, 1);
+                    break;
+                case 'line-start': {
+                    let lineStartOffset = editor.document.lineAt(editor.selections[i].active).firstNonWhitespaceCharacterIndex;
+                    sel.active = editor.selections[i].active.with(undefined, lineStartOffset);
+                    break;
+                }
+                case 'line-end': {
+                    let lineEndOffset = editor.document.lineAt(editor.selections[i].active).range.end;
+                    sel.active = lineEndOffset;
+                    break;
+                }
 
-            case 'new-line-above': {
-                await vscode.commands.executeCommand('editor.action.insertLineBefore');
-                VimState.vimCursor.active = editor.selection.active;
-                break;
+                case 'new-line-below': {
+                    await vscode.commands.executeCommand('editor.action.insertLineAfter');
+                    sel.active = editor.selections[i].active;
+                    break;
+                }
+
+                case 'new-line-above': {
+                    await vscode.commands.executeCommand('editor.action.insertLineBefore');
+                    sel.active = editor.selections[i].active;
+                    break;
+                }
+                // case 'before-cursor':
+                //     // VimState.vimCursor.active = 
+                //     break;
+                default:
+                    break;
             }
-            // case 'before-cursor':
-            //     // VimState.vimCursor.active = 
-            //     break;
-            default:
-                break;
-        }
-        if (VimState.currentMode === 'NORMAL') {
-            VimState.vimCursor.anchor = VimState.vimCursor.active;
-        } else if (VimState.currentMode === 'VISUAL') {
-            VimState.vimCursor.anchor = VimState.vimCursor.anchor;
-        }
+            if (VimState.currentMode === 'NORMAL') {
+                sel.anchor = sel.active;
+            } else if (VimState.currentMode === 'VISUAL') {
+                sel.anchor = sel.anchor;
+            }
+        });
         VimState.setMode('INSERT');
     }
 }
