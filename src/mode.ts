@@ -174,7 +174,7 @@ export class VimState {
 
         // let newSelection = new vscode.Selection(startPosition, endPosition);
         // editor.selection = newSelection;
-        editor.selections = editor.selections.map((sel, i) => {
+        let selections = editor.selections.map((sel, i) => {
             // sel.anchor = startPosition[i];
             // sel.active = endPosition[i];
             // return {
@@ -184,6 +184,8 @@ export class VimState {
             return new vscode.Selection(startPosition[i], endPosition[i]);
 
         });
+        editor.selections = selections;
+        editor.revealRange(selections[0]);
         VimState.updateVisualModeCursor();
     }
 
