@@ -30,6 +30,7 @@ export class MotionHandler {
         return false;
     }
 
+    @registerMotion()
     static moveLeft(): MotionData {
         return {
             positions: VimState.vimCursor.selections.map((sel, i) => {
@@ -41,6 +42,7 @@ export class MotionHandler {
         };
     }
 
+    @registerMotion()
     static moveRight(): MotionData {
         return {
             positions: VimState.vimCursor.selections.map((sel, i) => {
@@ -52,6 +54,7 @@ export class MotionHandler {
         };
     }
 
+    @registerMotion()
     static moveUp(): MotionData {
         return {
             positions: VimState.vimCursor.selections.map((sel, i) => {
@@ -64,6 +67,7 @@ export class MotionHandler {
         };
     }
 
+    @registerMotion()
     static moveDown(): MotionData {
         return {
             // if on last line, return current position
@@ -230,6 +234,21 @@ export const executeMotion = (motion: Motion, ...args: any[]) => {
     });
     VimState.syncVsCodeCursorOrSelection();
 };
+
+/**
+ * @description register motion as vs code command.
+ * @param commandName name of command. default: name of function to be decorated.
+ */
+function registerMotion(commandName?: string) {
+    return function (originalFunc: Motion, context: any) {
+        console.log("Context: ", context);
+        commandName = commandName || originalFunc.name;
+        vscode.commands.registerCommand(`vim.${commandName}`, () => {
+            executeMotion(originalFunc);
+        });
+    };
+}
+
 
 // const whitespace = " \t\r\n";
 const whitespace = /\s/;
