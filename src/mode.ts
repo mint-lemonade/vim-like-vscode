@@ -195,16 +195,11 @@ export class VimState {
         if (!editor || !this.vimCursor.visualModeTextDecoration) { return; }
         editor.setDecorations(this.vimCursor.visualModeTextDecoration, []);
         if (this.currentMode === 'VISUAL') {
-            let start;
-            let end;
-            if (editor.selection.active.isBefore(editor.selection.anchor)) {
-                start = editor.selection.active;
-                end = editor.selection.active.translate(0, 1);
-            } else {
-                start = editor.selection.active.translate(0, -1);
-                end = editor.selection.active;
-            }
-            editor.setDecorations(this.vimCursor.visualModeTextDecoration, [new vscode.Range(start, end)]);
+            let cursors = this.vimCursor.selections.map(sel => {
+                return new vscode.Range(sel.active, sel.active.translate(0, 1));
+            });
+            editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
+
         }
     }
 }
