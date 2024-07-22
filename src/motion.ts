@@ -54,8 +54,8 @@ export class MotionHandler {
 
     static moveUp(): MotionData {
         return {
-            // if on first line, return current position
             positions: VimState.vimCursor.selections.map((sel, i) => {
+                // if on first line, return current position
                 if (sel.active.line === 0) {
                     return sel.active;
                 }
@@ -216,10 +216,10 @@ export const executeMotion = (motion: Motion, ...args: any[]) => {
     if (!moveTo) { return; }
 
     // make sure vim cursor doesnt go past last char of line.
-    moveTo.positions.forEach(pos => {
+    moveTo.positions.forEach((pos, i) => {
         let last_char_idx = Math.max(editor.document.lineAt(pos.line).text.length - 1, 0);
         if (pos.character >= last_char_idx) {
-            pos = pos.translate(0, last_char_idx - pos.character);
+            moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
         }
     });
 
