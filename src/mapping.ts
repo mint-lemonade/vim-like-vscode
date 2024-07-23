@@ -61,6 +61,11 @@ const insertModeKeymap: Keymap[] = [
         key: ['j', 'f'],
         action: () => VimState.setMode('NORMAL'),
         // mode: ['INSERT']
+    },
+    {
+        key: ['j', 'v'],
+        action: () => VimState.setMode('VISUAL'),
+        // mode: ['INSERT']
     }
 ];
 
