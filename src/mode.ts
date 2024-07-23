@@ -142,13 +142,6 @@ export class VimState {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
 
-        // If switching from VISUAL to INSERT mode, keep the
-        // selection as it is.
-        if (this.lastMode === 'VISUAL') {
-            VimState.updateVisualModeCursor();
-            return;
-        }
-
         let startPosition: vscode.Position[] = [];
         let endPosition: vscode.Position[] = [];
         console.log("selections... ", this.vimCursor.selections);
@@ -165,6 +158,12 @@ export class VimState {
                     endPosition[i] = sel.active.translate(0, 1);
                 }
             } else {
+                // If switching from VISUAL to INSERT mode, keep the
+                // selection as it is.
+                if (this.lastMode === 'VISUAL') {
+                    VimState.updateVisualModeCursor();
+                    return;
+                }
                 // If swithcing from NORMAL to INSERT mode, move the cursor
                 // to specfic position.
                 startPosition[i] = sel.anchor;
