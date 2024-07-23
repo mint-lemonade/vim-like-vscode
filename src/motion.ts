@@ -6,13 +6,15 @@ type MotionData = {
     positions: vscode.Position[],
     includeCurrentCharUnderSelection?: boolean
     // jump_by: number,
-} | null;
+};
 type Motion = (...args: any[]) => MotionData;
 
 export class MotionHandler {
     static handelingCursorMove: boolean = false;
     static editor: vscode.TextEditor;
-    // static selection
+    // 0 is default value, motion will executed once when repeat is either 0 or 1
+    static repeat: number = 0;
+
     static isCursorAtLineStart(curIdx: number): boolean {
         let curPos = VimState.vimCursor.selections[curIdx].active;
         if (curPos.character === 0) {
@@ -215,23 +217,29 @@ export const executeMotion = (motion: Motion, ...args: any[]) => {
     if (!editor) { return; }
 
     MotionHandler.editor = editor;
-    let moveTo = motion.call(MotionHandler, ...args);
+    let moveTo: MotionData;
+    let repeat = Math.max(1, MotionHandler.repeat);
+    while (repeat) {
 
-    if (!moveTo) { return; }
+        moveTo = motion.call(MotionHandler, ...args);
 
-    // make sure vim cursor doesnt go past last char of line.
-    moveTo.positions.forEach((pos, i) => {
-        let last_char_idx = Math.max(editor.document.lineAt(pos.line).text.length - 1, 0);
-        if (pos.character >= last_char_idx) {
-            moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
-        }
-    });
+        // make sure vim cursor doesnt go past last char of line.
+        moveTo.positions.forEach((pos, i) => {
+            let last_char_idx = Math.max(editor.document.lineAt(pos.line).text.length - 1, 0);
+            if (pos.character >= last_char_idx) {
+                moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
+            }
+        });
 
-    console.log("cursor position", editor.selections.map(sel => sel.active));
-    console.log("moveTo position", moveTo.positions);
-    VimState.vimCursor.selections.forEach((sel, i) => {
-        sel.active = moveTo.positions[i];
-    });
+        console.log("cursor position", editor.selections.map(sel => sel.active));
+        console.log("moveTo position", moveTo.positions);
+        VimState.vimCursor.selections.forEach((sel, i) => {
+            sel.active = moveTo.positions[i];
+        });
+        repeat -= 1;
+    }
+    // reset repeat to default after executing motion.
+    MotionHandler.repeat = 0;
     VimState.syncVsCodeCursorOrSelection();
 };
 

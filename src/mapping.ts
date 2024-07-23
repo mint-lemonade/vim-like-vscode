@@ -126,6 +126,15 @@ export class KeyHandler {
 
     // returns false if no mapping was found and no action was executed. true otherwise.
     execute(key: string): Boolean {
+        if (VimState.currentMode === 'NORMAL' || VimState.currentMode === 'VISUAL') {
+            let repeat = parseInt(key);
+            // if key is  a number then set up repeat value for how many 
+            // times next motion is to be repeated.
+            if (!Number.isNaN(repeat)) {
+                MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
+                return true;
+            }
+        }
         if (VimState.currentMode === 'INSERT') {
             if (!this.expectingSequence) {
                 for (let km of this.insertModeMap) {
