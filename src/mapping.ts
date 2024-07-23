@@ -135,65 +135,47 @@ export class KeyHandler {
                 return true;
             }
         }
-        if (VimState.currentMode === 'INSERT') {
-            if (!this.expectingSequence) {
-                for (let km of this.insertModeMap) {
-                    if (km.key[0] === key) {
-                        if (km.key.length === 1) {
-                            km.action();
-                            return true;
-                        }
-                        this.expectingSequence = true;
-                        this.currentSequence.push(key);
-                        setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
+        let currentKeymap: Keymap[];
+        switch (VimState.currentMode) {
+            case 'INSERT':
+                currentKeymap = this.insertModeMap;
+                break;
+            case 'NORMAL':
+                currentKeymap = this.normalModeMap;
+                break;
+            case 'VISUAL':
+                currentKeymap = this.visualModeMap;
+                break;
+        }
+        if (!this.expectingSequence) {
+            for (let km of currentKeymap) {
+                if (km.key[0] === key) {
+                    if (km.key.length === 1) {
+                        km.action();
                         return true;
                     }
-                }
-            } else {
-                this.currentSequence.push(key);
-                for (let km of this.insertModeMap) {
-                    if (km.key.length < this.currentSequence.length) {
-                        continue;
-                    }
-                    if (km.key.every((k, i) => k === this.currentSequence[i])) {
-                        if (km.key.length === this.currentSequence.length) {
-                            km.action();
-                            this.clearSequence();
-                        }
-                        return true;
-                    }
-                }
-                this.flushSequence();
-                return true;
-            }
-        } else if (VimState.currentMode === 'NORMAL') {
-            console.log("key: ", key);
-            // if (this.debounceKey()) { return false; }
-            for (let km of this.normalModeMap) {
-                if (!this.expectingSequence) {
-                    if (km.key[0] === key) {
-                        if (km.key.length === 1) {
-                            km.action(false);
-                            return true;
-                        }
-
-                    }
+                    this.expectingSequence = true;
+                    this.currentSequence.push(key);
+                    setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
+                    return true;
                 }
             }
-        } else if (VimState.currentMode === 'VISUAL') {
-            console.log("key: ", key);
-            // if (this.debounceKey()) { return false; }
-            for (let km of this.visualModeMap) {
-                if (!this.expectingSequence) {
-                    if (km.key[0] === key) {
-                        if (km.key.length === 1) {
-                            km.action(true);
-                            return true;
-                        }
-
+        } else {
+            this.currentSequence.push(key);
+            for (let km of currentKeymap) {
+                if (km.key.length < this.currentSequence.length) {
+                    continue;
+                }
+                if (km.key.every((k, i) => k === this.currentSequence[i])) {
+                    if (km.key.length === this.currentSequence.length) {
+                        km.action();
+                        this.clearSequence();
                     }
+                    return true;
                 }
             }
+            this.flushSequence();
+            return true;
         }
         return false;
     }
