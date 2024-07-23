@@ -142,10 +142,17 @@ export class VimState {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
 
+        // If switching from VISUAL to INSERT mode, keep the
+        // selection as it is.
+        if (this.lastMode === 'VISUAL') {
+            VimState.updateVisualModeCursor();
+            return;
+        }
+
         let startPosition: vscode.Position[] = [];
         let endPosition: vscode.Position[] = [];
         console.log("selections... ", this.vimCursor.selections);
-        this.vimCursor.selections.forEach((sel, i) => {
+        for (let [i, sel] of this.vimCursor.selections.entries()) {
             if (this.currentMode === 'NORMAL') {
                 startPosition[i] = sel.active;
                 endPosition[i] = sel.active;
@@ -158,32 +165,17 @@ export class VimState {
                     endPosition[i] = sel.active.translate(0, 1);
                 }
             } else {
-                // If switching from VISUAL to INSERT mode, keep the
-                // selection as it is.
-                if (this.lastMode === 'VISUAL') {
-                    VimState.updateVisualModeCursor();
-                    return;
-                }
                 // If swithcing from NORMAL to INSERT mode, move the cursor
                 // to specfic position.
                 startPosition[i] = sel.anchor;
                 endPosition[i] = sel.active;
             }
-        });
+        }
 
-
-        // let newSelection = new vscode.Selection(startPosition, endPosition);
-        // editor.selection = newSelection;
         let selections = editor.selections.map((sel, i) => {
-            // sel.anchor = startPosition[i];
-            // sel.active = endPosition[i];
-            // return {
-            //     anchor: startPosition[i],
-            //     active: endPosition[i]
-            // };
             return new vscode.Selection(startPosition[i], endPosition[i]);
-
         });
+
         editor.selections = selections;
         editor.revealRange(selections[0]);
         VimState.updateVisualModeCursor();
