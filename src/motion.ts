@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { VimState } from './mode';
+import { Keymap } from './mapping';
 
 
 type MotionData = {
@@ -7,7 +8,7 @@ type MotionData = {
     includeCurrentCharUnderSelection?: boolean
     // jump_by: number,
 };
-type Motion = (...args: any[]) => MotionData;
+export type Motion = (...args: any[]) => MotionData;
 
 export class MotionHandler {
     static handelingCursorMove: boolean = false;
@@ -212,7 +213,7 @@ export class MotionHandler {
     }
 }
 
-export const executeMotion = (motion: Motion, ...args: any[]) => {
+export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
     let editor = vscode.window.activeTextEditor;
     if (!editor) { return; }
 
@@ -240,7 +241,9 @@ export const executeMotion = (motion: Motion, ...args: any[]) => {
     }
     // reset repeat to default after executing motion.
     MotionHandler.repeat = 0;
-    VimState.syncVsCodeCursorOrSelection();
+    if (syncVsCodeCursor) {
+        VimState.syncVsCodeCursorOrSelection();
+    }
 };
 
 /**
@@ -252,7 +255,7 @@ function registerMotion(commandName?: string) {
         console.log("Context: ", context);
         commandName = commandName || originalFunc.name;
         vscode.commands.registerCommand(`vim.${commandName}`, () => {
-            executeMotion(originalFunc);
+            executeMotion(originalFunc, true);
         });
     };
 }
@@ -269,3 +272,73 @@ const wordChars = {
     word: /\w/,
     WORD: /[^\s]/
 };
+
+export const motionKeymap: Keymap[] = [
+    {
+        key: ['h'],
+        type: 'Motion',
+        action: MotionHandler.moveLeft,
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['l'],
+        type: 'Motion',
+        action: MotionHandler.moveRight,
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['j'],
+        type: 'Motion',
+        action: MotionHandler.moveDown,
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['k'],
+        type: 'Motion',
+        action: MotionHandler.moveUp,
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['w'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['next-start', 'word'],
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['W'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['next-start', 'WORD'],
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['e'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['next-end', 'word'],
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['E'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['next-end', 'WORD'],
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['b'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['prev-start', 'word'],
+        mode: ['NORMAL', 'VISUAL']
+
+    }, {
+        key: ['B'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['prev-start', 'WORD'],
+        mode: ['NORMAL', 'VISUAL']
+
+    }
+
+];

@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import { KeyHandler } from './mapping';
+import { motionKeymap } from './motion';
+import { operatorKeyMap } from './operator';
+import { switchModeKeymap } from './action';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 
@@ -27,7 +30,11 @@ export class VimState {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
         this.syncVimCursor();
         this.setMode('NORMAL');
-        this.keyMap = new KeyHandler();
+        this.keyMap = new KeyHandler([
+            ...motionKeymap,
+            ...switchModeKeymap,
+            ...operatorKeyMap
+        ]);
 
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             console.log("Aactive editor Changes!");
@@ -78,7 +85,6 @@ export class VimState {
                         editor.selections.forEach((sel, i) => {
                             this.vimCursor.selections[i].anchor = sel.anchor;
                         });
-                        // this.vimCursor.anchor = editor.selection.anchor;
 
                         // Setup text decoration to mimic the block cursor.
                         const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
@@ -112,11 +118,8 @@ export class VimState {
         if (!this.vimCursor) {
             this.vimCursor = {
                 selections: [],
-                // anchor: editor.selection.active,
-                // active: editor.selection.active,
                 visualModeTextDecoration: null
             };
-            // return;
         }
 
 
@@ -133,8 +136,6 @@ export class VimState {
                 anchor: sel.anchor
             };
         });
-        // this.vimCursor.active = editor.selection.active;
-        // this.vimCursor.anchor = editor.selection.anchor;
         this.updateVisualModeCursor();
     }
 

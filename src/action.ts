@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { VimState } from './mode';
 import { Mode } from './mode';
+import { Keymap } from './mapping';
 
 type CursorPos = 'before-cursor' | 'after-cursor' | 'line-start' | 'line-end' | 'new-line-below' | 'new-line-above';
 
@@ -9,11 +10,11 @@ export class Action {
 
 
     }
+
     static async switchToInsertModeAt(cursorPos: CursorPos) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         VimState.vimCursor.selections.forEach(async (sel, i) => {
-
             switch (cursorPos) {
                 case 'after-cursor':
                     sel.active = editor.selections[i].active.translate(0, 1);
@@ -40,9 +41,6 @@ export class Action {
                     sel.active = editor.selections[i].active;
                     break;
                 }
-                // case 'before-cursor':
-                //     // VimState.vimCursor.active = 
-                //     break;
                 default:
                     break;
             }
@@ -55,3 +53,56 @@ export class Action {
         VimState.setMode('INSERT');
     }
 }
+
+export const switchModeKeymap: Keymap[] = [
+    {
+        key: ['j', 'f'],
+        type: 'Action',
+        action: () => VimState.setMode('NORMAL'),
+        mode: ['INSERT']
+    },
+    {
+        key: ['j', 'v'],
+        type: 'Action',
+        action: () => VimState.setMode('VISUAL'),
+        mode: ['INSERT']
+    },
+    {
+        key: ['i'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('before-cursor'),
+        mode: ['NORMAL', 'VISUAL']
+    },
+    {
+        key: ['I'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('line-start'),
+        mode: ['NORMAL']
+    },
+    {
+        key: ['a'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('after-cursor'),
+        mode: ['NORMAL']
+    },
+    {
+        key: ['A'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('line-end'),
+        mode: ['NORMAL']
+    },
+    {
+        key: ['o'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('new-line-below'),
+        mode: ['NORMAL']
+    },
+    {
+        key: ['O'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('new-line-above'),
+        mode: ['NORMAL']
+    },
+
+];
+
