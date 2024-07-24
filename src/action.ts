@@ -17,28 +17,28 @@ export class Action {
         VimState.vimCursor.selections.forEach(async (sel, i) => {
             switch (cursorPos) {
                 case 'after-cursor':
-                    sel.active = editor.selections[i].active.translate(0, 1);
+                    sel.active = editor!.selections[i].active.translate(0, 1);
                     break;
                 case 'line-start': {
-                    let lineStartOffset = editor.document.lineAt(editor.selections[i].active).firstNonWhitespaceCharacterIndex;
-                    sel.active = editor.selections[i].active.with(undefined, lineStartOffset);
+                    let lineStartOffset = editor!.document.lineAt(editor!.selections[i].active).firstNonWhitespaceCharacterIndex;
+                    sel.active = editor!.selections[i].active.with(undefined, lineStartOffset);
                     break;
                 }
                 case 'line-end': {
-                    let lineEndOffset = editor.document.lineAt(editor.selections[i].active).range.end;
+                    let lineEndOffset = editor!.document.lineAt(editor!.selections[i].active).range.end;
                     sel.active = lineEndOffset;
                     break;
                 }
 
                 case 'new-line-below': {
                     await vscode.commands.executeCommand('editor.action.insertLineAfter');
-                    sel.active = editor.selections[i].active;
+                    sel.active = editor!.selections[i].active;
                     break;
                 }
 
                 case 'new-line-above': {
                     await vscode.commands.executeCommand('editor.action.insertLineBefore');
-                    sel.active = editor.selections[i].active;
+                    sel.active = editor!.selections[i].active;
                     break;
                 }
                 default:

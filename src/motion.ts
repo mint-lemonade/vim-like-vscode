@@ -226,7 +226,7 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
 
         // make sure vim cursor doesnt go past last char of line.
         moveTo.positions.forEach((pos, i) => {
-            let last_char_idx = Math.max(editor.document.lineAt(pos.line).text.length - 1, 0);
+            let last_char_idx = Math.max(editor!.document.lineAt(pos.line).text.length - 1, 0);
             if (pos.character >= last_char_idx) {
                 moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
             }
