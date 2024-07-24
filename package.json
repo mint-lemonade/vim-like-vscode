@@ -25,6 +25,36 @@
         "key": "v",
         "command": "vim.goToNormalMode",
         "when": "editorTextFocus && vim.currentMode==VISUAL"
+      },
+      {
+        "key": "alt+k",
+        "command": "editor.action.moveLinesUpAction",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+      },
+      {
+        "key": "alt+j",
+        "command": "editor.action.moveLinesDownAction",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+      },
+      {
+        "key": "alt+h",
+        "command": "workbench.action.navigateBack",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+      },
+      {
+        "key": "alt+l",
+        "command": "workbench.action.navigateForward",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+      },
+      {
+        "key": "ctrl+alt+k",
+        "command": "editor.action.insertCursorAbove",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+      },
+      {
+        "key": "ctrl+alt+j",
+        "command": "editor.action.insertCursorBelow",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
       }
     ],
     "commands": [
