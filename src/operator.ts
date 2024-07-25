@@ -42,6 +42,7 @@ export class Operators {
             }
         }).then(res => {
             console.log("editor Edit result: ", res);
+            VimState.setMode('NORMAL');
         });
     }
 
