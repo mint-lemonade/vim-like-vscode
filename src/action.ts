@@ -14,7 +14,7 @@ export class Action {
     static async switchToInsertModeAt(cursorPos: CursorPos) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
-        VimState.vimCursor.selections.forEach(async (sel, i) => {
+        for (let [i, sel] of VimState.vimCursor.selections.entries()) {
             switch (cursorPos) {
                 case 'after-cursor':
                     sel.active = editor!.selections[i].active.translate(0, 1);
@@ -49,7 +49,7 @@ export class Action {
             } else if (VimState.currentMode === 'VISUAL') {
                 sel.anchor = sel.anchor;
             }
-        });
+        }
         VimState.setMode('INSERT');
     }
 }
