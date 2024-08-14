@@ -40,6 +40,15 @@ export class Operators {
             });
     }
 
+    static async change(ranges: vscode.Range[]) {
+        console.log("Inside operator call.");
+
+        await vscode.commands.executeCommand('editor.action.clipboardCutAction')
+            .then(_res => {
+                VimState.setModeAfterNextSlectionUpdate('INSERT');
+            });
+    }
+
     static copy(ranges: vscode.Range[]) {
 
     }
@@ -51,6 +60,12 @@ export const operatorKeyMap: Keymap[] = [
         key: ['d'],
         type: 'Operator',
         action: Operators.delete,
+        mode: ['NORMAL', 'VISUAL']
+    },
+    {
+        key: ['c'],
+        type: 'Operator',
+        action: Operators.change,
         mode: ['NORMAL', 'VISUAL']
     }
 ];
