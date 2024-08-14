@@ -10,6 +10,7 @@ export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 export class VimState {
     static currentMode: Mode = 'NORMAL';
     static lastMode: Mode;
+    static deferredModeSwitch: Mode | undefined;
     static statusBar: vscode.StatusBarItem;
     static keyMap: KeyHandler;
 
@@ -48,9 +49,22 @@ export class VimState {
         });
 
         vscode.window.onDidChangeTextEditorSelection((e) => {
-            if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
-                this.syncVimCursor();
+            if (e.kind !== vscode.TextEditorSelectionChangeKind.Command) {
+                console.log("Selection Changed: ", e.kind);
+                console.log("Syncing");
+                setTimeout(() => {
+                    printCursorPositions("Before SYNCING!");
+                    this.syncVimCursor();
+                    printCursorPositions("After SYNCING!");
+                    if (this.deferredModeSwitch) {
+                        this.setMode(this.deferredModeSwitch);
+                        this.deferredModeSwitch = undefined;
+                    }
+                });
             }
+            // if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
+            //     this.syncVimCursor();
+            // }
         });
     }
 
@@ -69,6 +83,7 @@ export class VimState {
     static setMode(mode: Mode) {
         this.lastMode = this.currentMode;
         this.currentMode = mode;
+        console.log(`Switching mode from ${this.lastMode} to ${this.currentMode}`);
         this.statusBar.text = `--${mode}--`;
         this.statusBar.tooltip = 'Vim Mode';
         this.statusBar.show();
@@ -77,24 +92,30 @@ export class VimState {
             switch (mode) {
                 case 'NORMAL': {
                     editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
+                    this.syncVimCursor();
+
                     break;
                 }
 
                 case 'VISUAL':
                     {
                         editor.options.cursorStyle = vscode.TextEditorCursorStyle.Line;
-                        editor.selections.forEach((sel, i) => {
-                            this.vimCursor.selections[i].anchor = sel.anchor;
-                        });
+
+                        this.syncVimCursor();
+                        // editor.selections.forEach((sel, i) => {
+                        //     this.vimCursor.selections[i].anchor = sel.anchor;
+                        // });
 
                         // Setup text decoration to mimic the block cursor.
-                        const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
-                        const textColor = new vscode.ThemeColor('editorCursor.background');
-                        const decorationType = vscode.window.createTextEditorDecorationType({
-                            backgroundColor: cursorColor,
-                            color: textColor
-                        });
-                        this.vimCursor.visualModeTextDecoration = decorationType;
+                        if (!this.vimCursor.visualModeTextDecoration) {
+                            const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
+                            const textColor = new vscode.ThemeColor('editorCursor.background');
+                            const decorationType = vscode.window.createTextEditorDecorationType({
+                                backgroundColor: cursorColor,
+                                color: textColor
+                            });
+                            this.vimCursor.visualModeTextDecoration = decorationType;
+                        }
 
                         break;
                     }
@@ -108,9 +129,14 @@ export class VimState {
                 default:
                     break;
             }
+            printCursorPositions("Before syncing VS code cursor!");
             this.syncVsCodeCursorOrSelection();
         }
         vscode.commands.executeCommand('setContext', "vim.currentMode", mode);
+    }
+
+    static setModeAfterNextSlectionUpdate(mode: Mode) {
+        this.deferredModeSwitch = mode;
     }
 
     static syncVimCursor() {
@@ -123,19 +149,46 @@ export class VimState {
             };
         }
 
-
-        /**
-         * // TODO: set vim-cursor based on mode. 
-         * Since editor selection is adjusted when syncing vs-code selection
-         * from vim-vursor as char under vim-cursor is expected to be selected.
-         * So vim-cursor also needs to be adjusted when syncing
-         * back from vs-code selection.        
-         */
         this.vimCursor.selections = editor.selections.map(sel => {
-            return {
-                active: sel.active,
-                anchor: sel.anchor
-            };
+            if (this.currentMode === 'NORMAL') {
+                if (sel.active.isBefore(sel.anchor)) {
+                    return {
+                        anchor: sel.active,
+                        active: sel.active
+                    };
+
+                } else if (sel.active.isAfter(sel.anchor)) {
+                    return {
+                        anchor: sel.active.translate(0, -1),
+                        active: sel.active.translate(0, -1)
+                    };
+                } else {
+                    return {
+                        anchor: sel.active,
+                        active: sel.active
+                    };
+                }
+            } else if (this.currentMode === 'VISUAL') {
+                if (sel.active.isBefore(sel.anchor)) {
+                    return {
+                        anchor: sel.anchor.translate(0, -1),
+                        active: sel.active
+                    };
+
+                } else if (sel.active.isAfter(sel.anchor)) {
+                    return {
+                        anchor: sel.anchor,
+                        active: sel.active.translate(0, -1)
+                    };
+                } else {
+                    return {
+                        anchor: sel.anchor,
+                        active: sel.active
+                    };
+                }
+            } else {
+                throw new Error("Shouldnn't sync in INSERT mode.");
+            }
         });
         this.updateVisualModeCursor();
     }
@@ -146,7 +199,6 @@ export class VimState {
 
         let startPosition: vscode.Position[] = [];
         let endPosition: vscode.Position[] = [];
-        console.log("selections... ", this.vimCursor.selections);
         for (let [i, sel] of this.vimCursor.selections.entries()) {
             if (this.currentMode === 'NORMAL') {
                 startPosition[i] = sel.active;
@@ -182,15 +234,41 @@ export class VimState {
         VimState.updateVisualModeCursor();
     }
 
+    static async syncSelectionAndExec(action: Function) {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor) { return; }
+
+        let selections = this.vimCursor.selections.map((sel, i) => {
+            let startPosition: vscode.Position;
+            let endPosition: vscode.Position;
+            if (sel.active.isBefore(sel.anchor)) {
+                startPosition = sel.anchor.translate(0, 1);
+                endPosition = sel.active;
+            } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
+                startPosition = sel.anchor;
+                endPosition = sel.active.translate(0, 1);
+            }
+            return new vscode.Selection(startPosition, endPosition);
+        });
+
+        editor.selections = selections;
+        await action();
+        // this.syncVimCursor();
+        // VimState.updateVisualModeCursor();
+    }
+
     static updateVisualModeCursor(position?: vscode.Position) {
 
         let editor = vscode.window.activeTextEditor;
         if (!editor || !this.vimCursor.visualModeTextDecoration) { return; }
+        console.log("Updating visual mode cursor....");
+
         editor.setDecorations(this.vimCursor.visualModeTextDecoration, []);
         if (this.currentMode === 'VISUAL') {
             let cursors = this.vimCursor.selections.map(sel => {
                 return new vscode.Range(sel.active, sel.active.translate(0, 1));
             });
+            console.log("visual mode cursros: ", cursors);
             editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
 
         }
