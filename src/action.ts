@@ -6,6 +6,8 @@ import { Keymap } from './mapping';
 type CursorPos = 'before-cursor' | 'after-cursor' | 'line-start' | 'line-end' | 'new-line-below' | 'new-line-above';
 
 export class Action {
+    static repeat: number = 0;
+
     static setup(context: vscode.ExtensionContext) {
 
 
@@ -52,9 +54,29 @@ export class Action {
         }
         VimState.setMode('INSERT');
     }
+
+    static deleteChar() {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor) { return; }
+        let repeat = Math.max(this.repeat, 1);
+        let ranges: vscode.Range[] = [];
+        if (VimState.currentMode === 'NORMAL') {
+            ranges = VimState.vimCursor.selections.map(sel => new vscode.Range(sel.active, sel.active.translate(0, repeat)));
+        } else if (VimState.currentMode === 'VISUAL') {
+            ranges = editor.selections.map(sel => sel);
+        }
+        editor.edit(e => {
+            for (let range of ranges) {
+                e.delete(range);
+            }
+        }).then(res => {
+            console.log("edit possible: ", res);
+            VimState.setModeAfterNextSlectionUpdate('NORMAL');
+        });
+    }
 }
 
-export const switchModeKeymap: Keymap[] = [
+export const actionKeymap: Keymap[] = [
     {
         key: ['j', 'f'],
         type: 'Action',
@@ -103,6 +125,11 @@ export const switchModeKeymap: Keymap[] = [
         action: () => Action.switchToInsertModeAt('new-line-above'),
         mode: ['NORMAL']
     },
-
+    {
+        key: ['x'],
+        type: 'Action',
+        action: () => Action.deleteChar(),
+        mode: ['NORMAL', 'VISUAL']
+    },
 ];
 

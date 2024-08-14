@@ -231,19 +231,33 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
                 moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
             }
         });
-
-        console.log("cursor position", editor.selections.map(sel => sel.active));
-        console.log("moveTo position", moveTo.positions);
         VimState.vimCursor.selections.forEach((sel, i) => {
             sel.active = moveTo.positions[i];
         });
         repeat -= 1;
     }
-    // reset repeat to default after executing motion.
-    MotionHandler.repeat = 0;
+
     if (syncVsCodeCursor) {
+        if (VimState.currentMode === 'NORMAL') {
+            VimState.vimCursor.selections.forEach((sel, i) => {
+                sel.anchor = sel.active;
+            });
+        }
         VimState.syncVsCodeCursorOrSelection();
     }
+    // return {
+    //     sync: () => {
+    //         if (VimState.currentMode === 'NORMAL') {
+    //             VimState.vimCursor.selections.forEach((sel, i) => {
+    //                 sel.anchor = sel.active;
+    //             });
+    //         }
+    //         VimState.syncVsCodeCursorOrSelection();
+    //     },
+    //     runActionOnSelection: (action: Function) => {
+    //         VimState.syncSelectionAndExec(action);
+    //     }
+    // };
 };
 
 /**
@@ -252,7 +266,6 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
  */
 function registerMotion(commandName?: string) {
     return function (originalFunc: Motion, context: any) {
-        console.log("Context: ", context);
         commandName = commandName || originalFunc.name;
         vscode.commands.registerCommand(`vim.${commandName}`, () => {
             executeMotion(originalFunc, true);

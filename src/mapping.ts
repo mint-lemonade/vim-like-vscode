@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
 import { executeMotion, Motion, MotionHandler } from "./motion";
 import { execOperators, Operator } from './operator';
+import { Action } from './action';
+import { printCursorPositions } from './util';
 
 export type Keymap = {
     key: string[],
@@ -59,6 +61,7 @@ export class KeyHandler {
             let repeat = parseInt(key);
             if (!Number.isNaN(repeat)) {
                 MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
+                Action.repeat = Action.repeat * 10 + repeat;
                 return true;
             }
         }
@@ -112,6 +115,7 @@ export class KeyHandler {
     }
 
     execAction(km: Keymap) {
+        printCursorPositions("Before start execution");
         if (km.type === 'Motion') {
             if (this.operator) {
                 // if prev key was operator, combine operator and motion 
@@ -120,6 +124,9 @@ export class KeyHandler {
                 executeMotion(km.action, true, ...(km.args || []));
             }
             this.operator = null;
+            // reset repeat to default after executing motion.
+            MotionHandler.repeat = 0;
+            Action.repeat = 0;
         } else if (km.type === 'Operator') {
             if (VimState.currentMode === 'NORMAL') {
                 this.operator = km.action;
@@ -130,7 +137,11 @@ export class KeyHandler {
         } else if (km.type === 'Action') {
             km.action();
             this.operator = null;
+            // reset repeat to default after executing motion.
+            MotionHandler.repeat = 0;
+            Action.repeat = 0;
         }
+        printCursorPositions("After complete execution");
     }
 
     // If key sequence isn't matched or timeout occurs, 

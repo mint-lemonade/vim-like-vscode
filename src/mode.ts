@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { KeyHandler } from './mapping';
 import { motionKeymap } from './motion';
 import { operatorKeyMap } from './operator';
-import { switchModeKeymap } from './action';
+import { actionKeymap } from './action';
+import { printCursorPositions } from './util';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 
@@ -32,7 +33,7 @@ export class VimState {
         this.setMode('NORMAL');
         this.keyMap = new KeyHandler([
             ...motionKeymap,
-            ...switchModeKeymap,
+            ...actionKeymap,
             ...operatorKeyMap
         ]);
 
