@@ -50,9 +50,9 @@ export class VimState {
 
         vscode.window.onDidChangeTextEditorSelection((e) => {
             if (e.kind !== vscode.TextEditorSelectionChangeKind.Command) {
-                console.log("Selection Changed: ", e.kind);
+                console.log("Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
                 console.log("Syncing");
-                setTimeout(() => {
+                setImmediate(() => {
                     printCursorPositions("Before SYNCING!");
                     this.syncVimCursor();
                     printCursorPositions("After SYNCING!");
@@ -60,6 +60,17 @@ export class VimState {
                         this.setMode(this.deferredModeSwitch);
                         this.deferredModeSwitch = undefined;
                     }
+                });
+            } else {
+                console.log("[Bogus] Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
+                setImmediate(() => {
+                    printCursorPositions("Before SYNCING!");
+                    this.syncVimCursor();
+                    printCursorPositions("After SYNCING!");
+                    // if (this.deferredModeSwitch) {
+                    //     this.setMode(this.deferredModeSwitch);
+                    //     this.deferredModeSwitch = undefined;
+                    // }
                 });
             }
             // if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
