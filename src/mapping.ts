@@ -38,7 +38,7 @@ export class KeyHandler {
     debounceTime: number = 10; // in milliseconds
     lastKeyTimeStamp: number = 0;
 
-    operator: Operator | undefined | null;
+    operator: { op: Operator, key: string } | undefined | null;
 
     constructor(keymaps: Keymap[]) {
         for (let i = keymaps.length - 1; i >= 0; i--) {
@@ -59,6 +59,9 @@ export class KeyHandler {
     // returns false if no mapping was found and no action was executed. true otherwise.
     execute(key: string): Boolean {
         if (VimState.currentMode === 'NORMAL' || VimState.currentMode === 'VISUAL') {
+            // if (this.debounceKey()) {
+            //     return false;
+            // }
             // if key is  a number then set up repeat value for how many 
             // times next motion is to be repeated.
             let repeat = parseInt(key);
@@ -130,7 +133,7 @@ export class KeyHandler {
         if (km.type === 'Motion') {
             if (this.operator) {
                 // if prev key was operator, combine operator and motion 
-                execOperators(this.operator, { motion: km.action, args: km.args || [] });
+                execOperators(this.operator.op, { motion: km.action, motionArgs: km.args || [] });
             } else {
                 executeMotion(km.action, true, ...(km.args || []));
             }
@@ -140,7 +143,13 @@ export class KeyHandler {
             Action.repeat = 0;
         } else if (km.type === 'Operator') {
             if (VimState.currentMode === 'NORMAL') {
-                this.operator = km.action;
+                if (this.operator && this.operator.key === km.key[0]) {
+                    // Same operator was pressed twice eg. 'dd' 'cc'
+                    execOperators(km.action);
+                    this.operator = null;
+                } else {
+                    this.operator = { op: km.action, key: km.key[0] };
+                }
             } else if (VimState.currentMode === 'VISUAL') {
                 // execute operator on currently selected ranges.
                 execOperators(km.action);

@@ -5,7 +5,7 @@ import { Keymap } from './mapping';
 import { printCursorPositions } from './util';
 
 export type Operator = (range: vscode.Range[]) => void | Promise<void>;
-type OperatorRangeArgs = { motion: Motion, args: any[] };
+type OperatorRangeArgs = { motion: Motion, motionArgs: any[] };
 
 export async function execOperators(op: Operator, operatorRange?: OperatorRangeArgs) {
     let editor = vscode.window.activeTextEditor;
@@ -17,7 +17,7 @@ export async function execOperators(op: Operator, operatorRange?: OperatorRangeA
     let ranges: vscode.Range[] = [];
     if (operatorRange) {
         // Operator is executed in normal mode with provided motion as range
-        executeMotion(operatorRange.motion, false, ...operatorRange.args);
+        executeMotion(operatorRange.motion, false, ...operatorRange.motionArgs);
         console.log("Executing operator from NORMAL mode");
         VimState.syncSelectionAndExec(() => op(ranges));
     } else {
@@ -33,7 +33,7 @@ export class Operators {
 
     static async delete(ranges: vscode.Range[]) {
         console.log("Inside operator call.");
-
+        // cut range under selection
         await vscode.commands.executeCommand('editor.action.clipboardCutAction')
             .then(_res => {
                 VimState.setModeAfterNextSlectionUpdate('NORMAL');
@@ -43,10 +43,10 @@ export class Operators {
     static async change(ranges: vscode.Range[]) {
         console.log("Inside operator call.");
 
-        await vscode.commands.executeCommand('editor.action.clipboardCutAction')
-            .then(_res => {
-                VimState.setModeAfterNextSlectionUpdate('INSERT');
-            });
+        await vscode.commands.executeCommand('editor.action.clipboardCutAction');
+        // vscode.commands.
+        // if (this.editor.se)
+        VimState.setModeAfterNextSlectionUpdate('INSERT');
     }
 
     static copy(ranges: vscode.Range[]) {
