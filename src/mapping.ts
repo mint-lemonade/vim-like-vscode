@@ -7,6 +7,9 @@ import { Action } from './action';
 import { printCursorPositions } from './util';
 
 export type Keymap = {
+    // In INSERT mode keys are time sensitive. 
+    // So if sequence doesn't match or timeout occurs, typing is delegated to vscode.
+    // In NORMAL and VISUAL mode no timout occurs and no delegation happens
     key: string[],
     mode: Mode[],
 } & ({
@@ -90,7 +93,9 @@ export class KeyHandler {
                     }
                     this.expectingSequence = true;
                     this.currentSequence.push(key);
-                    setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
+                    if (VimState.currentMode === 'INSERT') {
+                        setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
+                    }
                     return true;
                 }
             }
@@ -108,7 +113,13 @@ export class KeyHandler {
                     return true;
                 }
             }
-            this.flushSequence();
+            if (VimState.currentMode === 'INSERT') {
+                // If sequence not matched delegate to vscode typing
+                this.flushSequence();
+            } else {
+                // If sequence not matched, clear sequence.
+                this.clearSequence();
+            }
             return true;
         }
         return false;
