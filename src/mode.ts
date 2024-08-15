@@ -28,6 +28,8 @@ export class VimState {
         visualModeTextDecoration: vscode.TextEditorDecorationType | null;
     };
 
+    static activeEditorMap: WeakMap<vscode.TextDocument, Mode> = new WeakMap();
+
     static init() {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
         this.syncVimCursor();
@@ -40,11 +42,22 @@ export class VimState {
 
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             console.log("Aactive editor Changes!");
-            if (!editor) { return; }
-            setTimeout(() => {
-                console.log("anchor: ", editor.selection.anchor);
-                console.log("active: ", editor.selection.active);
-                this.syncVimCursor();
+            // if (!editor) { return; }
+            setImmediate(() => {
+                if (!editor) { return; }
+                console.log("Active editor mode: ", this.activeEditorMap.get(editor.document));
+                if (this.activeEditorMap.has(editor.document)) {
+                    if (this.activeEditorMap.get(editor.document) === 'INSERT') {
+                        this.syncVimCursor();
+                    }
+                    this.setMode(this.activeEditorMap.get(editor.document)!);
+                } else {
+                    console.log("anchor: ", editor.selection.anchor);
+                    console.log("active: ", editor.selection.active);
+                    this.setMode('NORMAL');
+                    // this.syncVimCursor();
+                    this.activeEditorMap.set(editor.document, this.currentMode);
+                }
             });
         });
 
@@ -100,6 +113,7 @@ export class VimState {
         this.statusBar.show();
         let editor = vscode.window.activeTextEditor;
         if (editor) {
+            this.activeEditorMap.set(editor.document, this.currentMode);
             switch (mode) {
                 case 'NORMAL': {
                     editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
@@ -179,7 +193,7 @@ export class VimState {
                         active: sel.active
                     };
                 }
-            } else if (this.currentMode === 'VISUAL') {
+            } else if (this.currentMode === 'VISUAL' || this.currentMode === 'INSERT') {
                 if (sel.active.isBefore(sel.anchor)) {
                     return {
                         anchor: sel.anchor.translate(0, -1),
@@ -198,6 +212,7 @@ export class VimState {
                     };
                 }
             } else {
+                console.error("Syhncing in INSERT mode");
                 throw new Error("Shouldnn't sync in INSERT mode.");
             }
         });
