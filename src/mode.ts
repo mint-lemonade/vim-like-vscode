@@ -3,7 +3,7 @@ import { KeyHandler } from './mapping';
 import { motionKeymap } from './motion';
 import { operatorKeyMap } from './operator';
 import { actionKeymap } from './action';
-import { printCursorPositions } from './util';
+import { Logger, printCursorPositions } from './util';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 
@@ -41,19 +41,19 @@ export class VimState {
         ]);
 
         vscode.window.onDidChangeActiveTextEditor((editor) => {
-            console.log("Aactive editor Changes!");
+            Logger.log("Aactive editor Changes!");
             // if (!editor) { return; }
             setImmediate(() => {
                 if (!editor) { return; }
-                console.log("Active editor mode: ", this.activeEditorMap.get(editor.document));
+                Logger.log("Active editor mode: ", this.activeEditorMap.get(editor.document));
                 if (this.activeEditorMap.has(editor.document)) {
                     if (this.activeEditorMap.get(editor.document) === 'INSERT') {
                         this.syncVimCursor();
                     }
                     this.setMode(this.activeEditorMap.get(editor.document)!);
                 } else {
-                    console.log("anchor: ", editor.selection.anchor);
-                    console.log("active: ", editor.selection.active);
+                    Logger.log("anchor: ", editor.selection.anchor);
+                    Logger.log("active: ", editor.selection.active);
                     this.setMode('NORMAL');
                     // this.syncVimCursor();
                     this.activeEditorMap.set(editor.document, this.currentMode);
@@ -63,8 +63,8 @@ export class VimState {
 
         vscode.window.onDidChangeTextEditorSelection((e) => {
             if (e.kind !== vscode.TextEditorSelectionChangeKind.Command) {
-                console.log("Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
-                console.log("Syncing");
+                Logger.log("Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
+                Logger.log("Syncing");
                 setImmediate(() => {
                     printCursorPositions("Before SYNCING!");
                     this.syncVimCursor();
@@ -75,7 +75,7 @@ export class VimState {
                     }
                 });
             } else {
-                console.log("[Bogus] Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
+                Logger.log("[Bogus] Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
                 setImmediate(() => {
                     printCursorPositions("Before SYNCING!");
                     this.syncVimCursor();
@@ -107,7 +107,7 @@ export class VimState {
     static setMode(mode: Mode) {
         this.lastMode = this.currentMode;
         this.currentMode = mode;
-        console.log(`Switching mode from ${this.lastMode} to ${this.currentMode}`);
+        Logger.log(`Switching mode from ${this.lastMode} to ${this.currentMode}`);
         this.statusBar.text = `--${mode}--`;
         this.statusBar.tooltip = 'Vim Mode';
         this.statusBar.show();
@@ -287,14 +287,14 @@ export class VimState {
 
         let editor = vscode.window.activeTextEditor;
         if (!editor || !this.vimCursor.visualModeTextDecoration) { return; }
-        console.log("Updating visual mode cursor....");
+        Logger.log("Updating visual mode cursor....");
 
         editor.setDecorations(this.vimCursor.visualModeTextDecoration, []);
         if (this.currentMode === 'VISUAL') {
             let cursors = this.vimCursor.selections.map(sel => {
                 return new vscode.Range(sel.active, sel.active.translate(0, 1));
             });
-            console.log("visual mode cursros: ", cursors);
+            Logger.log("visual mode cursros: ", cursors);
             editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
 
         }

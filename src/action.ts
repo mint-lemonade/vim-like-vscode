@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { VimState } from './mode';
 import { Mode } from './mode';
 import { Keymap } from './mapping';
+import { Logger } from './util';
 
 type CursorPos = 'before-cursor' | 'after-cursor' | 'line-start' | 'line-end' | 'new-line-below' | 'new-line-above';
 
@@ -70,7 +71,7 @@ export class Action {
                 e.delete(range);
             }
         }).then(res => {
-            console.log("edit possible: ", res);
+            Logger.log("edit possible: ", res);
             VimState.setModeAfterNextSlectionUpdate('NORMAL');
         });
     }
