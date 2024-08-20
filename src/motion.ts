@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { VimState } from './mode';
 import { Keymap } from './mapping';
+import { Logger } from './util';
 
 
 type MotionData = {
@@ -11,10 +12,15 @@ type MotionData = {
 export type Motion = (...args: any[]) => MotionData;
 
 export class MotionHandler {
-    static handelingCursorMove: boolean = false;
     static editor: vscode.TextEditor;
     // 0 is default value, motion will executed once when repeat is either 0 or 1
     static repeat: number = 0;
+
+    static current_key: string;
+
+    // data for repeating search
+    static search_char: string;
+    static include_char: boolean;
 
     static isCursorAtLineStart(curIdx: number): boolean {
         let curPos = VimState.vimCursor.selections[curIdx].active;
@@ -211,6 +217,51 @@ export class MotionHandler {
             includeCurrentCharUnderSelection: true
         };
     }
+
+    /**
+     * 
+     * @param search_dir 
+     * @param include_char true for f/F. false for t/T  
+     */
+    static findChar(search_dir: 1 | -1, include_char?: boolean): MotionData {
+        if (['f', 'F', 't', 'T'].includes(this.current_key[0])) {
+            this.search_char = this.current_key[1];
+            this.include_char = include_char!;
+        } else if (!this.search_char) {
+            return {
+                positions: VimState.vimCursor.selections.map(sel => sel.active)
+            };
+        }
+        Logger.info("FIND: ", this.current_key);
+        let positions = VimState.vimCursor.selections.map((sel, i) => {
+            let curPos = sel.active;
+            let line = this.editor.document.lineAt(curPos.line);
+            let c = curPos.character;
+
+            if (!this.include_char) {
+                // in t/T operator skip immediate char to avoid getting stuck
+                c += search_dir;
+            }
+            while (true) {
+                c += search_dir;
+                if (c < 0 || c > line.text.length - 1) {
+                    break;
+                }
+                if (line.text[c] === this.search_char) {
+                    if (this.include_char) {
+                        return new vscode.Position(curPos.line, c);
+                    }
+                    return new vscode.Position(curPos.line, c).translate(0, search_dir * -1);
+                }
+            }
+            return curPos;
+
+        });
+        return {
+            positions,
+            includeCurrentCharUnderSelection: true
+        };
+    }
 }
 
 export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
@@ -291,67 +342,102 @@ export const motionKeymap: Keymap[] = [
         key: ['h'],
         type: 'Motion',
         action: MotionHandler.moveLeft,
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
     }, {
         key: ['l'],
         type: 'Motion',
         action: MotionHandler.moveRight,
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['j'],
         type: 'Motion',
         action: MotionHandler.moveDown,
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['k'],
         type: 'Motion',
         action: MotionHandler.moveUp,
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['w'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-start', 'word'],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['W'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-start', 'WORD'],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['e'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-end', 'word'],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['E'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-end', 'WORD'],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['b'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-start', 'word'],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
     }, {
         key: ['B'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-start', 'WORD'],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
 
+    }, {
+        key: ['f', "{}"],
+        type: 'Motion',
+        action: MotionHandler.findChar,
+        args: [1, true],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['F', "{}"],
+        type: 'Motion',
+        action: MotionHandler.findChar,
+        args: [-1, true],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['t', "{}"],
+        type: 'Motion',
+        action: MotionHandler.findChar,
+        args: [1, false],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['T', "{}"],
+        type: 'Motion',
+        action: MotionHandler.findChar,
+        args: [-1, false],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: [';'],
+        type: 'Motion',
+        action: MotionHandler.findChar,
+        args: [1],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: [','],
+        type: 'Motion',
+        action: MotionHandler.findChar,
+        args: [-1],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
     }
-
 ];

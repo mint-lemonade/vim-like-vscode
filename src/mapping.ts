@@ -46,7 +46,7 @@ export class KeyHandler {
     operatorPendingModeMap: Keymap[] = [];
 
     currentSequence: string[] = [];
-    matchedSequence: string[] = [];
+    matchedSequence: string = "";
     expectingSequence: Boolean;
     sequenceTimeout: number = 500; // in milliseconds
 
@@ -104,6 +104,10 @@ export class KeyHandler {
         // if matched but matchedKeymap is undefined, means middle of an expected sequence.
         if (!matchedKeymap) { return true; }
 
+        if (matchedKeymap.type === 'Motion') {
+            MotionHandler.current_key = this.matchedSequence;
+        }
+
         this.execAction(matchedKeymap).then(() => {
             if (this.operatorPendingMode) {
                 this.statusBar.show();
@@ -159,6 +163,7 @@ export class KeyHandler {
                 if (km.key[0] === key) {
                     if (km.key.length === 1) {
                         // this.execAction(km);
+                        this.matchedSequence = key;
                         return [true, km];
                     }
                     this.expectingSequence = true;
@@ -175,9 +180,10 @@ export class KeyHandler {
                 if (km.key.length < this.currentSequence.length) {
                     continue;
                 }
-                if (km.key.every((k, i) => k === this.currentSequence[i])) {
+                if (km.key.every((k, i) => k === this.currentSequence[i] || k === '{}')) {
                     if (km.key.length === this.currentSequence.length) {
                         // this.execAction(km);
+                        this.matchedSequence = this.currentSequence.join("");
                         this.clearSequence();
                         return [true, km];
                     }
@@ -201,7 +207,6 @@ export class KeyHandler {
 
         if (this.operatorPendingMode) {
             if (km.type === 'Motion') {
-                MotionHandler.current_key = this.matchedSequence.join("");
                 execOperators(this.operator!.op, { motion: km.action, motionArgs: km.args || [] });
                 this.resetOperator();
                 MotionHandler.repeat = 0;
@@ -230,7 +235,6 @@ export class KeyHandler {
 
         } else {
             if (km.type === 'Motion') {
-                MotionHandler.current_key = this.matchedSequence.join("");
                 executeMotion(km.action, true, ...(km.args || []));
                 MotionHandler.repeat = 0;
                 Action.repeat = 0;
@@ -284,7 +288,6 @@ export class KeyHandler {
 
     clearSequence() {
         this.expectingSequence = false;
-        this.matchedSequence = this.currentSequence;
         this.currentSequence = [];
     }
 
