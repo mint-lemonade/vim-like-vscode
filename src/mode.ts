@@ -31,7 +31,7 @@ export class VimState {
     static activeEditorMap: WeakMap<vscode.TextDocument, Mode> = new WeakMap();
 
     static init() {
-        this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
+        this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
         this.syncVimCursor();
         this.setMode('NORMAL');
         this.keyMap = new KeyHandler([
@@ -92,14 +92,14 @@ export class VimState {
         });
     }
 
-    static type(text: string) {
+    static async type(text: string) {
         if (this.currentMode === 'INSERT') {
-            if (!this.keyMap.execute(text)) {
+            if (!await this.keyMap.execute(text)) {
                 vscode.commands.executeCommand('default:type', { text: text });
             }
             return;
         } else {
-            this.keyMap.execute(text);
+            await this.keyMap.execute(text);
             return;
         }
     }
@@ -278,7 +278,7 @@ export class VimState {
         });
 
         editor.selections = selections;
-        await action();
+        return action();
         // this.syncVimCursor();
         // VimState.updateVisualModeCursor();
     }
