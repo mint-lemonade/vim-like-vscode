@@ -306,6 +306,26 @@ export class MotionHandler {
             positions: positions!
         };
     }
+
+    static moveOnScreen(to: 'middle' | 'top' | 'end'): MotionData {
+        let visibleRange = this.editor.visibleRanges[0];
+        let position;
+        if (to === 'top') {
+            position = visibleRange.start;
+        } else if (to === 'middle') {
+            let offset = Math.floor((visibleRange.end.line - visibleRange.start.line) / 2);
+            position = visibleRange.start.translate(offset, 0);
+        } else if (to === 'end') {
+            position = visibleRange.end;
+        } else {
+            console.error("Invalid argument on screen move");
+            return { positions: VimState.vimCursor.selections.map(sel => sel.active) };
+        }
+        return {
+            // positions: [position, ...VimState.vimCursor.selections.slice(1).map(sel => sel.active)]
+            positions: VimState.vimCursor.selections.map(_ => position)
+        };
+    }
 }
 
 export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
@@ -498,6 +518,24 @@ export const motionKeymap: Keymap[] = [
         key: ['$'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
+        args: ['end'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['H'],
+        type: 'Motion',
+        action: MotionHandler.moveOnScreen,
+        args: ['top'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['M'],
+        type: 'Motion',
+        action: MotionHandler.moveOnScreen,
+        args: ['middle'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['L'],
+        type: 'Motion',
+        action: MotionHandler.moveOnScreen,
         args: ['end'],
         mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
     },
