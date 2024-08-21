@@ -262,6 +262,19 @@ export class MotionHandler {
             includeCurrentCharUnderSelection: true
         };
     }
+
+    static gotoLine(line: 'first' | 'last'): MotionData {
+        if (line === 'first') {
+            return {
+                positions: VimState.vimCursor.selections.map(_ => new vscode.Position(0, 0))
+            };
+        } else {
+            let line = this.editor.document.lineCount - 1;
+            return {
+                positions: VimState.vimCursor.selections.map(_ => new vscode.Position(line, 0))
+            };
+        }
+    }
 }
 
 export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
@@ -296,19 +309,6 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
         }
         VimState.syncVsCodeCursorOrSelection();
     }
-    // return {
-    //     sync: () => {
-    //         if (VimState.currentMode === 'NORMAL') {
-    //             VimState.vimCursor.selections.forEach((sel, i) => {
-    //                 sel.anchor = sel.active;
-    //             });
-    //         }
-    //         VimState.syncVsCodeCursorOrSelection();
-    //     },
-    //     runActionOnSelection: (action: Function) => {
-    //         VimState.syncSelectionAndExec(action);
-    //     }
-    // };
 };
 
 /**
@@ -438,6 +438,18 @@ export const motionKeymap: Keymap[] = [
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['g', 'g'],
+        type: 'Motion',
+        action: MotionHandler.gotoLine,
+        args: ['first'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['G'],
+        type: 'Motion',
+        action: MotionHandler.gotoLine,
+        args: ['lastf'],
         mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
     }
 ];
