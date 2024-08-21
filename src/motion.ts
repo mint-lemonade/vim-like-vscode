@@ -275,6 +275,37 @@ export class MotionHandler {
             };
         }
     }
+
+    static moveInLine(to: 'start' | 'end' | 'first-char'): MotionData {
+        let positions: vscode.Position[];
+        switch (to) {
+            case 'first-char':
+                positions = VimState.vimCursor.selections
+                    .map(sel => {
+                        let line = this.editor.document.lineAt(sel.active.line);
+                        return new vscode.Position(
+                            sel.active.line, line.firstNonWhitespaceCharacterIndex
+                        );
+                    });
+                break;
+            case 'start':
+                positions = VimState.vimCursor.selections
+                    .map(sel => new vscode.Position(sel.active.line, 0));
+                break;
+            case 'end':
+                positions = VimState.vimCursor.selections
+                    .map(sel => {
+                        let line = this.editor.document.lineAt(sel.active.line);
+                        return new vscode.Position(sel.active.line, line.text.length - 1);
+                    });
+                break;
+            default:
+                break;
+        }
+        return {
+            positions: positions!
+        };
+    }
 }
 
 export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
@@ -449,7 +480,25 @@ export const motionKeymap: Keymap[] = [
         key: ['G'],
         type: 'Motion',
         action: MotionHandler.gotoLine,
-        args: ['lastf'],
+        args: ['last'],
         mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
-    }
+    }, {
+        key: ['^'],
+        type: 'Motion',
+        action: MotionHandler.moveInLine,
+        args: ['first-char'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['0'],
+        type: 'Motion',
+        action: MotionHandler.moveInLine,
+        args: ['start'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['$'],
+        type: 'Motion',
+        action: MotionHandler.moveInLine,
+        args: ['end'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    },
 ];

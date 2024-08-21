@@ -126,9 +126,13 @@ export class KeyHandler {
             // times next motion/operator is to be repeated.
             let repeat = parseInt(key);
             if (!Number.isNaN(repeat)) {
-                MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
-                Action.repeat = Action.repeat * 10 + repeat;
-                return [true, undefined];
+                if (repeat === 0 && MotionHandler.repeat === 0 && Action.repeat === 0) {
+                    // Do nothing. Let the key be handled as motion.
+                } else {
+                    MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
+                    Action.repeat = Action.repeat * 10 + repeat;
+                    return [true, undefined];
+                }
             }
         }
 
