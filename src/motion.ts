@@ -326,6 +326,35 @@ export class MotionHandler {
             positions: VimState.vimCursor.selections.map(_ => position)
         };
     }
+
+    static moveToParagraph(to: 1 | -1): MotionData {
+        let positions = VimState.vimCursor.selections.map(sel => {
+            let l = sel.active.line;
+            let startedOnPara = this.editor.document.lineAt(l).isEmptyOrWhitespace;
+            while (true) {
+                l += to;
+                if (l < 0 || l > this.editor.document.lineCount - 1) {
+                    l -= to;
+                    break;
+                }
+                if (l === 0 || l === this.editor.document.lineCount - 1) {
+                    break;
+                }
+                let line = this.editor.document.lineAt(l);
+                if (line.isEmptyOrWhitespace && startedOnPara) {
+                    continue;
+                }
+                if (line.isEmptyOrWhitespace) {
+                    break;
+                }
+                startedOnPara = false;
+            }
+            return new vscode.Position(l, sel.active.character);
+        });
+        return {
+            positions
+        };
+    }
 }
 
 export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
@@ -537,6 +566,18 @@ export const motionKeymap: Keymap[] = [
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['end'],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['{'],
+        type: 'Motion',
+        action: MotionHandler.moveToParagraph,
+        args: [1],
+        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+    }, {
+        key: ['}'],
+        type: 'Motion',
+        action: MotionHandler.moveToParagraph,
+        args: [-1],
         mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
     },
 ];
