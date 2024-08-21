@@ -132,5 +132,22 @@ export const actionKeymap: Keymap[] = [
         action: () => Action.deleteChar(),
         mode: ['NORMAL', 'VISUAL']
     },
+    {
+        key: ['J'],
+        type: 'Action',
+        action: () => vscode.commands.executeCommand('editorScroll', {
+            to: 'down',
+            by: 'line'
+        }),
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['K'],
+        type: 'Action',
+        action: () => vscode.commands.executeCommand('editorScroll', {
+            to: 'up',
+            by: 'line'
+        }),
+        mode: ['NORMAL', 'VISUAL']
+    },
 ];
 
