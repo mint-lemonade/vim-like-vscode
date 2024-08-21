@@ -309,7 +309,7 @@ export class MotionHandler {
 
     static moveOnScreen(to: 'middle' | 'top' | 'end'): MotionData {
         let visibleRange = this.editor.visibleRanges[0];
-        let position;
+        let position: vscode.Position;
         if (to === 'top') {
             position = visibleRange.start;
         } else if (to === 'middle') {
