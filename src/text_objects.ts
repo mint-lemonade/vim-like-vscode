@@ -13,9 +13,9 @@ export class TextObjects {
     static editor: vscode.TextEditor;
     static currentSeq: string;
 
-    static wordObject(type: 'word' | 'WORD'): Range[] {
-        let start = MotionHandler.findWordBoundry('prev-start', type);
-        let end = MotionHandler.findWordBoundry('next-end', type);
+    static wordObject(wordType: 'word' | 'WORD', rangeType: RangeType): Range[] {
+        let start = MotionHandler.findWordBoundry('prev-start', wordType);
+        let end = MotionHandler.findWordBoundry('next-end', wordType);
         let ranges = VimState.vimCursor.selections.map((sel, i) => {
             return new Range(start.positions[i], end.positions[i]).union(new Range(sel.anchor, sel.active));
         });
@@ -217,7 +217,7 @@ function charAt(pos: vscode.Position): string {
 }
 
 
-export function execTextObject(textObject: TextObject, ...args: any[]) {
+export function execTextObject(textObject: TextObject, syncVsCodeCursor: boolean, ...args: any[]) {
     let editor = vscode.window.activeTextEditor;
     if (!editor) { return; }
     TextObjects.editor = editor;
@@ -230,7 +230,9 @@ export function execTextObject(textObject: TextObject, ...args: any[]) {
             active: ranges[i].end
         };
     });
-    VimState.syncVsCodeCursorOrSelection();
+    if (syncVsCodeCursor) {
+        VimState.syncVsCodeCursorOrSelection();
+    }
 }
 
 export const textObjectKeymap: Keymap[] = [
@@ -238,13 +240,11 @@ export const textObjectKeymap: Keymap[] = [
         key: ['i', '{}'],
         type: 'TextObject',
         action: TextObjects.bracesObject,
-        args: ['{', 'around'],
         mode: ['VISUAL', 'OP_PENDING_MODE']
     }, {
         key: ['a', '{}'],
         type: 'TextObject',
         action: TextObjects.bracesObject,
-        args: ['{', 'around'],
         mode: ['VISUAL', 'OP_PENDING_MODE']
     }, {
         key: ['i', 'w'],

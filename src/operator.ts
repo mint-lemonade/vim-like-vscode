@@ -3,6 +3,7 @@ import { executeMotion, Motion, MotionHandler } from "./motion";
 import { VimState } from './mode';
 import { Keymap } from './mapping';
 import { Logger, printCursorPositions } from './util';
+import { execTextObject, TextObject, TextObjects } from './text_objects';
 
 /**
  * @returns **true** if operator is executed or is invalid. KeymapHandler can turn off OP_PENDING MODE.
@@ -13,30 +14,38 @@ export type Operator = (
     ranges: vscode.Range[], preArgs?: string, postArgs?: string
 ) => boolean | Promise<boolean>;
 
-type OperatorArgs = { motion?: Motion, motionArgs?: any[], preArgs?: string, postArgs?: string };
+type OperatorArgs = {
+    motion?: Motion, motionArgs?: any[],
+    textObject?: TextObject, textObjectArgs?: any[],
+    preArgs?: string, postArgs?: string
+};
 
 /**
  * @returns **true** if operator is executed or is invalid. KeymapHandler can turn off OP_PENDING MODE.
  * 
  *   **fasle** if operator still needs more args. KeymapHandler should parse more operator args.
  */
-export async function execOperators(op: Operator, opArgs?: OperatorArgs): Promise<boolean> {
+export async function execOperators(op: Operator, args?: OperatorArgs): Promise<boolean> {
     let editor = vscode.window.activeTextEditor;
     if (!editor) { return true; }
     MotionHandler.editor = editor;
     Operators.editor = editor;
+    TextObjects.editor = editor;
     op = op.bind(Operators);
 
     let ranges: vscode.Range[] = [];
-    if (opArgs?.motion) {
+    if (args?.motion) {
         // Operator is executed in normal mode with provided motion as range
-        executeMotion(opArgs.motion, false, ...(opArgs.motionArgs || []));
+        executeMotion(args.motion, false, ...(args.motionArgs || []));
         Logger.log("Executing operator from NORMAL mode");
-        return VimState.syncSelectionAndExec(() => op(ranges, opArgs.preArgs, opArgs.postArgs));
+        return VimState.syncSelectionAndExec(() => op(ranges, args.preArgs, args.postArgs));
+    } else if (args?.textObject) {
+        execTextObject(args.textObject, false, ...(args.textObjectArgs || []));
+        return VimState.syncSelectionAndExec(() => op(ranges, args.preArgs, args.postArgs));
     } else {
         // Operator is executed in visual mode with selection as range
         Logger.log("Executing operator from VISUAL mode");
-        return op(ranges, opArgs?.preArgs, opArgs?.postArgs);
+        return op(ranges, args?.preArgs, args?.postArgs);
         printCursorPositions("OPERATOR executed!");
     }
 }

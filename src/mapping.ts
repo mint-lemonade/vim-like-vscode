@@ -232,7 +232,13 @@ export class KeyHandler {
                 return;
             }
             else if (km.type === 'TextObject') {
-
+                execOperators(this.operator!.op, {
+                    textObject: km.action, textObjectArgs: km.args || []
+                });
+                this.resetOperator();
+                MotionHandler.repeat = 0;
+                Action.repeat = 0;
+                return;
 
             }
             else if (km.type === 'Action') {
@@ -261,7 +267,7 @@ export class KeyHandler {
                 }
             }
             else if (km.type === 'TextObject') {
-                execTextObject(km.action, ...(km.args || []));
+                execTextObject(km.action, true, ...(km.args || []));
             }
             else if (km.type === 'Action') {
                 km.action();
