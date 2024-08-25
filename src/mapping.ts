@@ -5,8 +5,7 @@ import { executeMotion, Motion, MotionHandler } from "./motion";
 import { execOperators, Operator } from './operator';
 import { Action } from './action';
 import { printCursorPositions } from './util';
-import { TextObjects } from './text_objects';
-import { EOL } from 'os';
+import { execTextObject, TextObject, TextObjects } from './text_objects';
 
 export type Keymap = {
     // In INSERT mode keys are time sensitive. 
@@ -33,8 +32,9 @@ type ActionKeymap = {
     action: Function,
 };
 type TextObjectKeymap = {
-    type: "TextObjects",
-    action: TextObjects,
+    type: "TextObject",
+    action: TextObject,
+    args?: any[]
 };
 
 export class KeyHandler {
@@ -106,6 +106,8 @@ export class KeyHandler {
 
         if (matchedKeymap.type === 'Motion') {
             MotionHandler.current_key = this.matchedSequence;
+        } else if (matchedKeymap.type === 'TextObject') {
+            TextObjects.currentSeq = this.matchedSequence;
         }
 
         this.execAction(matchedKeymap).then(() => {
@@ -229,7 +231,7 @@ export class KeyHandler {
                 this.statusBar.text += this.operator.key;
                 return;
             }
-            else if (km.type === 'TextObjects') {
+            else if (km.type === 'TextObject') {
 
 
             }
@@ -258,9 +260,8 @@ export class KeyHandler {
                     this.resetOperator();
                 }
             }
-            else if (km.type === 'TextObjects') {
-
-
+            else if (km.type === 'TextObject') {
+                execTextObject(km.action, ...(km.args || []));
             }
             else if (km.type === 'Action') {
                 km.action();

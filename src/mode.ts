@@ -4,6 +4,7 @@ import { motionKeymap } from './motion';
 import { operatorKeyMap } from './operator';
 import { actionKeymap } from './action';
 import { Logger, printCursorPositions } from './util';
+import { textObjectKeymap } from './text_objects';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 
@@ -37,7 +38,8 @@ export class VimState {
         this.keyMap = new KeyHandler([
             ...motionKeymap,
             ...actionKeymap,
-            ...operatorKeyMap
+            ...operatorKeyMap,
+            ...textObjectKeymap
         ]);
 
         vscode.window.onDidChangeActiveTextEditor((editor) => {

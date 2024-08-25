@@ -94,13 +94,19 @@ export const actionKeymap: Keymap[] = [
         key: ['i'],
         type: 'Action',
         action: () => Action.switchToInsertModeAt('before-cursor'),
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL']
     },
     {
         key: ['I'],
         type: 'Action',
         action: () => Action.switchToInsertModeAt('line-start'),
         mode: ['NORMAL']
+    },
+    {
+        key: ['I'],
+        type: 'Action',
+        action: () => Action.switchToInsertModeAt('before-cursor'),
+        mode: ['VISUAL']
     },
     {
         key: ['a'],
