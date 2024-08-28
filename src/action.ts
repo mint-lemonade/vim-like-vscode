@@ -17,6 +17,12 @@ export class Action {
     static async switchToInsertModeAt(cursorPos: CursorPos) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
+        if (cursorPos === 'new-line-above') {
+            await vscode.commands.executeCommand('editor.action.insertLineBefore');
+        } else if (cursorPos === 'new-line-below') {
+            await vscode.commands.executeCommand('editor.action.insertLineAfter');
+        }
+
         for (let [i, sel] of VimState.vimCursor.selections.entries()) {
             switch (cursorPos) {
                 case 'after-cursor':
@@ -34,13 +40,11 @@ export class Action {
                 }
 
                 case 'new-line-below': {
-                    await vscode.commands.executeCommand('editor.action.insertLineAfter');
                     sel.active = editor!.selections[i].active;
                     break;
                 }
 
                 case 'new-line-above': {
-                    await vscode.commands.executeCommand('editor.action.insertLineBefore');
                     sel.active = editor!.selections[i].active;
                     break;
                 }
