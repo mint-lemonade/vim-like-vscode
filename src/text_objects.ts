@@ -217,9 +217,11 @@ function charAt(pos: vscode.Position): string {
 }
 
 
-export function execTextObject(textObject: TextObject, syncVsCodeCursor: boolean, ...args: any[]) {
+export function execTextObject(
+    textObject: TextObject, syncVsCodeCursor: boolean, ...args: any[]
+): Range[] {
     let editor = vscode.window.activeTextEditor;
-    if (!editor) { return; }
+    if (!editor) { return []; }
     TextObjects.editor = editor;
 
     let ranges = textObject.call(TextObjects, ...args);
@@ -233,6 +235,7 @@ export function execTextObject(textObject: TextObject, syncVsCodeCursor: boolean
     if (syncVsCodeCursor) {
         VimState.syncVsCodeCursorOrSelection();
     }
+    return ranges;
 }
 
 export const textObjectKeymap: Keymap[] = [

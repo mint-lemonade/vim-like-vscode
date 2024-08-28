@@ -158,6 +158,16 @@ export const actionKeymap: Keymap[] = [
             by: 'line'
         }),
         mode: ['NORMAL', 'VISUAL']
-    },
+    }, {
+        key: ['"', '{}'],
+        type: 'Action',
+        action: (key: string) => VimState.register.set(key[1]),
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: [':'],
+        type: 'Action',
+        action: () => vscode.commands.executeCommand("workbench.action.showCommands"),
+        mode: ['NORMAL', 'VISUAL']
+    }
 ];
 

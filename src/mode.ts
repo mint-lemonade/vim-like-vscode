@@ -5,6 +5,7 @@ import { operatorKeyMap } from './operator';
 import { actionKeymap } from './action';
 import { Logger, printCursorPositions } from './util';
 import { textObjectKeymap } from './text_objects';
+import { Register } from './register';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
 
@@ -13,7 +14,8 @@ export class VimState {
     static lastMode: Mode;
     static deferredModeSwitch: Mode | undefined;
     static statusBar: vscode.StatusBarItem;
-    static keyMap: KeyHandler;
+    static keyHandler: KeyHandler;
+    static register: Register;
 
     // Vim block cursor behaves differently from vs-code block cursor. 
     // - Unlike vs-code cursor, vim cursor selects char under text in visual mode
@@ -31,16 +33,17 @@ export class VimState {
 
     static activeEditorMap: WeakMap<vscode.TextDocument, Mode> = new WeakMap();
 
-    static init() {
+    static init(context: vscode.ExtensionContext) {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
         this.syncVimCursor();
         this.setMode('NORMAL');
-        this.keyMap = new KeyHandler([
+        this.keyHandler = new KeyHandler([
             ...motionKeymap,
             ...actionKeymap,
             ...operatorKeyMap,
             ...textObjectKeymap
         ]);
+        this.register = new Register(undefined, context);
 
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             Logger.log("Aactive editor Changes!");
@@ -96,12 +99,12 @@ export class VimState {
 
     static async type(text: string) {
         if (this.currentMode === 'INSERT') {
-            if (!await this.keyMap.execute(text)) {
+            if (!await this.keyHandler.execute(text)) {
                 vscode.commands.executeCommand('default:type', { text: text });
             }
             return;
         } else {
-            await this.keyMap.execute(text);
+            await this.keyHandler.execute(text);
             return;
         }
     }

@@ -38,16 +38,20 @@ type TextObjectKeymap = {
 };
 
 export class KeyHandler {
-    statusBar: vscode.StatusBarItem;
+    statusBar: {
+        item: vscode.StatusBarItem,
+        content: string[]
+    };
 
     insertModeMap: Keymap[] = [];
     normalModeMap: Keymap[] = [];
     visualModeMap: Keymap[] = [];
     operatorPendingModeMap: Keymap[] = [];
 
+    waitingForInput: boolean;
     currentSequence: string[] = [];
     matchedSequence: string = "";
-    expectingSequence: Boolean;
+    expectingSequence: boolean;
     sequenceTimeout: number = 500; // in milliseconds
 
     debounceTime: number = 10; // in milliseconds
@@ -61,8 +65,12 @@ export class KeyHandler {
     } | undefined | null;
 
     constructor(keymaps: Keymap[]) {
-        this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-        this.statusBar.text = 'op: ';
+        this.statusBar = {
+            item: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1),
+            content: []
+        };
+        this.statusBar.item.text = '';
+
         for (let i = keymaps.length - 1; i >= 0; i--) {
             let keymap = keymaps[i];
             if (keymap.mode.includes('INSERT')) {
@@ -79,6 +87,7 @@ export class KeyHandler {
             }
         }
         this.expectingSequence = false;
+        this.waitingForInput = false;
     }
 
     // returns false if no mapping was found and no action was executed. true otherwise.
@@ -89,13 +98,15 @@ export class KeyHandler {
         console.log("matchedKeymap", matchedKeymap);
         if (!matched) {
             if (!this.operatorPendingMode) {
+                this.resetKeys();
                 return false;
             }
 
             // In OP_PENDING_MODE
+            this.updateStatusBar();
             this.operatorArg += key;
             if (await execOperators(this.operator!.op, { postArgs: this.operatorArg })) {
-                this.resetOperator();
+                this.resetKeys();
                 return true;
             }
             return false;
@@ -111,9 +122,6 @@ export class KeyHandler {
         }
 
         this.execAction(matchedKeymap).then(() => {
-            if (this.operatorPendingMode) {
-                this.statusBar.show();
-            }
         });
         return true;
     }
@@ -167,9 +175,9 @@ export class KeyHandler {
         if (!this.expectingSequence) {
             for (let km of currentKeymap) {
                 if (km.key[0] === key) {
+                    this.matchedSequence = key;
+                    this.updateStatusBar(km);
                     if (km.key.length === 1) {
-                        // this.execAction(km);
-                        this.matchedSequence = key;
                         return [true, km];
                     }
                     this.expectingSequence = true;
@@ -187,9 +195,9 @@ export class KeyHandler {
                     continue;
                 }
                 if (km.key.every((k, i) => k === this.currentSequence[i] || k === '{}')) {
+                    this.matchedSequence = this.currentSequence.join("");
+                    this.updateStatusBar(km, this.currentSequence.length - 1);
                     if (km.key.length === this.currentSequence.length) {
-                        // this.execAction(km);
-                        this.matchedSequence = this.currentSequence.join("");
                         this.clearSequence();
                         return [true, km];
                     }
@@ -228,7 +236,7 @@ export class KeyHandler {
                     op: km.action, key: km.key[0], km,
                     preArgs: this.operator!.key, postArgs: ""
                 };
-                this.statusBar.text += this.operator.key;
+                // this.statusBar.text += this.operator.key;
                 return;
             }
             else if (km.type === 'TextObject') {
@@ -248,9 +256,8 @@ export class KeyHandler {
         } else {
             if (km.type === 'Motion') {
                 executeMotion(km.action, true, ...(km.args || []));
-                MotionHandler.repeat = 0;
-                Action.repeat = 0;
-                return;
+                this.resetKeys();
+                // return;
             }
             else if (km.type === 'Operator') {
                 if (VimState.currentMode === 'NORMAL') {
@@ -258,22 +265,25 @@ export class KeyHandler {
                     this.operator = {
                         op: km.action, key: km.key[0], km, preArgs: "", postArgs: ""
                     };
-                    this.statusBar.text += this.operator.key;
+                    // this.statusBar.text += this.operator.key;
 
                 } else if (VimState.currentMode === 'VISUAL') {
                     // execute operator on currently selected ranges.
                     execOperators(km.action);
-                    this.resetOperator();
+                    this.resetKeys();
                 }
             }
             else if (km.type === 'TextObject') {
                 execTextObject(km.action, true, ...(km.args || []));
+                this.resetKeys();
             }
             else if (km.type === 'Action') {
-                km.action();
+                km.action(this.matchedSequence);
                 // reset repeat to default after executing motion.
-                MotionHandler.repeat = 0;
-                Action.repeat = 0;
+                // this.resetKeys();
+                if (!this.waitingForInput) {
+                    this.resetKeys();
+                }
             }
         }
 
@@ -284,8 +294,23 @@ export class KeyHandler {
         this.operator = null;
         this.operatorPendingMode = false;
         this.operatorArg = "";
-        this.statusBar.text = 'op: ';
-        this.statusBar.hide();
+        this.statusBar.item.text = '';
+        this.waitingForInput = false;
+        this.statusBar.item.hide();
+        VimState.register.reset();
+    }
+    resetKeys() {
+        this.operator = null;
+        this.operatorPendingMode = false;
+        this.operatorArg = "";
+        this.matchedSequence = "";
+        this.expectingSequence = false;
+        this.statusBar.item.text = '';
+        this.statusBar.item.hide();
+        VimState.register.reset();
+        this.waitingForInput = false;
+        MotionHandler.repeat = 0;
+        Action.repeat = 0;
     }
     // If key sequence isn't matched or timeout occurs, 
     // delegate sequence to be typed by vscode.
@@ -310,6 +335,29 @@ export class KeyHandler {
         } else {
             this.lastKeyTimeStamp = currentTime;
             return true;
+        }
+    }
+
+    updateStatusBar(km?: Keymap, keyIdx: number = 0) {
+        if (VimState.currentMode === 'INSERT') { return; }
+        if (this.operatorPendingMode) {
+            if (!km) {
+                this.statusBar.item.text += this.matchedSequence;
+                return;
+            }
+            this.statusBar.item.text += km.key[keyIdx];
+        } else {
+            if (km && km.key.length === 1 && km.type !== 'Operator') {
+                return;
+            }
+            if (km) {
+                this.statusBar.item.text += km.key[keyIdx];
+            }
+        }
+        if (this.statusBar.item.text.length) {
+            this.statusBar.item.show();
+        } else {
+            this.statusBar.item.hide();
         }
     }
 }
