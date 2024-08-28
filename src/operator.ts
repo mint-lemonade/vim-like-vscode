@@ -175,12 +175,14 @@ export const operatorKeyMap: Keymap[] = [
         key: ['d'],
         type: 'Operator',
         action: Operators.delete,
+        longDesc: ['(d)elete '],
         mode: ['NORMAL', 'VISUAL']
     },
     {
         key: ['c'],
         type: 'Operator',
         action: Operators.change,
+        longDesc: ['(c)hange '],
         mode: ['NORMAL', 'VISUAL']
     }
 ];

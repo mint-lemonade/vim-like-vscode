@@ -161,6 +161,8 @@ export const actionKeymap: Keymap[] = [
     }, {
         key: ['"', '{}'],
         type: 'Action',
+        showInStatusBar: true,
+        longDesc: ['( " )reg: ', '[{}] '],
         action: (key: string) => VimState.register.set(key[1]),
         mode: ['NORMAL', 'VISUAL']
     }, {

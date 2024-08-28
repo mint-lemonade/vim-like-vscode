@@ -13,6 +13,8 @@ export type Keymap = {
     // In NORMAL and VISUAL mode no timout occurs and no delegation happens
     key: string[],
     mode: (Mode | 'OP_PENDING_MODE')[],
+    showInStatusBar?: boolean,
+    longDesc?: string[]
 } & (MotionKeymap | OperatorKeymap | ActionKeymap | TextObjectKeymap);
 
 type MotionKeymap = {
@@ -347,13 +349,13 @@ export class KeyHandler {
                 this.statusBar.item.text += this.matchedSequence;
                 return;
             }
-            this.statusBar.item.text += km.key[keyIdx];
+            this.statusBar.item.text += km.longDesc ? km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) : km.key[keyIdx];
         } else {
             if (km && km.key.length === 1 && km.type !== 'Operator') {
                 return;
             }
             if (km) {
-                this.statusBar.item.text += km.key[keyIdx];
+                this.statusBar.item.text += km.longDesc ? km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) : km.key[keyIdx];
             }
         }
         if (this.statusBar.item.text.length) {
