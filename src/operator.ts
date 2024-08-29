@@ -35,7 +35,6 @@ export async function execOperators(op: Operator, args?: OperatorArgs): Promise<
     op = op.bind(Operators);
 
     let result: boolean;
-    let oldSelections = VimState.vimCursor.selections;
     let ranges: vscode.Range[] = [];
     if (args?.motion) {
         // Operator is executed in normal mode with provided motion as range
@@ -76,44 +75,41 @@ export class Operators {
         if (postArgs.length > 0) {
             return true;
         }
+
+        let linewiseRanges: vscode.Range[] | undefined;
+        let linewise = false;
         if (preArgs === 'd') {
-            ranges = VimState.vimCursor.selections.map(sel => {
+            linewise = true;
+            linewiseRanges = VimState.vimCursor.selections.map(sel => {
                 let line = this.editor.document.lineAt(sel.active);
                 return line.rangeIncludingLineBreak;
+
             });
         }
 
-        let text = ranges.map(r => this.editor.document.getText(r));
-        VimState.register.write(text, 'delete');
+        await VimState.syncSelectionAndExec(async () => {
+            let text = this.editor.selections.map(r => this.editor.document.getText(r));
+            VimState.register.write(text, 'delete', linewise);
 
-        if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
-            // cut range under selection
-            VimState.syncSelectionAndExec(async () => {
+            if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
+                // cut range under selection
                 await vscode.commands.executeCommand('editor.action.clipboardCutAction')
                     .then(_res => {
                         VimState.setModeAfterNextSlectionUpdate('NORMAL');
                     });
-            });
-        } else {
-            let selections = ranges.map(r => ({
-                anchor: r.start,
-                active: r.start,
-            }));
-            await this.editor.edit(e => {
-                for (let range of ranges) {
-                    e.delete(range);
-                }
-            }).then(res => {
-                Logger.log("edit possible: ", res);
-                if (VimState.currentMode !== 'NORMAL') {
-                    VimState.setMode('NORMAL');
-                }
-                setImmediate(() => {
-                    VimState.vimCursor.selections = selections;
-                    VimState.syncVsCodeCursorOrSelection();
+            } else {
+                await this.editor.edit(e => {
+                    for (let range of (linewiseRanges || this.editor.selections)) {
+                        e.delete(range);
+                    }
+                }).then(res => {
+                    Logger.log("edit possible: ", res);
+                    if (VimState.currentMode !== 'NORMAL') {
+                        VimState.setMode('NORMAL');
+                    }
                 });
-            });
-        }
+            }
+        });
         return true;
     }
 
@@ -126,46 +122,117 @@ export class Operators {
             return true;
         }
 
+        let linewise = false;
         if (preArgs === 'c') {
-            ranges = VimState.vimCursor.selections.map(sel => {
+            linewise = true;
+            VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
                 let line = this.editor.document.lineAt(sel.active);
-                return line.range;
+                // return line.rangeIncludingLineBreak;
+                return {
+                    anchor: line.range.start,
+                    active: line.range.end
+                };
             });
         }
 
-        let text = ranges.map(r => this.editor.document.getText(r));
-        VimState.register.write(text, 'delete');
+        VimState.syncSelectionAndExec(async () => {
+            let text = this.editor.selections.map(r => this.editor.document.getText(r));
+            VimState.register.write(text, 'delete', linewise);
 
-        if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
-            // cut range under selection
-            VimState.syncSelectionAndExec(async () => {
+            if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
+                // cut range under selection
                 await vscode.commands.executeCommand('editor.action.clipboardCutAction')
                     .then(_res => {
                         VimState.setModeAfterNextSlectionUpdate('INSERT');
                     });
-            });
-        } else {
-            await this.editor.edit(e => {
-                for (let range of ranges) {
-                    e.delete(range);
-                }
-            }).then(res => {
-                Logger.log("edit possible: ", res);
-                let selections = VimState.vimCursor.selections.map(sel => ({
-                    anchor: sel.anchor,
-                    active: sel.anchor,
-                }));
-                setImmediate(() => {
-                    VimState.vimCursor.selections = selections;
-                    VimState.setMode('INSERT');
+            } else {
+                await this.editor.edit(e => {
+                    for (let range of this.editor.selections) {
+                        e.delete(range);
+                    }
+                }).then(res => {
+                    Logger.log("edit possible: ", res);
+                    setImmediate(() => {
+                        VimState.setMode('INSERT');
+                    });
                 });
-            });
-        }
+            }
+        });
         return true;
     }
 
-    static copy(ranges: vscode.Range[]) {
+    static async yank(ranges: vscode.Range[], preArgs = "", postArgs = ""): Promise<boolean> {
+        Logger.log("Inside operator call.");
+        if (preArgs.length > 0 && preArgs !== 'y') {
+            return true;
+        }
+        if (postArgs.length > 0) {
+            return true;
+        }
 
+        let linewise = false;
+
+        if (preArgs === 'y') {
+            linewise = true;
+            VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
+                let line = this.editor.document.lineAt(sel.active);
+                // return line.rangeIncludingLineBreak;
+                return {
+                    anchor: line.range.start,
+                    active: line.range.end
+                };
+            });
+        }
+
+        VimState.syncSelectionAndExec(async () => {
+            let text = this.editor.selections.map(r => this.editor.document.getText(r));
+            VimState.register.write(text, 'yank', linewise);
+
+            this.highlightText(this.editor.selections);
+
+            if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
+                // copy range under selection
+                await vscode.commands.executeCommand('editor.action.clipboardCopyAction')
+                    .then(_res => {
+                        VimState.setModeAfterNextSlectionUpdate('INSERT');
+                    });
+            } else {
+                let selections = this.editor.selections.map(r => ({
+                    anchor: r.start,
+                    active: r.start,
+                }));
+                if (VimState.currentMode !== 'NORMAL') {
+                    VimState.setMode('NORMAL');
+                }
+                setImmediate(() => {
+                    VimState.vimCursor.selections = selections;
+                    VimState.syncVsCodeCursorOrSelection();
+                });
+            }
+        });
+
+        return true;
+    }
+
+    static highlightText(ranges: readonly vscode.Range[]) {
+        let config = vscode.workspace.getConfiguration("vim-like");
+        let bgColor = config.get('yankHighlightBackgroundColor') as string;
+        let textColor = config.get('yankHighlightForegroundColor') as string;
+        let duration = parseInt(config.get('yankHighlightDuration') as string);
+        const decorationType = vscode.window.createTextEditorDecorationType({
+            backgroundColor: bgColor,
+            color: textColor,
+
+        });
+        this.editor.setDecorations(decorationType, ranges);
+        setTimeout(() => {
+            this.editor.setDecorations(decorationType, []);
+        }, duration);
+    }
+
+    static async surround(ranges: vscode.Range[], arg?: string): Promise<boolean> {
+        Logger.info("INSIDE SURROUND: ", arg);
+        return false;
     }
 
 }
@@ -183,6 +250,12 @@ export const operatorKeyMap: Keymap[] = [
         type: 'Operator',
         action: Operators.change,
         longDesc: ['(c)hange '],
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['y'],
+        type: 'Operator',
+        action: Operators.yank,
+        longDesc: ['(y)ank '],
         mode: ['NORMAL', 'VISUAL']
     }
 ];

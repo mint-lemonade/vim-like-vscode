@@ -71,7 +71,27 @@
         "command": "vim.registers",
         "title": "Vim-Like: Show Registers"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Yank Highlight",
+      "properties": {
+        "vim-like.yankHighlightBackgroundColor": {
+          "type": "string",
+          "default": "#28a5fc",
+          "description": "Background color for highlighted yanked text."
+        },
+        "vim-like.yankHighlightForegroundColor": {
+          "type": "string",
+          "default": "#ffffff",
+          "description": "Background color for highlighted yanked text."
+        },
+        "vim-like.yankHighlightDuration": {
+          "type": "number",
+          "default": "300",
+          "description": "Duration for which yanked  should be highlighted (in ms)"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

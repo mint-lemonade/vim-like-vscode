@@ -3,6 +3,7 @@ import { VimState } from './mode';
 import { Mode } from './mode';
 import { Keymap } from './mapping';
 import { Logger } from './util';
+import { REGISTERS } from './register';
 
 type CursorPos = 'before-cursor' | 'after-cursor' | 'line-start' | 'line-end' | 'new-line-below' | 'new-line-above';
 
@@ -84,6 +85,76 @@ export class Action {
                 }
             });
         });
+    }
+
+    static async paste(where: 'before' | 'after') {
+        let regEntry = VimState.register.read();
+        if (!regEntry) {
+            return;
+        }
+
+        // Spread Entries over cursors or bunch paste them all.
+        let spreadEntries: boolean = false;
+        if (regEntry.text.length === VimState.vimCursor.selections.length) {
+            spreadEntries = true;
+        }
+
+        if (VimState.currentMode === 'NORMAL') {
+            if (regEntry.linewise) {
+                switch (where) {
+                    case 'before':
+                        await vscode.commands.executeCommand('editor.action.insertLineBefore');
+                        break;
+                    case 'after':
+                        await vscode.commands.executeCommand('editor.action.insertLineAfter');
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
+            // Paste clipboard content over range under selection
+            await vscode.commands.executeCommand('editor.action.clipboardPasteAction')
+                .then(_res => {
+                    VimState.setModeAfterNextSlectionUpdate('INSERT');
+                });
+        } else {
+            let pasteAt: vscode.Position | vscode.Range;
+
+            setImmediate(async () => {
+                let editor = vscode.window.activeTextEditor;
+                if (!editor) { return; }
+                let selections = editor.selections;
+
+                await editor.edit(e => {
+                    for (let [i, sel] of selections.entries()) {
+                        if (VimState.currentMode === 'NORMAL') {
+                            pasteAt = sel.active;
+                            if (!regEntry.linewise && where === 'after') {
+                                pasteAt = sel.active.translate(0, 1);
+                            }
+                        }
+                        else if (VimState.currentMode === 'VISUAL') {
+                            pasteAt = sel;
+                        }
+
+                        if (spreadEntries) {
+                            e.replace(pasteAt, regEntry.text[i]);
+                        } else {
+                            e.replace(pasteAt, regEntry.text.join("\n"));
+                        }
+                    }
+                }).then(res => {
+                    Logger.log("edit possible: ", res);
+                    setImmediate(() => {
+                        VimState.setMode('NORMAL');
+                    });
+                });
+            });
+        }
+
     }
 }
 
@@ -180,6 +251,16 @@ export const actionKeymap: Keymap[] = [
         key: [':'],
         type: 'Action',
         action: () => vscode.commands.executeCommand("workbench.action.showCommands"),
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['p'],
+        type: 'Action',
+        action: () => Action.paste('after'),
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['P'],
+        type: 'Action',
+        action: () => Action.paste('before'),
         mode: ['NORMAL', 'VISUAL']
     }
 ];

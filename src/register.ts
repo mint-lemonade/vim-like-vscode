@@ -8,14 +8,16 @@ export const REGISTERS = {
     YANK_REG: "0",
 };
 
+type RegisterEntry = { text: string[], linewise?: boolean };
+
 export class Register {
     HISTORY_REG = /[1-9]/;
 
     defaultReg: string = REGISTERS.DEFAULT_REG;
     selectedReg: string;
 
-    registers: Record<string, string[]> = {};
-    history: string[][] = [];
+    registers: Record<string, RegisterEntry> = {};
+    history: RegisterEntry[] = [];
 
     constructor(defaultReg: string | undefined, context: vscode.ExtensionContext) {
         if (defaultReg) {
@@ -39,39 +41,43 @@ export class Register {
         this.selectedReg = this.defaultReg;
     }
 
-    read(): string[] {
+    read(): RegisterEntry {
         if (this.HISTORY_REG.test(this.selectedReg)) {
             return this.history[parseInt(this.selectedReg)];
         }
         return this.registers[this.selectedReg];
     }
 
-    write(text: string[], type: 'yank' | 'delete' | 'cut') {
+    write(text: string[], type: 'yank' | 'delete' | 'cut', linewise?: boolean) {
+        let regEntry: RegisterEntry = {
+            text,
+            linewise
+        }
         if (type === 'delete') {
-            if (this.selectedReg !== REGISTERS.DEFAULT_REG) {
-                if (this.HISTORY_REG.test(this.selectedReg)) {
-                    (this.history[parseInt(this.selectedReg) - 1] as string[]) = text;
-                } else {
-                    this.registers[this.selectedReg] = text;
+            if (this.selectedReg === REGISTERS.DEFAULT_REG) {
+                // push to history only if text at atleast one cursor is more then 1 line
+                if (text.some(entry => entry.split("\n").length > 1)) {
+                    this.history.unshift(regEntry);
+                    if (this.history.length >= 10) { this.history.pop(); }
                 }
                 return;
             }
-            // push to history only if text at atleast one cursor is more then 1 line
-            if (text.some(entry => entry.split("\n").length > 1)) {
-                this.history.unshift(text);
-                if (this.history.length >= 10) { this.history.pop(); }
+            if (this.HISTORY_REG.test(this.selectedReg)) {
+                this.history[parseInt(this.selectedReg) - 1] = regEntry;
+            } else {
+                this.registers[this.selectedReg] = regEntry;
             }
         } else {
-            this.registers[REGISTERS.DEFAULT_REG] = text;
             if (this.selectedReg === REGISTERS.DEFAULT_REG) {
+                this.registers[REGISTERS.DEFAULT_REG] = regEntry;
                 if (type === 'yank') {
-                    this.registers[REGISTERS.YANK_REG] = text;
+                    this.registers[REGISTERS.YANK_REG] = regEntry;
                 }
-                this.history.unshift(text);
+                this.history.unshift(regEntry);
                 if (this.history.length >= 10) { this.history.pop(); }
                 return;
             }
-            this.registers[this.selectedReg] = text;
+            this.registers[this.selectedReg] = regEntry;
         }
     }
 
@@ -79,7 +85,7 @@ export class Register {
         let items: vscode.QuickPickItem[] = [
             {
                 label: "\"\"",
-                description: this.registers[REGISTERS.DEFAULT_REG]?.join(" ")
+                description: this.registers[REGISTERS.DEFAULT_REG]?.text.join(" ")
                 // description: this.registers[REGISTERS.DEFAULT_REG]?.reduce((prev, cur, i) => prev + `${i}. ${cur} `, ""),
             }
         ];
@@ -87,15 +93,15 @@ export class Register {
         this.history.forEach((h, i) => {
             items.push({
                 label: `"${i + 1}`,
-                description: h.join(" ")
+                description: h.text.join(" ")
                 // description: h.reduce((prev, cur, i) => prev + `${i}. ${cur} `, "")
             });
         });
-        Object.entries(this.registers).forEach(([name, text]) => {
+        Object.entries(this.registers).forEach(([name, entry]) => {
             if (name !== REGISTERS.DEFAULT_REG) {
                 items.push({
                     label: `"${name}`,
-                    description: text.join(" ")
+                    description: entry.text.join(" ")
                     // description: text.reduce((prev, cur, i) => prev + `${i}. ${cur} `, "")
                 });
             }
