@@ -76,7 +76,9 @@ export class Action {
             }
         }).then(res => {
             Logger.log("edit possible: ", res);
-            VimState.setModeAfterNextSlectionUpdate('NORMAL');
+            setImmediate(() => {
+                VimState.setMode('NORMAL');
+            });
         });
     }
 }
