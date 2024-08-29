@@ -60,7 +60,7 @@ export class Action {
         VimState.setMode('INSERT');
     }
 
-    static deleteChar() {
+    static deleteChar(enterInsertMode: boolean) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         let repeat = Math.max(this.repeat, 1);
@@ -77,7 +77,11 @@ export class Action {
         }).then(res => {
             Logger.log("edit possible: ", res);
             setImmediate(() => {
-                VimState.setMode('NORMAL');
+                if (enterInsertMode) {
+                    VimState.setMode('INSERT');
+                } else {
+                    VimState.setMode('NORMAL');
+                }
             });
         });
     }
@@ -141,7 +145,12 @@ export const actionKeymap: Keymap[] = [
     {
         key: ['x'],
         type: 'Action',
-        action: () => Action.deleteChar(),
+        action: () => Action.deleteChar(false),
+        mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['s'],
+        type: 'Action',
+        action: () => Action.deleteChar(true),
         mode: ['NORMAL', 'VISUAL']
     },
     {
