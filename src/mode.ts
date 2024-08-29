@@ -286,7 +286,7 @@ export class VimState {
         });
 
         editor.selections = selections;
-        editor.revealRange(selections[0]);
+        editor.revealRange(new vscode.Range(selections[0].active, selections[0].active), vscode.TextEditorRevealType.Default);
         VimState.updateVisualModeCursor();
     }
 
