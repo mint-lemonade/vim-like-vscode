@@ -156,6 +156,17 @@ export class Action {
         }
 
     }
+
+    static invertSelection() {
+        VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
+            return {
+                active: sel.anchor,
+                anchor: sel.active
+            };
+        });
+
+        VimState.syncVsCodeCursorOrSelection();
+    }
 }
 
 export const actionKeymap: Keymap[] = [
@@ -262,6 +273,11 @@ export const actionKeymap: Keymap[] = [
         type: 'Action',
         action: () => Action.paste('before'),
         mode: ['NORMAL', 'VISUAL']
+    }, {
+        key: ['o'],
+        type: 'Action',
+        action: () => Action.invertSelection(),
+        mode: ['VISUAL']
     }
 ];
 
