@@ -243,14 +243,14 @@ export const operatorKeyMap: Keymap[] = [
         type: 'Operator',
         action: Operators.delete,
         longDesc: ['(d)elete '],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     },
     {
         key: ['c'],
         type: 'Operator',
         action: Operators.change,
         longDesc: ['(c)hange '],
-        mode: ['NORMAL', 'VISUAL']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['y'],
         type: 'Operator',

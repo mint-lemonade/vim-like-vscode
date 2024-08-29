@@ -7,7 +7,7 @@ import { Logger, printCursorPositions } from './util';
 import { textObjectKeymap } from './text_objects';
 import { Register } from './register';
 
-export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL';
+export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL' | 'VISUAL_LINE';
 
 export class VimState {
     static currentMode: Mode = 'NORMAL';
@@ -113,7 +113,7 @@ export class VimState {
         this.lastMode = this.currentMode;
         this.currentMode = mode;
         Logger.log(`Switching mode from ${this.lastMode} to ${this.currentMode}`);
-        this.statusBar.text = `--${mode}--`;
+        this.statusBar.text = `--${mode}--`.replace('_', ' ');
         this.statusBar.tooltip = 'Vim Mode';
         this.statusBar.show();
         let editor = vscode.window.activeTextEditor;
@@ -127,6 +127,7 @@ export class VimState {
                     break;
                 }
 
+                case 'VISUAL_LINE':
                 case 'VISUAL':
                     {
                         editor.options.cursorStyle = vscode.TextEditorCursorStyle.Line;
@@ -178,8 +179,12 @@ export class VimState {
                 visualModeTextDecoration: null
             };
         }
-
-        this.vimCursor.selections = editor.selections.map(sel => {
+        if (this.lastMode === 'VISUAL_LINE' && this.currentMode === 'VISUAL') {
+            // If switching from VISUAL_LINE mode to VISUAL mode do not
+            // modify internal vim selections
+            return;
+        }
+        this.vimCursor.selections = editor.selections.map((sel, i) => {
             if (this.currentMode === 'NORMAL') {
                 if (sel.active.isBefore(sel.anchor)) {
                     return {
@@ -216,7 +221,17 @@ export class VimState {
                         active: sel.active
                     };
                 }
-            } else {
+            } else if (this.currentMode === 'VISUAL_LINE') {
+                return {
+                    anchor: sel.anchor.with({
+                        character: this.vimCursor.selections[i]?.anchor.character || 0
+                    }),
+                    active: sel.active.with({
+                        character: this.vimCursor.selections[i]?.active.character || 0
+                    })
+                };
+            }
+            else {
                 console.error("Syhncing in INSERT mode");
                 throw new Error("Shouldnn't sync in INSERT mode.");
             }
@@ -241,6 +256,16 @@ export class VimState {
                 } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
                     startPosition[i] = sel.anchor;
                     endPosition[i] = sel.active.translate(0, 1);
+                }
+            } else if (this.currentMode === 'VISUAL_LINE') {
+                let anchorLine = editor.document.lineAt(sel.anchor).range;
+                let activeLine = editor.document.lineAt(sel.active).range;
+                if (sel.active.isBefore(sel.anchor)) {
+                    startPosition[i] = anchorLine.end;
+                    endPosition[i] = activeLine.start;
+                } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
+                    startPosition[i] = anchorLine.start;
+                    endPosition[i] = activeLine.end;
                 }
             } else {
                 // If switching from VISUAL to INSERT mode, keep the
@@ -272,18 +297,30 @@ export class VimState {
         let selections = this.vimCursor.selections.map((sel, i) => {
             let startPosition: vscode.Position;
             let endPosition: vscode.Position;
-            if (sel.active.isBefore(sel.anchor)) {
-                startPosition = sel.anchor.translate(0, 1);
-                endPosition = sel.active;
-            } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
-                startPosition = sel.anchor;
-                endPosition = sel.active.translate(0, 1);
+            if (this.currentMode === 'VISUAL_LINE') {
+                let anchorLine = editor.document.lineAt(sel.anchor).range;
+                let activeLine = editor.document.lineAt(sel.active).range;
+                if (sel.active.isBefore(sel.anchor)) {
+                    startPosition = anchorLine.end;
+                    endPosition = activeLine.start;
+                } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
+                    startPosition = anchorLine.start;
+                    endPosition = activeLine.end;
+                }
+            } else {
+                if (sel.active.isBefore(sel.anchor)) {
+                    startPosition = sel.anchor.translate(0, 1);
+                    endPosition = sel.active;
+                } else /** vimCursor.active.isAfterOrEqual(vimCursor.anchor) */ {
+                    startPosition = sel.anchor;
+                    endPosition = sel.active.translate(0, 1);
+                }
             }
             return new vscode.Selection(startPosition, endPosition);
         });
 
         editor.selections = selections;
-        return action();
+        action();
         // this.syncVimCursor();
         // VimState.updateVisualModeCursor();
     }
@@ -301,7 +338,12 @@ export class VimState {
             });
             Logger.log("visual mode cursros: ", cursors);
             editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
-
+        } else if (this.currentMode === 'VISUAL_LINE') {
+            let cursors = this.vimCursor.selections.map(sel => {
+                return new vscode.Range(sel.active, sel.active.translate(0, 1));
+            });
+            Logger.log("visual mode cursros: ", cursors);
+            editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
         }
     }
 }

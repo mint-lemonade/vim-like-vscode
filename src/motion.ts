@@ -422,162 +422,162 @@ export const motionKeymap: Keymap[] = [
         key: ['h'],
         type: 'Motion',
         action: MotionHandler.moveLeft,
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['l'],
         type: 'Motion',
         action: MotionHandler.moveRight,
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['j'],
         type: 'Motion',
         action: MotionHandler.moveDown,
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['k'],
         type: 'Motion',
         action: MotionHandler.moveUp,
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['w'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-start', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['W'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-start', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['e'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-end', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['E'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-end', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['b'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-start', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['B'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-start', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
     }, {
         key: ['f', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1, true],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['F', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1, true],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['t', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1, false],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['T', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1, false],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: [';'],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: [','],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['g', 'g'],
         type: 'Motion',
         action: MotionHandler.gotoLine,
         args: ['first'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['G'],
         type: 'Motion',
         action: MotionHandler.gotoLine,
         args: ['last'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['^'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
         args: ['first-char'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['0'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
         args: ['start'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['$'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
         args: ['end'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['H'],
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['top'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['M'],
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['middle'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['L'],
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['end'],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['{'],
         type: 'Motion',
         action: MotionHandler.moveToParagraph,
         args: [1],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['}'],
         type: 'Motion',
         action: MotionHandler.moveToParagraph,
         args: [-1],
-        mode: ['NORMAL', 'VISUAL', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     },
 ];

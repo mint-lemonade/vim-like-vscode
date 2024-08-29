@@ -48,6 +48,7 @@ export class KeyHandler {
     insertModeMap: Keymap[] = [];
     normalModeMap: Keymap[] = [];
     visualModeMap: Keymap[] = [];
+    visualLineModeMap: Keymap[] = [];
     operatorPendingModeMap: Keymap[] = [];
 
     waitingForInput: boolean;
@@ -83,6 +84,9 @@ export class KeyHandler {
             }
             if (keymap.mode.includes('VISUAL')) {
                 this.visualModeMap.push(keymap);
+            }
+            if (keymap.mode.includes('VISUAL_LINE')) {
+                this.visualLineModeMap.push(keymap);
             }
             if (keymap.mode.includes('OP_PENDING_MODE')) {
                 this.operatorPendingModeMap.push(keymap);
@@ -164,6 +168,9 @@ export class KeyHandler {
                     break;
                 case 'VISUAL':
                     currentKeymap = this.visualModeMap;
+                    break;
+                case 'VISUAL_LINE':
+                    currentKeymap = this.visualLineModeMap;
                     break;
             }
         }
@@ -271,7 +278,7 @@ export class KeyHandler {
                     };
                     // this.statusBar.text += this.operator.key;
 
-                } else if (VimState.currentMode === 'VISUAL') {
+                } else if (VimState.currentMode === 'VISUAL' || VimState.currentMode === 'VISUAL_LINE') {
                     // execute operator on currently selected ranges.
                     execOperators(km.action);
                     this.resetKeys();
