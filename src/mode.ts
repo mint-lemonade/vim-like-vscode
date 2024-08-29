@@ -298,8 +298,8 @@ export class VimState {
             let startPosition: vscode.Position;
             let endPosition: vscode.Position;
             if (this.currentMode === 'VISUAL_LINE') {
-                let anchorLine = editor.document.lineAt(sel.anchor).range;
-                let activeLine = editor.document.lineAt(sel.active).range;
+                let anchorLine = editor!.document.lineAt(sel.anchor).range;
+                let activeLine = editor!.document.lineAt(sel.active).range;
                 if (sel.active.isBefore(sel.anchor)) {
                     startPosition = anchorLine.end;
                     endPosition = activeLine.start;
