@@ -121,7 +121,7 @@ export class Action {
             // Paste clipboard content over range under selection
             await vscode.commands.executeCommand('editor.action.clipboardPasteAction')
                 .then(_res => {
-                    VimState.setModeAfterNextSlectionUpdate('INSERT');
+                    VimState.setModeAfterNextSlectionUpdate('NORMAL');
                 });
         } else {
             let pasteAt: vscode.Position | vscode.Range;
