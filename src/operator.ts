@@ -88,7 +88,8 @@ export class Operators {
         }
 
         await VimState.syncSelectionAndExec(async () => {
-            let text = this.editor.selections.map(r => this.editor.document.getText(r));
+            let text = (linewiseRanges || this.editor.selections)
+                .map(r => this.editor.document.getText(r));
             VimState.register.write(text, 'delete', linewise);
 
             if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
