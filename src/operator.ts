@@ -256,6 +256,6 @@ export const operatorKeyMap: Keymap[] = [
         type: 'Operator',
         action: Operators.yank,
         longDesc: ['(y)ank '],
-        mode: ['NORMAL', 'VISUAL']
-    }
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
 ];
