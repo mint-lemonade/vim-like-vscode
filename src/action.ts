@@ -170,6 +170,25 @@ export class Action {
 
         VimState.syncVsCodeCursorOrSelection();
     }
+
+    static joinLine() {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor) { return; }
+        editor.edit(e => {
+            for (let sel of VimState.vimCursor.selections) {
+                let curLine = editor.document.lineAt(sel.active);
+                let nextLine = editor.document.lineAt(sel.active.line + 1);
+                let start = curLine.range.end;
+                let end = new vscode.Position(
+                    nextLine.lineNumber,
+                    Math.max(nextLine.firstNonWhitespaceCharacterIndex - 1, 0)
+                );
+                e.delete(new vscode.Range(start, end));
+            }
+        }).then(res => {
+            setImmediate(() => VimState.setMode('NORMAL'));
+        });
+    }
 }
 
 export const actionKeymap: Keymap[] = [
@@ -256,18 +275,7 @@ export const actionKeymap: Keymap[] = [
     {
         key: ['J'],
         type: 'Action',
-        action: () => vscode.commands.executeCommand('editorScroll', {
-            to: 'down',
-            by: 'line'
-        }),
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
-    }, {
-        key: ['K'],
-        type: 'Action',
-        action: () => vscode.commands.executeCommand('editorScroll', {
-            to: 'up',
-            by: 'line'
-        }),
+        action: () => Action.joinLine(),
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['"', '{}'],
