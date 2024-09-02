@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import { executeMotion, Motion, MotionHandler } from "./motion";
 import { VimState } from './mode';
-import { Keymap } from './mapping';
-import { Logger, printCursorPositions } from './util';
+import { Keymap, OperatorKeymap } from './mapping';
+import { highlightText, Logger, printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './text_objects';
 import { REGISTERS } from './register';
+import { Surround, surround } from './surround';
 
 /**
  * @returns **true** if operator is executed or is invalid. KeymapHandler can turn off OP_PENDING MODE.
@@ -12,13 +13,14 @@ import { REGISTERS } from './register';
  *   **fasle** if operator still needs more args. KeymapHandler should parse more operator args.
  */
 export type Operator = (
-    ranges: vscode.Range[], preArgs?: string, postArgs?: string
+    ranges: vscode.Range[] | undefined, preArgs?: string, postArg?: string, km?: Keymap
 ) => boolean | Promise<boolean>;
 
 type OperatorArgs = {
     motion?: Motion, motionArgs?: any[],
     textObject?: TextObject, textObjectArgs?: any[],
-    preArgs?: string, postArgs?: string
+    preArgs?: string, postArg?: string,
+    km?: Keymap, postArgKm?: Keymap
 };
 
 /**
@@ -31,33 +33,32 @@ export async function execOperators(op: Operator, args?: OperatorArgs): Promise<
     if (!editor) { return true; }
     MotionHandler.editor = editor;
     Operators.editor = editor;
+    if (args?.km?.type === 'Operator') {
+        Operators.curOpKeymap = args?.km;
+    }
     TextObjects.editor = editor;
     op = op.bind(Operators);
 
     let result: boolean;
     let ranges: vscode.Range[] = [];
-    if (args?.motion) {
+    if (args?.motion && !(Operators.curOpKeymap)?.handlePostArgs) {
         // Operator is executed in normal mode with provided motion as range
         executeMotion(args.motion, false, ...(args.motionArgs || []));
-        ranges = VimState.vimCursor.selections
-            .map(sel => new vscode.Range(sel.active, sel.anchor))
-            .map(r => r.with(undefined, r.end.translate(0, 1)));
-        result = await op(ranges, args.preArgs, args.postArgs);
+        result = await op(ranges, args.preArgs, args.postArg);
         VimState.syncVimCursor();
-    } else if (args?.textObject) {
-        ranges = execTextObject(args.textObject, false, ...(args.textObjectArgs || []))
-            .map(r => r.with(undefined, r.end.translate(0, 1)));
-        result = await op(ranges, args.preArgs, args.postArgs);
+    } else if (args?.textObject && !(Operators.curOpKeymap)?.handlePostArgs) {
+        execTextObject(args.textObject, false, ...(args.textObjectArgs || []));
+        result = await op(ranges, args.preArgs, args.postArg);
         VimState.syncVimCursor();
     } else {
         // Operator is executed in visual mode with selection as range
-        ranges = VimState.vimCursor.selections
-            .map(sel => new vscode.Range(sel.active, sel.anchor))
-            .map(r => r.with(undefined, r.end.translate(0, 1)));
-
         Logger.log("Executing operator from VISUAL mode");
-        result = await op(ranges, args?.preArgs, args?.postArgs);
+        result = await op(ranges, args?.preArgs, args?.postArg, args?.postArgKm);
         printCursorPositions("OPERATOR executed!");
+    }
+    if (result) {
+        // TODO: Refactor to properly set the reset mechanism after every operator.
+        Surround.reset();
     }
 
     return result;
@@ -65,8 +66,10 @@ export async function execOperators(op: Operator, args?: OperatorArgs): Promise<
 
 export class Operators {
     static editor: vscode.TextEditor;
+    static curOpKeymap: OperatorKeymap | undefined;
+    static matchedSeq: string;
 
-    static async delete(ranges: vscode.Range[], preArgs = "", postArgs = ""): Promise<boolean> {
+    static async delete(ranges: vscode.Range[] | undefined, preArgs = "", postArgs = ""): Promise<boolean> {
         Logger.log("Inside operator call.");
         Logger.log("preAard: ", preArgs, "--  postArg: ", postArgs);
         if (preArgs.length > 0 && preArgs !== 'd') {
@@ -114,7 +117,7 @@ export class Operators {
         return true;
     }
 
-    static async change(ranges: vscode.Range[], preArgs = "", postArgs = ""): Promise<boolean> {
+    static async change(ranges: vscode.Range[] | undefined, preArgs = "", postArgs = ""): Promise<boolean> {
         Logger.log("Inside operator call.");
         if (preArgs.length > 0 && preArgs !== 'c') {
             return true;
@@ -162,7 +165,7 @@ export class Operators {
         return true;
     }
 
-    static async yank(ranges: vscode.Range[], preArgs = "", postArgs = ""): Promise<boolean> {
+    static async yank(ranges: vscode.Range[] | undefined, preArgs = "", postArgs = ""): Promise<boolean> {
         Logger.log("Inside operator call.");
         if (preArgs.length > 0 && preArgs !== 'y') {
             return true;
@@ -189,7 +192,7 @@ export class Operators {
             let text = this.editor.selections.map(r => this.editor.document.getText(r));
             VimState.register.write(text, 'yank', linewise);
 
-            this.highlightText(this.editor.selections);
+            highlightText(this.editor.selections);
 
             if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
                 // copy range under selection
@@ -214,28 +217,6 @@ export class Operators {
 
         return true;
     }
-
-    static highlightText(ranges: readonly vscode.Range[]) {
-        let config = vscode.workspace.getConfiguration("vim-like");
-        let bgColor = config.get('yankHighlightBackgroundColor') as string;
-        let textColor = config.get('yankHighlightForegroundColor') as string;
-        let duration = parseInt(config.get('yankHighlightDuration') as string);
-        const decorationType = vscode.window.createTextEditorDecorationType({
-            backgroundColor: bgColor,
-            color: textColor,
-
-        });
-        this.editor.setDecorations(decorationType, ranges);
-        setTimeout(() => {
-            this.editor.setDecorations(decorationType, []);
-        }, duration);
-    }
-
-    static async surround(ranges: vscode.Range[], arg?: string): Promise<boolean> {
-        Logger.info("INSIDE SURROUND: ", arg);
-        return false;
-    }
-
 }
 
 export const operatorKeyMap: Keymap[] = [
@@ -258,5 +239,13 @@ export const operatorKeyMap: Keymap[] = [
         action: Operators.yank,
         longDesc: ['(y)ank '],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
+    {
+        key: ['s'],
+        type: 'Operator',
+        action: surround,
+        longDesc: ['(s)urround'],
+        mode: ['OP_PENDING_MODE'],
+        handlePostArgs: true,
     },
 ];

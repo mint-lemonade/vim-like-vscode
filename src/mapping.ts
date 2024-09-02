@@ -22,11 +22,10 @@ type MotionKeymap = {
     action: Motion,
     args?: any[]
 };
-type OperatorKeymap = {
+export type OperatorKeymap = {
     type: 'Operator',
     action: Operator,
-    requireArgs?: boolean,
-    multipleArgs?: boolean
+    handlePostArgs?: boolean
     args?: any[],
 };
 type ActionKeymap = {
@@ -61,10 +60,9 @@ export class KeyHandler {
     lastKeyTimeStamp: number = 0;
 
     operatorPendingMode: boolean = false;
-    operatorArg: string = "";
     operator: {
         op: Operator, key: string, km: Keymap,
-        preArgs: string, postArgs: string
+        preArgs: string,
     } | undefined | null;
 
     constructor(keymaps: Keymap[]) {
@@ -110,8 +108,11 @@ export class KeyHandler {
 
             // In OP_PENDING_MODE
             this.updateStatusBar();
-            this.operatorArg += key;
-            if (await execOperators(this.operator!.op, { postArgs: this.operatorArg })) {
+            let reset = await execOperators(this.operator!.op, {
+                postArg: key, preArgs: this.operator?.preArgs,
+                // km: this.operator!.km
+            });
+            if (reset) {
                 this.resetKeys();
                 return true;
             }
@@ -232,33 +233,37 @@ export class KeyHandler {
 
         if (this.operatorPendingMode) {
             if (km.type === 'Motion') {
-                execOperators(this.operator!.op, { motion: km.action, motionArgs: km.args || [] });
-                this.resetOperator();
-                MotionHandler.repeat = 0;
-                Action.repeat = 0;
+                let reset = await execOperators(this.operator!.op, {
+                    motion: km.action, motionArgs: km.args || [],
+                    preArgs: this.operator?.preArgs, postArgKm: km, km: this.operator?.km
+                });
+                if (reset) {
+                    this.resetKeys();
+                }
                 return;
             }
             else if (km.type === 'Operator') {
-                if (await execOperators(km.action, { preArgs: this.operator?.key })) {
-                    this.resetOperator();
+                let preArgs = this.operator!.key;
+                if (await execOperators(km.action, { preArgs, km })) {
+                    this.resetKeys();
                     return;
                 }
                 this.operator = {
                     op: km.action, key: km.key[0], km,
-                    preArgs: this.operator!.key, postArgs: ""
+                    preArgs,
                 };
-                // this.statusBar.text += this.operator.key;
                 return;
             }
             else if (km.type === 'TextObject') {
-                execOperators(this.operator!.op, {
-                    textObject: km.action, textObjectArgs: km.args || []
+                TextObjects.currentSeq = this.matchedSequence;
+                let reset = await execOperators(this.operator!.op, {
+                    textObject: km.action, textObjectArgs: km.args || [],
+                    km: this.operator?.km, postArgKm: km
                 });
-                this.resetOperator();
-                MotionHandler.repeat = 0;
-                Action.repeat = 0;
+                if (reset) {
+                    this.resetKeys();
+                }
                 return;
-
             }
             else if (km.type === 'Action') {
                 console.error(`Action '${km.key}' cannot be executed in OP_PENDING_MODE!`);
@@ -274,9 +279,8 @@ export class KeyHandler {
                 if (VimState.currentMode === 'NORMAL') {
                     this.operatorPendingMode = true;
                     this.operator = {
-                        op: km.action, key: km.key[0], km, preArgs: "", postArgs: ""
+                        op: km.action, key: km.key[0], km, preArgs: ""
                     };
-                    // this.statusBar.text += this.operator.key;
 
                 } else if (VimState.currentMode === 'VISUAL' || VimState.currentMode === 'VISUAL_LINE') {
                     // execute operator on currently selected ranges.
@@ -301,26 +305,21 @@ export class KeyHandler {
         printCursorPositions("After complete execution");
     }
 
-    resetOperator() {
-        this.operator = null;
-        this.operatorPendingMode = false;
-        this.operatorArg = "";
-        this.statusBar.item.text = '';
-        this.waitingForInput = false;
-        this.statusBar.item.hide();
-        VimState.register.reset();
-    }
     resetKeys() {
         this.operator = null;
         this.operatorPendingMode = false;
-        this.operatorArg = "";
+
         this.matchedSequence = "";
         this.expectingSequence = false;
+        this.waitingForInput = false;
+
         this.statusBar.item.text = '';
         this.statusBar.item.hide();
+
         VimState.register.reset();
-        this.waitingForInput = false;
         MotionHandler.repeat = 0;
+        MotionHandler.current_key = "";
+        TextObjects.currentSeq = "";
         Action.repeat = 0;
     }
     // If key sequence isn't matched or timeout occurs, 

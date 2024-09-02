@@ -5,7 +5,12 @@ import { VimState } from './mode';
 import { MotionHandler } from './motion';
 import { Scanner } from './scanner';
 
-export type TextObject = (...args: any[]) => Range[];
+export type TextObjectData = ({
+    range: Range,
+    openingWrapper: vscode.Position,
+    closingWrapper: vscode.Position
+} | undefined)[];
+export type TextObject = (...args: any[]) => TextObjectData;
 type RangeType = 'inside' | 'around';
 
 
@@ -13,22 +18,27 @@ export class TextObjects {
     static editor: vscode.TextEditor;
     static currentSeq: string;
 
-    static wordObject(wordType: 'word' | 'WORD', rangeType: RangeType): Range[] {
+    static wordObject(wordType: 'word' | 'WORD', rangeType: RangeType): TextObjectData {
         let start = MotionHandler.findWordBoundry('prev-start', wordType);
         let end = MotionHandler.findWordBoundry('next-end', wordType);
         let ranges = VimState.vimCursor.selections.map((sel, i) => {
-            return new Range(start.positions[i], end.positions[i]).union(new Range(sel.anchor, sel.active));
+            return {
+                range: new Range(start.positions[i], end.positions[i]).union(new Range(sel.anchor, sel.active)),
+                openingWrapper: start.positions[i],
+                closingWrapper: end.positions[i]
+            };
+
         });
         return ranges;
     }
 
-    static quotesObject(c: string, type: 'inside' | 'around'): Range[] {
+    static quotesObject(c: string, type: 'inside' | 'around'): TextObjectData {
         if (!['\"', '\'', '\`'].includes(c)) {
             console.error(`Invalid "${c}" character for textObject`);
             throw new Error(`Invalid "${c}" character for textObject`);
         }
         return VimState.vimCursor.selections.map(sel => {
-            // this.editor
+            let range: Range;
             let line = this.editor.document.lineAt(sel.active);
             let ci = sel.active.character;
 
@@ -45,34 +55,45 @@ export class TextObjects {
             }
             if (q1 > 0 && q0 >= 0) {
                 // return range in quotes around cursor
-                return new Range(
-                    new vscode.Position(line.lineNumber, ci - q0 + adjustStart),
-                    new vscode.Position(line.lineNumber, ci + q1 - 1 + adjustEnd)
-                );
+                return {
+                    range: new Range(
+                        new vscode.Position(line.lineNumber, ci - q0 + adjustStart),
+                        new vscode.Position(line.lineNumber, ci + q1 - 1 + adjustEnd)
+                    ),
+                    openingWrapper: new vscode.Position(line.lineNumber, ci - q0 - 1),
+                    closingWrapper: new vscode.Position(line.lineNumber, ci + q1)
+                };
             }
-            if (q1 >= 0 && q2 >= 0) {
+            else if (q1 >= 0 && q2 >= 0) {
                 // return range in quotes after cursor
-                return new Range(
-                    new vscode.Position(line.lineNumber, ci + q1 + 1 + adjustStart),
-                    new vscode.Position(line.lineNumber, ci + q1 + q2 + adjustEnd)
-                );
+                return {
+                    range: new Range(
+                        new vscode.Position(line.lineNumber, ci + q1 + 1 + adjustStart),
+                        new vscode.Position(line.lineNumber, ci + q1 + q2 + adjustEnd)
+                    ),
+                    openingWrapper: new vscode.Position(line.lineNumber, ci + q1),
+                    closingWrapper: new vscode.Position(line.lineNumber, ci + q1 + q2 + 1)
+                };
             }
-            // return cursor pos
-            return new Range(
-                new vscode.Position(line.lineNumber, ci),
-                new vscode.Position(line.lineNumber, ci)
-            );
+            else {
+                // return cursor pos
+                return undefined;
+            }
         });
     }
 
-    static bracesObject(): Range[] {
-        let rangeType = this.currentSeq[0];
+    static bracesObject(s?: string, type?: 'inside' | 'around'): TextObjectData {
+        let rangeType: string;
+        if (type === 'inside') { rangeType = 'i'; }
+        else if (type === 'around') { rangeType = 'a'; }
+        else { rangeType = this.currentSeq[0]; }
+
         if (!'ai'.includes(rangeType)) {
             console.error(`Invalid rangeType '${rangeType} in bracket text object!`);
             throw new Error(`Invalid rangeType '${rangeType} in bracket text object!`);
         }
 
-        let c = this.currentSeq[1];
+        let c = s || this.currentSeq[1];
 
         let openingBrackets: Record<string, string> = {
             '{': '{', '[': '[', '(': '(', '<': '<',
@@ -203,9 +224,13 @@ export class TextObjects {
                 rightSearch = scanner.moveRight();
             }
             if (objectRange) {
-                return objectRange;
+                return {
+                    range: objectRange,
+                    openingWrapper: scanner.leftCursor,
+                    closingWrapper: scanner.rightCursor
+                };
             }
-            return new Range(sel.anchor, sel.active);
+            return undefined;
         });
     }
 }
@@ -219,23 +244,24 @@ function charAt(pos: vscode.Position): string {
 
 export function execTextObject(
     textObject: TextObject, syncVsCodeCursor: boolean, ...args: any[]
-): Range[] {
+): TextObjectData {
     let editor = vscode.window.activeTextEditor;
     if (!editor) { return []; }
     TextObjects.editor = editor;
 
-    let ranges = textObject.call(TextObjects, ...args);
+    let texObjData = textObject.call(TextObjects, ...args);
     VimState.vimCursor.selections = VimState.vimCursor.selections.map((sel, i) => {
         // let r = new Range(sel.anchor, sel.active).union(ranges[i]);
+        if (!texObjData) { return sel; }
         return {
-            anchor: ranges[i].start,
-            active: ranges[i].end
+            anchor: texObjData[i]!.range.start,
+            active: texObjData[i]!.range.end
         };
     });
     if (syncVsCodeCursor) {
         VimState.syncVsCodeCursorOrSelection();
     }
-    return ranges;
+    return texObjData;
 }
 
 export const textObjectKeymap: Keymap[] = [
