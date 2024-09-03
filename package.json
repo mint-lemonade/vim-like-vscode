@@ -46,6 +46,36 @@
         "key": "ctrl+alt+j",
         "command": "editor.action.insertCursorBelow",
         "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+      },
+      {
+        "key": "Tab",
+        "command": "selectNextSuggestion",
+        "when": "suggestWidgetVisible && textInputFocus && (vim.currentMode==INSERT)"
+      },
+      {
+        "key": "Shift+Tab",
+        "command": "selectPrevSuggestion",
+        "when": "suggestWidgetVisible && textInputFocus && (vim.currentMode==INSERT)"
+      },
+      {
+        "key": "Space",
+        "command": "editorScroll",
+        "args": {
+          "to": "down",
+          "by": "line",
+          "value": 2
+        },
+        "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+      },
+      {
+        "key": "Shift+Space",
+        "command": "editorScroll",
+        "args": {
+          "to": "up",
+          "by": "line",
+          "value": 2
+        },
+        "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       }
     ],
     "commands": [
