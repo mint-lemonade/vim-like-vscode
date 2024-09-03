@@ -18,44 +18,34 @@
   "contributes": {
     "keybindings": [
       {
-        "key": "v",
-        "command": "vim.goToVisualMode",
-        "when": "editorTextFocus && vim.currentMode==NORMAL"
-      },
-      {
-        "key": "v",
-        "command": "vim.goToNormalMode",
-        "when": "editorTextFocus && vim.currentMode==VISUAL"
-      },
-      {
         "key": "alt+k",
         "command": "editor.action.moveLinesUpAction",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+j",
         "command": "editor.action.moveLinesDownAction",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+h",
         "command": "workbench.action.navigateBack",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+l",
         "command": "workbench.action.navigateForward",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+k",
         "command": "editor.action.insertCursorAbove",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+j",
         "command": "editor.action.insertCursorBelow",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL)"
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       }
     ],
     "commands": [
