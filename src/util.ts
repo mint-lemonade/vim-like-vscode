@@ -46,7 +46,19 @@ export function highlightText(at: readonly vscode.Range[] | vscode.Position[]) {
     });
     editor.setDecorations(decorationType, ranges);
     setTimeout(() => {
-        editor.setDecorations(decorationType, []);
+        editor?.setDecorations(decorationType, []);
     }, duration);
 }
 
+import assert from "assert";
+
+interface Equality<T> {
+    isEqual: (other: T) => boolean
+}
+export function assertEqual<T extends Equality<T>>(a: T, b: T, replaceMssg?: string, extraInfo: string = ""): void {
+    if (!a.isEqual(b)) {
+        // Customize the error message
+        const errorMessage = replaceMssg || `[context: ${extraInfo}] Expected objects to be equal:\nA: ${JSON.stringify(a, null, 2)}\nB: ${JSON.stringify(b, null, 2)}`;
+        assert.fail(errorMessage);
+    }
+}

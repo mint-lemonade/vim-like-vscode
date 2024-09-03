@@ -175,6 +175,7 @@ export class Action {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         editor.edit(e => {
+            if (!editor) { return; }
             for (let sel of VimState.vimCursor.selections) {
                 let curLine = editor.document.lineAt(sel.active);
                 let nextLine = editor.document.lineAt(sel.active.line + 1);
