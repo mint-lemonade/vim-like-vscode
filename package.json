@@ -59,21 +59,23 @@
       },
       {
         "key": "Space",
-        "command": "editorScroll",
+        "command": "runCommands",
         "args": {
-          "to": "down",
-          "by": "line",
-          "value": 2
+          "commands": [
+            "scrollLineDown",
+            "scrollLineDown"
+          ]
         },
         "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "Shift+Space",
-        "command": "editorScroll",
+        "command": "runCommands",
         "args": {
-          "to": "up",
-          "by": "line",
-          "value": 2
+          "commands": [
+            "scrollLineUp",
+            "scrollLineUp"
+          ]
         },
         "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       }
