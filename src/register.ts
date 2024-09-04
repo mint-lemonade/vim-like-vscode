@@ -43,7 +43,7 @@ export class Register {
 
     read(): RegisterEntry {
         if (this.HISTORY_REG.test(this.selectedReg)) {
-            return this.history[parseInt(this.selectedReg)];
+            return this.history[parseInt(this.selectedReg) - 1];
         }
         return this.registers[this.selectedReg];
     }
