@@ -194,6 +194,9 @@ export class KeyHandler {
                         return [true, km];
                     }
                     this.expectingSequence = true;
+                    vscode.commands.executeCommand(
+                        'setContext', "vim.expectingSequence", this.expectingSequence
+                    );
                     this.currentSequence.push(key);
                     if (VimState.currentMode === 'INSERT') {
                         setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
@@ -313,6 +316,9 @@ export class KeyHandler {
         this.matchedSequence = "";
         this.expectingSequence = false;
         this.waitingForInput = false;
+        vscode.commands.executeCommand(
+            'setContext', "vim.expectingSequence", this.expectingSequence
+        );
 
         this.statusBar.item.text = '';
         this.statusBar.item.hide();
@@ -328,6 +334,9 @@ export class KeyHandler {
     // delegate sequence to be typed by vscode.
     flushSequence() {
         this.expectingSequence = false;
+        vscode.commands.executeCommand(
+            'setContext', "vim.expectingSequence", this.expectingSequence
+        );
         if (this.currentSequence.length) {
             vscode.commands.executeCommand('default:type', { text: this.currentSequence.join('') });
             this.currentSequence = [];
@@ -336,6 +345,9 @@ export class KeyHandler {
 
     clearSequence() {
         this.expectingSequence = false;
+        vscode.commands.executeCommand(
+            'setContext', "vim.expectingSequence", this.expectingSequence
+        );
         this.currentSequence = [];
     }
 
