@@ -91,10 +91,17 @@ export class Action {
 
     static async paste(where: 'before' | 'after') {
         let regEntry = VimState.register.read();
-        if (!regEntry) {
+
+        VimState.keyHandler.waitingForInput = false;
+
+        if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
+            // Paste clipboard content over range under selection
+            await vscode.commands.executeCommand('editor.action.clipboardPasteAction')
+                .then(_res => {
+                    VimState.setModeAfterNextSlectionUpdate('NORMAL');
+                });
             return;
         }
-        VimState.keyHandler.waitingForInput = false;
 
         // Spread Entries over cursors or bunch paste them all.
         let spreadEntries: boolean = false;
@@ -117,13 +124,10 @@ export class Action {
             }
         }
 
-        if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
-            // Paste clipboard content over range under selection
-            await vscode.commands.executeCommand('editor.action.clipboardPasteAction')
-                .then(_res => {
-                    VimState.setModeAfterNextSlectionUpdate('NORMAL');
-                });
-        } else {
+        {
+            if (!regEntry) {
+                return;
+            }
             let pasteAt: vscode.Position | vscode.Range;
 
             setImmediate(async () => {
