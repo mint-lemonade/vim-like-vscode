@@ -68,6 +68,7 @@ export class Operators {
     static editor: vscode.TextEditor;
     static curOpKeymap: OperatorKeymap | undefined;
     static matchedSeq: string;
+    static repeat: number;
 
     static async delete(ranges: vscode.Range[] | undefined, preArgs = "", postArgs = ""): Promise<boolean> {
         Logger.log("Inside operator call.");
@@ -84,9 +85,12 @@ export class Operators {
         if (preArgs === 'd') {
             linewise = true;
             linewiseRanges = VimState.vimCursor.selections.map(sel => {
-                let line = this.editor.document.lineAt(sel.active);
-                return line.rangeIncludingLineBreak;
-
+                let line = this.editor.document.lineAt(sel.active).rangeIncludingLineBreak;
+                if (this.repeat) {
+                    let endLine = this.editor.document.lineAt(sel.active.line + this.repeat - 1).rangeIncludingLineBreak;
+                    line = new vscode.Range(line.start, endLine.end);
+                }
+                return line;
             });
         }
 
@@ -131,10 +135,13 @@ export class Operators {
             linewise = true;
             VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
                 let line = this.editor.document.lineAt(sel.active);
-                // return line.rangeIncludingLineBreak;
+                let endLine: vscode.TextLine | undefined;
+                if (this.repeat) {
+                    endLine = this.editor.document.lineAt(sel.active.line + this.repeat - 1);
+                }
                 return {
                     anchor: line.range.start,
-                    active: line.range.end
+                    active: (endLine || line).range.end
                 };
             });
         }
@@ -180,10 +187,13 @@ export class Operators {
             linewise = true;
             VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
                 let line = this.editor.document.lineAt(sel.active);
-                // return line.rangeIncludingLineBreak;
+                let endLine: vscode.TextLine | undefined;
+                if (this.repeat) {
+                    endLine = this.editor.document.lineAt(sel.active.line + this.repeat - 1);
+                }
                 return {
                     anchor: line.range.start,
-                    active: line.range.end
+                    active: (endLine || line).range.end
                 };
             });
         }

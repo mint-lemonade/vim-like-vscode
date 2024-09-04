@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
 import { executeMotion, Motion, MotionHandler } from "./motion";
-import { execOperators, Operator } from './operator';
+import { execOperators, Operator, Operators } from './operator';
 import { Action } from './action';
 import { printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './text_objects';
@@ -148,6 +148,7 @@ export class KeyHandler {
                 } else {
                     MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
                     Action.repeat = Action.repeat * 10 + repeat;
+                    Operators.repeat = Operators.repeat * 10 + repeat;
                     this.matchedSequence = repeat.toString();
                     this.updateStatusBar();
                     return [true, undefined];
@@ -321,6 +322,7 @@ export class KeyHandler {
         MotionHandler.current_key = "";
         TextObjects.currentSeq = "";
         Action.repeat = 0;
+        Operators.repeat = 0;
     }
     // If key sequence isn't matched or timeout occurs, 
     // delegate sequence to be typed by vscode.
