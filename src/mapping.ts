@@ -134,7 +134,7 @@ export class KeyHandler {
     }
 
     matchKey(key: string): [boolean, Keymap | undefined] {
-        if (VimState.currentMode === 'NORMAL' || VimState.currentMode === 'VISUAL') {
+        if (['NORMAL', 'VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
             // if (this.debounceKey()) {
             //     return false;
             // }
