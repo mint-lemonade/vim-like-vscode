@@ -9,11 +9,14 @@ export const REGISTERS = {
 };
 
 type RegisterEntry = { text: string[], linewise?: boolean };
+const RegisterPersistenceKey = "vim-registers";
+const HistoryPersistencekey = "vim-history-registers";
 
 export class Register {
     HISTORY_REG = /[1-9]/;
+    vscodeContext: vscode.ExtensionContext;
 
-    defaultReg: string = REGISTERS.DEFAULT_REG;
+    currentDefaultReg: string = REGISTERS.DEFAULT_REG;
     selectedReg: string;
 
     registers: Record<string, RegisterEntry> = {};
@@ -21,12 +24,19 @@ export class Register {
 
     constructor(defaultReg: string | undefined, context: vscode.ExtensionContext) {
         if (defaultReg) {
-            this.defaultReg = defaultReg;
+            this.currentDefaultReg = defaultReg;
         }
-        this.selectedReg = this.defaultReg;
+        this.selectedReg = this.currentDefaultReg;
+
+        this.registers = context.workspaceState
+            .get<Record<string, RegisterEntry>>(RegisterPersistenceKey, {});
+        this.history = context.workspaceState
+            .get<RegisterEntry[]>(HistoryPersistencekey, []);
+
         context.subscriptions.push(
             vscode.commands.registerCommand("vim.registers", this.showRegisters, this)
         );
+        this.vscodeContext = context;
     }
 
     set(reg: string) {
@@ -38,7 +48,7 @@ export class Register {
     }
 
     reset() {
-        this.selectedReg = this.defaultReg;
+        this.selectedReg = this.currentDefaultReg;
     }
 
     read(): RegisterEntry {
@@ -52,7 +62,7 @@ export class Register {
         let regEntry: RegisterEntry = {
             text,
             linewise
-        }
+        };
         if (type === 'delete') {
             if (this.selectedReg === REGISTERS.DEFAULT_REG) {
                 // push to history only if text at atleast one cursor is more then 1 line
@@ -60,12 +70,12 @@ export class Register {
                     this.history.unshift(regEntry);
                     if (this.history.length >= 10) { this.history.pop(); }
                 }
-                return;
-            }
-            if (this.HISTORY_REG.test(this.selectedReg)) {
-                this.history[parseInt(this.selectedReg) - 1] = regEntry;
             } else {
-                this.registers[this.selectedReg] = regEntry;
+                if (this.HISTORY_REG.test(this.selectedReg)) {
+                    this.history[parseInt(this.selectedReg) - 1] = regEntry;
+                } else {
+                    this.registers[this.selectedReg] = regEntry;
+                }
             }
         } else {
             if (this.selectedReg === REGISTERS.DEFAULT_REG) {
@@ -75,10 +85,12 @@ export class Register {
                 }
                 this.history.unshift(regEntry);
                 if (this.history.length >= 10) { this.history.pop(); }
-                return;
+            } else {
+                this.registers[this.selectedReg] = regEntry;
             }
-            this.registers[this.selectedReg] = regEntry;
         }
+        this.vscodeContext.workspaceState.update(RegisterPersistenceKey, this.registers);
+        this.vscodeContext.workspaceState.update(HistoryPersistencekey, this.history);
     }
 
     showRegisters() {
@@ -87,6 +99,10 @@ export class Register {
                 label: "\"\"",
                 description: this.registers[REGISTERS.DEFAULT_REG]?.text.join(" ")
                 // description: this.registers[REGISTERS.DEFAULT_REG]?.reduce((prev, cur, i) => prev + `${i}. ${cur} `, ""),
+            },
+            {
+                label: "History",
+                kind: vscode.QuickPickItemKind.Separator,
             }
         ];
 
@@ -97,8 +113,17 @@ export class Register {
                 // description: h.reduce((prev, cur, i) => prev + `${i}. ${cur} `, "")
             });
         });
+
+        items.push({
+            label: `"${REGISTERS.YANK_REG}`,
+            description: this.registers[REGISTERS.YANK_REG]?.text.join(" ") || ""
+        }, {
+            label: "Named",
+            kind: vscode.QuickPickItemKind.Separator
+        });
+
         Object.entries(this.registers).forEach(([name, entry]) => {
-            if (name !== REGISTERS.DEFAULT_REG) {
+            if (name !== REGISTERS.DEFAULT_REG && name !== REGISTERS.YANK_REG) {
                 items.push({
                     label: `"${name}`,
                     description: entry.text.join(" ")
