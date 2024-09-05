@@ -103,6 +103,8 @@ export class Action {
             return;
         }
 
+        if (!regEntry) { return; }
+
         // Spread Entries over cursors or bunch paste them all.
         let spreadEntries: boolean = false;
         if (regEntry.text.length === VimState.vimCursor.selections.length) {
@@ -124,44 +126,37 @@ export class Action {
             }
         }
 
-        {
-            if (!regEntry) {
-                return;
-            }
-            let pasteAt: vscode.Position | vscode.Range;
+        let pasteAt: vscode.Position | vscode.Range;
+        setImmediate(async () => {
+            let editor = vscode.window.activeTextEditor;
+            if (!editor) { return; }
+            let selections = editor.selections;
 
-            setImmediate(async () => {
-                let editor = vscode.window.activeTextEditor;
-                if (!editor) { return; }
-                let selections = editor.selections;
-
-                await editor.edit(e => {
-                    for (let [i, sel] of selections.entries()) {
-                        if (VimState.currentMode === 'NORMAL') {
-                            pasteAt = sel.active;
-                            if (!regEntry.linewise && where === 'after') {
-                                pasteAt = sel.active.translate(0, 1);
-                            }
-                        }
-                        else if (['VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
-                            pasteAt = sel;
-                        }
-
-                        if (spreadEntries) {
-                            e.replace(pasteAt, regEntry.text[i]);
-                        } else {
-                            e.replace(pasteAt, regEntry.text.join("\n"));
+            await editor.edit(e => {
+                for (let [i, sel] of selections.entries()) {
+                    if (VimState.currentMode === 'NORMAL') {
+                        pasteAt = sel.active;
+                        if (!regEntry.linewise && where === 'after') {
+                            pasteAt = sel.active.translate(0, 1);
                         }
                     }
-                }).then(res => {
-                    Logger.log("edit possible: ", res);
-                    setImmediate(() => {
-                        VimState.setMode('NORMAL');
-                    });
+                    else if (['VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
+                        pasteAt = sel;
+                    }
+
+                    if (spreadEntries) {
+                        e.replace(pasteAt, regEntry.text[i]);
+                    } else {
+                        e.replace(pasteAt, regEntry.text.join("\n"));
+                    }
+                }
+            }).then(res => {
+                Logger.log("edit possible: ", res);
+                setImmediate(() => {
+                    VimState.setMode('NORMAL');
                 });
             });
-        }
-
+        });
     }
 
     static invertSelection() {
