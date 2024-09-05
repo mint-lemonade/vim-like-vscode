@@ -65,8 +65,14 @@ export class Register {
         };
         if (type === 'delete') {
             if (this.selectedReg === REGISTERS.DEFAULT_REG) {
-                // push to history only if text at atleast one cursor is more then 1 line
-                if (text.some(entry => entry.split("\n").length > 1)) {
+                // push to history only if text at atleast one cursor is more then 1 non-empty line
+                let addToHistory = text.some(
+                    entry => {
+                        return entry.split("\n").length > 1 &&
+                            entry.split("\n").join('').length > 0;
+                    }
+                );
+                if (addToHistory) {
                     this.history.unshift(regEntry);
                     if (this.history.length >= 10) { this.history.pop(); }
                 }
