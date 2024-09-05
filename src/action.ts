@@ -309,6 +309,11 @@ export const actionKeymap: Keymap[] = [
         type: 'Action',
         action: () => Action.invertSelection(),
         mode: ['VISUAL', 'VISUAL_LINE']
+    }, {
+        key: ['g', 'd'],
+        type: 'Action',
+        action: () => vscode.commands.executeCommand('editor.action.revealDefinition'),
+        mode: ['NORMAL'],
     }
 ];
 
