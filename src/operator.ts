@@ -47,7 +47,11 @@ export async function execOperators(op: Operator, args?: OperatorArgs): Promise<
         result = await op(ranges, args.preArgs, args.postArg);
         VimState.syncVimCursor();
     } else if (args?.textObject && !(Operators.curOpKeymap)?.handlePostArgs) {
-        execTextObject(args.textObject, false, ...(args.textObjectArgs || []));
+        let txtObj = execTextObject(args.textObject, false, ...(args.textObjectArgs || []));
+
+        // If any text Object on any cursor is undefined, end Operation.
+        if (txtObj.some(t => !t)) { return true; }
+
         result = await op(ranges, args.preArgs, args.postArg);
         VimState.syncVimCursor();
     } else {

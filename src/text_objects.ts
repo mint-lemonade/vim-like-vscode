@@ -19,6 +19,7 @@ export class TextObjects {
     static currentSeq: string;
 
     static wordObject(wordType: 'word' | 'WORD', rangeType: RangeType): TextObjectData {
+        MotionHandler.editor = this.editor;
         let start = MotionHandler.findWordBoundry('prev-start', wordType);
         let end = MotionHandler.findWordBoundry('next-end', wordType);
         let ranges = VimState.vimCursor.selections.map((sel, i) => {
@@ -250,9 +251,10 @@ export function execTextObject(
     TextObjects.editor = editor;
 
     let texObjData = textObject.call(TextObjects, ...args);
+    if (texObjData.some(t => !t)) { return texObjData; }
     VimState.vimCursor.selections = VimState.vimCursor.selections.map((sel, i) => {
         // let r = new Range(sel.anchor, sel.active).union(ranges[i]);
-        if (!texObjData) { return sel; }
+        if (!texObjData[i]) { return sel; }
         return {
             anchor: texObjData[i]!.range.start,
             active: texObjData[i]!.range.end
