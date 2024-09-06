@@ -17,6 +17,7 @@ export class MotionHandler {
     static repeat: number = 0;
 
     static current_key: string;
+    static prevHorizantalPos: number[] = [];
 
     // data for repeating search
     static search_char: string;
@@ -41,7 +42,7 @@ export class MotionHandler {
 
     @registerMotion()
     static moveLeft(): MotionData {
-        return {
+        let data = {
             positions: VimState.vimCursor.selections.map((sel, i) => {
                 if (this.isCursorAtLineStart(i)) {
                     return sel.active;
@@ -49,11 +50,13 @@ export class MotionHandler {
                 return sel.active.translate(0, -1);
             })
         };
+        this.prevHorizantalPos = data.positions.map(p => p.character);
+        return data;
     }
 
     @registerMotion()
     static moveRight(): MotionData {
-        return {
+        let data = {
             positions: VimState.vimCursor.selections.map((sel, i) => {
                 if (this.isCursorAtLineEnd(i)) {
                     return sel.active;
@@ -61,6 +64,8 @@ export class MotionHandler {
                 return sel.active.translate(0, 1);
             })
         };
+        this.prevHorizantalPos = data.positions.map(p => p.character);
+        return data;
     }
 
     @registerMotion()
@@ -74,14 +79,18 @@ export class MotionHandler {
                 }
                 // If cursor encounter folded code, skip over it.
                 if (visibleRanges.length > 1 && !isRepeated) {
-                    for (let i = visibleRanges.length - 1; i > 0; i--) {
+                    for (let j = visibleRanges.length - 1; j > 0; j--) {
                         // if (i === visibleRanges.length - 1) { break; }
-                        if (visibleRanges[i].start.line === sel.active.line) {
-                            return visibleRanges[i - 1].end.with({ character: sel.active.character });
+                        if (visibleRanges[j].start.line === sel.active.line) {
+                            return visibleRanges[j - 1].end.with({
+                                character: this.prevHorizantalPos[i]
+                            });
                         }
                     };
                 }
-                return sel.active.translate(-1, 0);
+                return sel.active.translate(-1, 0).with({
+                    character: this.prevHorizantalPos[i]
+                });;
             })
         };
     }
@@ -98,14 +107,18 @@ export class MotionHandler {
 
                 // If cursor encounter folded code, skip over it.
                 if (visibleRanges.length > 1 && !isRepeated) {
-                    for (let [i, r] of visibleRanges.entries()) {
-                        if (i === visibleRanges.length - 1) { break; }
+                    for (let [j, r] of visibleRanges.entries()) {
+                        if (j === visibleRanges.length - 1) { break; }
                         if (r.end.line === sel.active.line) {
-                            return visibleRanges[i + 1].start.with({ character: sel.active.character });
+                            return visibleRanges[j + 1].start.with({
+                                character: this.prevHorizantalPos[i]
+                            });
                         }
                     };
                 }
-                return sel.active.translate(1, 0);
+                return sel.active.translate(1, 0).with({
+                    character: this.prevHorizantalPos[i]
+                });;
             })
         };
     }
@@ -312,6 +325,7 @@ export class MotionHandler {
             return new vscode.Position(curPos.line, c);
         });
 
+        this.prevHorizantalPos = positions.map(p => p.character);
         return {
             positions,
             includeCurrentCharUnderSelection: true
@@ -357,6 +371,7 @@ export class MotionHandler {
             return curPos;
 
         });
+        this.prevHorizantalPos = positions.map(p => p.character);
         return {
             positions,
             includeCurrentCharUnderSelection: true
@@ -364,16 +379,19 @@ export class MotionHandler {
     }
 
     static gotoLine(line: 'first' | 'last'): MotionData {
+        let data: MotionData;
         if (line === 'first') {
-            return {
+            data = {
                 positions: VimState.vimCursor.selections.map(_ => new vscode.Position(0, 0))
             };
         } else {
             let line = this.editor.document.lineCount - 1;
-            return {
+            data = {
                 positions: VimState.vimCursor.selections.map(_ => new vscode.Position(line, 0))
             };
         }
+        this.prevHorizantalPos = data.positions.map(p => p.character);
+        return data;
     }
 
     static moveInLine(to: 'start' | 'end' | 'first-char'): MotionData {
@@ -402,6 +420,7 @@ export class MotionHandler {
             default:
                 break;
         }
+        this.prevHorizantalPos = positions!.map(p => p.character);
         return {
             positions: positions!
         };
@@ -421,6 +440,7 @@ export class MotionHandler {
             console.error("Invalid argument on screen move");
             return { positions: VimState.vimCursor.selections.map(sel => sel.active) };
         }
+        this.prevHorizantalPos = VimState.vimCursor.selections.map(_ => position.character);
         return {
             // positions: [position, ...VimState.vimCursor.selections.slice(1).map(sel => sel.active)]
             positions: VimState.vimCursor.selections.map(_ => position)
