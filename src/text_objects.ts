@@ -254,10 +254,11 @@ export function execTextObject(
     let texObjData: TextObjectData;
     let repeat = Math.max(1, TextObjects.repeat);
     while (repeat) {
+
         texObjData = textObject.call(TextObjects, ...args);
+
         if (texObjData.some(t => !t)) { return texObjData; }
         VimState.vimCursor.selections = VimState.vimCursor.selections.map((sel, i) => {
-            // let r = new Range(sel.anchor, sel.active).union(ranges[i]);
             if (!texObjData[i]) { return sel; }
             return {
                 anchor: texObjData[i]!.range.start,
@@ -266,6 +267,7 @@ export function execTextObject(
         });
         repeat -= 1;
     }
+
     if (syncVsCodeCursor) {
         VimState.syncVsCodeCursorOrSelection();
     }
