@@ -239,7 +239,9 @@ export class VimState {
         this.updateVisualModeCursor();
     }
 
-    static syncVsCodeCursorOrSelection() {
+    static syncVsCodeCursorOrSelection(opts: {
+        revealCursor: boolean
+    } = { revealCursor: true }) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
 
@@ -286,7 +288,9 @@ export class VimState {
         });
 
         editor.selections = selections;
-        editor.revealRange(new vscode.Range(selections[0].active, selections[0].active), vscode.TextEditorRevealType.Default);
+        if (opts.revealCursor) {
+            editor.revealRange(new vscode.Range(selections[0].active, selections[0].active), vscode.TextEditorRevealType.Default);
+        }
         VimState.updateVisualModeCursor();
     }
 

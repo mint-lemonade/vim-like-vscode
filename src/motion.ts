@@ -7,6 +7,7 @@ import { Logger } from './util';
 type MotionData = {
     positions: vscode.Position[],
     includeCurrentCharUnderSelection?: boolean
+    revealCursor?: boolean;
     // jump_by: number,
 };
 export type Motion = (...args: any[]) => MotionData;
@@ -430,20 +431,38 @@ export class MotionHandler {
         let visibleRange = this.editor.visibleRanges[0];
         let position: vscode.Position;
         if (to === 'top') {
-            position = visibleRange.start;
+            position = this.editor.visibleRanges[0].start;
         } else if (to === 'middle') {
-            let offset = Math.floor((visibleRange.end.line - visibleRange.start.line) / 2);
-            position = visibleRange.start.translate(offset, 0);
+            let totalRangeSize = this.editor.visibleRanges
+                .reduce((l, r) => r.end.line - r.start.line + l, 0);
+            let offset = Math.floor((totalRangeSize) / 2);
+
+            // find middle range and offset into middle range
+            let countingRangeSum = 0;
+            let middleRange: vscode.Range;
+            for (let r of this.editor.visibleRanges) {
+                let rangeSize = r.end.line - r.start.line;
+                if (countingRangeSum + rangeSize >= offset) {
+                    middleRange = r;
+                    offset = offset - countingRangeSum;
+                    break;
+                }
+                countingRangeSum += rangeSize;
+            }
+            position = middleRange!.start.translate(offset, 0);
         } else if (to === 'end') {
-            position = visibleRange.end;
+            position = this.editor.visibleRanges.at(-1)!.end;
         } else {
             console.error("Invalid argument on screen move");
             return { positions: VimState.vimCursor.selections.map(sel => sel.active) };
         }
-        this.prevHorizantalPos = VimState.vimCursor.selections.map(_ => position.character);
+        let line = this.editor.document.lineAt(position);
+        position = position.with({ character: line.firstNonWhitespaceCharacterIndex });
+        this.prevHorizantalPos = [position.character];
         return {
             // positions: [position, ...VimState.vimCursor.selections.slice(1).map(sel => sel.active)]
-            positions: VimState.vimCursor.selections.map(_ => position)
+            positions: VimState.vimCursor.selections.map(_ => position),
+            revealCursor: false
         };
     }
 
@@ -507,7 +526,9 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
                 sel.anchor = sel.active;
             });
         }
-        VimState.syncVsCodeCursorOrSelection();
+        VimState.syncVsCodeCursorOrSelection({
+            revealCursor: moveTo!.revealCursor === undefined ? true : moveTo!.revealCursor
+        });
     }
 };
 
