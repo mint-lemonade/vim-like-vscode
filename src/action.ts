@@ -275,7 +275,7 @@ export const actionKeymap: Keymap[] = [
     {
         key: ['J'],
         type: 'Action',
-        action: () => Action.joinLine(),
+        action: () => vscode.commands.executeCommand("editor.action.joinLines"),
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['"', '{}'],
