@@ -64,12 +64,22 @@ export class MotionHandler {
     }
 
     @registerMotion()
-    static moveUp(): MotionData {
+    static moveUp(isRepeated: boolean): MotionData {
+        let visibleRanges = this.editor.visibleRanges;
         return {
             positions: VimState.vimCursor.selections.map((sel, i) => {
                 // if on first line, return current position
                 if (sel.active.line === 0) {
                     return sel.active;
+                }
+                // If cursor encounter folded code, skip over it.
+                if (visibleRanges.length > 1 && !isRepeated) {
+                    for (let i = visibleRanges.length - 1; i > 0; i--) {
+                        // if (i === visibleRanges.length - 1) { break; }
+                        if (visibleRanges[i].start.line === sel.active.line) {
+                            return visibleRanges[i - 1].end.with({ character: sel.active.character });
+                        }
+                    };
                 }
                 return sel.active.translate(-1, 0);
             })
@@ -77,12 +87,23 @@ export class MotionHandler {
     }
 
     @registerMotion()
-    static moveDown(): MotionData {
+    static moveDown(isRepeated: boolean): MotionData {
+        let visibleRanges = this.editor.visibleRanges;
         return {
             // if on last line, return current position
             positions: VimState.vimCursor.selections.map((sel, i) => {
                 if (sel.active.line === this.editor.document.lineCount - 1) {
                     return sel.active;
+                }
+
+                // If cursor encounter folded code, skip over it.
+                if (visibleRanges.length > 1 && !isRepeated) {
+                    for (let [i, r] of visibleRanges.entries()) {
+                        if (i === visibleRanges.length - 1) { break; }
+                        if (r.end.line === sel.active.line) {
+                            return visibleRanges[i + 1].start.with({ character: sel.active.character });
+                        }
+                    };
                 }
                 return sel.active.translate(1, 0);
             })
@@ -445,7 +466,7 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
     let repeat = Math.max(1, MotionHandler.repeat);
     while (repeat) {
 
-        moveTo = motion.call(MotionHandler, ...args);
+        moveTo = motion.call(MotionHandler, ...args, repeat > 1);
 
         // make sure vim cursor doesnt go past last char of line.
         moveTo.positions.forEach((pos, i) => {
