@@ -257,7 +257,38 @@ export class MotionHandler {
                     // Found first char of word or invalid seq going backwards.
                     break;
                 } else if (by === 'prev-end') {
-                    throw new Error("prev-end unimplimented!");
+                    if (c < 0) {
+                        // If gone beyond the first char of line, fetch prev line
+                        // unless it is first line of document.
+                        if (curPos.line === 0) {
+                            c = 0; // set at end
+                            break;
+                        }
+                        // if last char of line reached, get next line for search.
+                        curPos = curPos.with(curPos.line - 1, 0);
+                        line = this.editor.document.lineAt(curPos.line);
+                        c = line.text.length - 1;
+                        onWord = false;
+                        onNonWhitespaceInvalidSeq = false;
+                    }
+
+                    if (whitespace.test(line.text[c]) || line.isEmptyOrWhitespace) {
+                        // skip whitespace and reset search state.
+                        onNonWhitespaceInvalidSeq = false;
+                        onWord = false;
+                        continue;
+                    }
+                    if (validChars.test(line.text[c]) && onWord) {
+                        // On current word so continue.
+                        continue;
+                    }
+
+                    if (!validChars.test(line.text[c]) && onNonWhitespaceInvalidSeq) {
+                        // On invalid sequence so conntinue.
+                        continue;
+                    }
+                    // Found first valid char or first non-whitespace invalid char.
+                    break;
                 } else if (by === 'cur-start') {
                     if (c <= 0) {
                         c = 0;
@@ -624,6 +655,18 @@ export const motionKeymap: Keymap[] = [
         args: ['prev-start', 'WORD'],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
 
+    }, {
+        key: ['g', 'e'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['prev-end', 'word'],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+    }, {
+        key: ['g', 'E'],
+        type: 'Motion',
+        action: MotionHandler.findWordBoundry,
+        args: ['prev-end', 'WORD'],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
     }, {
         key: ['f', "{}"],
         type: 'Motion',
