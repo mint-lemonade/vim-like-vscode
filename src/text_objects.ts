@@ -20,8 +20,8 @@ export class TextObjects {
 
     static wordObject(wordType: 'word' | 'WORD', rangeType: RangeType): TextObjectData {
         MotionHandler.editor = this.editor;
-        let start = MotionHandler.findWordBoundry('prev-start', wordType);
-        let end = MotionHandler.findWordBoundry('next-end', wordType);
+        let start = MotionHandler.findWordBoundry('cur-start', wordType);
+        let end = MotionHandler.findWordBoundry('cur-end', wordType);
         let ranges = VimState.vimCursor.selections.map((sel, i) => {
             return {
                 range: new Range(start.positions[i], end.positions[i]).union(new Range(sel.anchor, sel.active)),

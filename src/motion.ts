@@ -90,9 +90,10 @@ export class MotionHandler {
     }
 
     static findWordBoundry(
-        by: 'next-start' | 'next-end' | 'prev-start',
+        by: 'next-start' | 'next-end' | 'prev-start' | 'prev-end' | 'cur-start' | 'cur-end',
         type: 'word' | 'WORD'
     ): MotionData {
+        let lineCount = this.editor.document.lineCount;
         let positions = VimState.vimCursor.selections.map((sel, i) => {
             let curPos = sel.active;
             let line = this.editor.document.lineAt(curPos.line);
@@ -100,19 +101,20 @@ export class MotionHandler {
             let c = curPos.character;
             let search_dir = 0;
 
-            if (by === 'next-start') {
+            if (['next-start', 'next-end', 'cur-end'].includes(by)) {
                 search_dir = 1;
-            } else if (by === 'next-end') {
-                search_dir = 1;
-            } else if (by === 'prev-start') {
+            } else if (['prev-start', 'prev-end', 'cur-start'].includes(by)) {
                 search_dir = -1;
             }
 
             let validChars = wordChars[type];
+            // this checks if char is invalid sequence i.e. nor valid char neither whitespace.
+            let isInvalidSeqChar = (c: number) => !whitespace.test(line.text[c]) && !validChars.test(line.text[c]);
 
             // set up search state.
             let onWord: boolean = validChars.test(line.text[c]);
-            let onNonWhitespaceInvalidSeq: boolean = !whitespace.test(line.text[c]) && !validChars.test(line.text[c]);
+            let onNonWhitespaceInvalidSeq: boolean = isInvalidSeqChar(c);
+            let onWhitespace = whitespace.test(line.text[c]);
 
             while (true) {
                 c += search_dir;
@@ -144,7 +146,7 @@ export class MotionHandler {
                         continue;
                     }
 
-                    if (!validChars.test(line.text[c]) && !validChars.test(line.text[c + 1]) && !whitespace.test(line.text[c + 1])) {
+                    if (!validChars.test(line.text[c]) && isInvalidSeqChar(c + 1)) {
                         // Current and next char are non-whitespace invalid so not reached end of invalid seq.
                         continue;
                     }
@@ -219,6 +221,71 @@ export class MotionHandler {
                     }
                     // Found first char of word or invalid seq going backwards.
                     break;
+                } else if (by === 'prev-end') {
+                    throw new Error("prev-end unimplimented!");
+                } else if (by === 'cur-start') {
+                    if (c <= 0) {
+                        c = 0;
+                        break;
+                    }
+                    if (onWord && !validChars.test(line.text[c])) {
+                        c -= search_dir;
+                        break;
+                    } else if (onWord && validChars.test(line.text[c])) {
+                        c -= search_dir;
+                        // if not already at word-start let prev-start handle rest of searching.
+                        by = 'prev-start';
+                        continue;
+                    }
+
+                    if (onNonWhitespaceInvalidSeq && !isInvalidSeqChar(c)) {
+                        c -= search_dir;
+                        break;
+                    } else if (onNonWhitespaceInvalidSeq && isInvalidSeqChar(c)) {
+                        c -= search_dir;
+                        // if not already at word-start let prev-start handle rest of searching.
+                        by = 'prev-start';
+                        continue;
+                    }
+
+                    if (onWhitespace && whitespace.test(line.text[c])) {
+                        continue;
+                    } else if (onWhitespace && !whitespace.test(line.text[c])) {
+                        c -= search_dir;
+                        break;
+                    }
+
+                } else if (by === 'cur-end') {
+                    if (c > line.text.length - 1) {
+                        c -= search_dir;
+                        break;
+                    }
+                    if (onWord && !validChars.test(line.text[c])) {
+                        c -= search_dir;
+                        break;
+                    } else if (onWord && validChars.test(line.text[c])) {
+                        c -= search_dir;
+                        // if not already at word-end let next-end handle rest of parsing.
+                        by = 'next-end';
+                        continue;
+                    }
+
+                    if (onNonWhitespaceInvalidSeq && !isInvalidSeqChar(c)) {
+                        c -= search_dir;
+                        break;
+                    } else if (onNonWhitespaceInvalidSeq && isInvalidSeqChar(c)) {
+                        c -= search_dir;
+                        // if not already at word-end let next-end handle rest of parsing.
+                        by = 'next-end';
+                        continue;
+                    }
+
+                    if (onWhitespace && whitespace.test(line.text[c])) {
+                        continue;
+                    } else if (onWhitespace && !whitespace.test(line.text[c])) {
+                        c -= search_dir;
+                        break;
+                    }
                 }
             }
             return new vscode.Position(curPos.line, c);
