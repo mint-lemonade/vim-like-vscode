@@ -54,7 +54,7 @@ export class TextObjects {
                 adjustStart = -1;
                 adjustEnd = 1;
             }
-            if (q1 > 0 && q0 >= 0) {
+            if (q1 >= 0 && q0 >= 0) {
                 // return range in quotes around cursor
                 return {
                     range: new Range(
