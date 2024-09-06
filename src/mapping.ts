@@ -149,6 +149,7 @@ export class KeyHandler {
                     MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
                     Action.repeat = Action.repeat * 10 + repeat;
                     Operators.repeat = Operators.repeat * 10 + repeat;
+                    TextObjects.repeat = TextObjects.repeat * 10 + repeat;
                     this.matchedSequence = repeat.toString();
                     this.updateStatusBar();
                     return [true, undefined];
@@ -329,6 +330,7 @@ export class KeyHandler {
         TextObjects.currentSeq = "";
         Action.repeat = 0;
         Operators.repeat = 0;
+        TextObjects.repeat = 0;
     }
     // If key sequence isn't matched or timeout occurs, 
     // delegate sequence to be typed by vscode.

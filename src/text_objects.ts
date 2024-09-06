@@ -17,6 +17,7 @@ type RangeType = 'inside' | 'around';
 export class TextObjects {
     static editor: vscode.TextEditor;
     static currentSeq: string;
+    static repeat: number = 0;
 
     static wordObject(wordType: 'word' | 'WORD', rangeType: RangeType): TextObjectData {
         MotionHandler.editor = this.editor;
@@ -250,20 +251,25 @@ export function execTextObject(
     if (!editor) { return []; }
     TextObjects.editor = editor;
 
-    let texObjData = textObject.call(TextObjects, ...args);
-    if (texObjData.some(t => !t)) { return texObjData; }
-    VimState.vimCursor.selections = VimState.vimCursor.selections.map((sel, i) => {
-        // let r = new Range(sel.anchor, sel.active).union(ranges[i]);
-        if (!texObjData[i]) { return sel; }
-        return {
-            anchor: texObjData[i]!.range.start,
-            active: texObjData[i]!.range.end
-        };
-    });
+    let texObjData: TextObjectData;
+    let repeat = Math.max(1, TextObjects.repeat);
+    while (repeat) {
+        texObjData = textObject.call(TextObjects, ...args);
+        if (texObjData.some(t => !t)) { return texObjData; }
+        VimState.vimCursor.selections = VimState.vimCursor.selections.map((sel, i) => {
+            // let r = new Range(sel.anchor, sel.active).union(ranges[i]);
+            if (!texObjData[i]) { return sel; }
+            return {
+                anchor: texObjData[i]!.range.start,
+                active: texObjData[i]!.range.end
+            };
+        });
+        repeat -= 1;
+    }
     if (syncVsCodeCursor) {
         VimState.syncVsCodeCursorOrSelection();
     }
-    return texObjData;
+    return texObjData!;
 }
 
 export const textObjectKeymap: Keymap[] = [
