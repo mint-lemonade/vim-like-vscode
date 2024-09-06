@@ -309,6 +309,24 @@ export const actionKeymap: Keymap[] = [
         type: 'Action',
         action: () => vscode.commands.executeCommand('editor.action.revealDefinition'),
         mode: ['NORMAL'],
-    }
+    }, {
+        key: ['z', 'o'],
+        type: 'Action',
+        longDesc: ['(z)fold', 'open'],
+        action: () => vscode.commands.executeCommand('editor.unfold'),
+        mode: ['NORMAL'],
+    }, {
+        key: ['z', 'c'],
+        type: 'Action',
+        longDesc: ['(z)fold', 'close'],
+        action: () => vscode.commands.executeCommand('editor.fold'),
+        mode: ['NORMAL'],
+    }, {
+        key: ['z', 'a'],
+        type: 'Action',
+        longDesc: ['(z)fold', 'toggle'],
+        action: () => vscode.commands.executeCommand('editor.toggleFold'),
+        mode: ['NORMAL'],
+    },
 ];
 
