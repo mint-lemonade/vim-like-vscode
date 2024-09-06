@@ -125,6 +125,12 @@ export class MotionHandler {
                         // If on last char of line
                         break;
                     } else if (c > line.text.length - 1) {
+                        // If gone beyond the last char of line, fetch next line
+                        // unless it is last line of document.
+                        if (curPos.line === lineCount - 1) {
+                            c = line.range.end.character; // set at end
+                            break;
+                        }
 
                         curPos = curPos.with(curPos.line + 1, 0);
                         line = this.editor.document.lineAt(curPos.line);
@@ -146,6 +152,12 @@ export class MotionHandler {
                     break;
                 } else if (by === 'next-start') {
                     if (c >= line.text.length) {
+                        // If gone beyond the last char of line, fetch next line
+                        // unless it is last line of document.
+                        if (curPos.line === lineCount - 1) {
+                            c = line.range.end.character; // set at end
+                            break;
+                        }
                         // if last char of line reached, get next line for search.
                         curPos = curPos.with(curPos.line + 1, 0);
                         line = this.editor.document.lineAt(curPos.line);
