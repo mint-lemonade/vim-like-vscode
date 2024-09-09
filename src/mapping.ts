@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { Operator, default as OperatorHandler } from './operatorHandler';
-import { Action } from './action';
 import { printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './text_objects';
 
@@ -22,16 +21,19 @@ type MotionKeymap = {
     action: Motion,
     args?: any[]
 };
+
 export type OperatorKeymap = {
     type: 'Operator',
     action: Operator,
     handlePostArgs?: boolean
     args?: any[],
 };
+
 type ActionKeymap = {
     type: 'Action',
-    action: (...args: any[]) => void | Promise<KeyParseState>,
+    action: (mathedSeq: string, repeat: number, ...args: any[]) => void | Promise<KeyParseState>,
 };
+
 type TextObjectKeymap = {
     type: "TextObject",
     action: TextObject,
@@ -56,6 +58,8 @@ export class KeyHandler {
     visualLineModeMap: Keymap[] = [];
     operatorPendingModeMap: Keymap[] = [];
 
+    // 0 is default value, command will executed once when repeat is either 0 or 1
+    repeat: number = 0;
     currentSequence: string[] = [];
     matchedSequence: string = "";
     expectingSequence: boolean;
@@ -147,13 +151,13 @@ export class KeyHandler {
             // times next motion/operator is to be repeated.
             let repeat = parseInt(key);
             if (!this.expectingSequence && !Number.isNaN(repeat)) {
-                if (repeat === 0 && MotionHandler.repeat === 0 && Action.repeat === 0) {
-                    // Do nothing. Let the key be handled as motion.
+                if (repeat === 0 && this.repeat === 0) {
+                    // Do nothing. Let the key be handled as '0' motion.
                 } else {
-                    MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
-                    Action.repeat = Action.repeat * 10 + repeat;
-                    OperatorHandler.repeat = OperatorHandler.repeat * 10 + repeat;
-                    TextObjects.repeat = TextObjects.repeat * 10 + repeat;
+                    this.repeat = this.repeat * 10 + repeat;
+                    MotionHandler.repeat = this.repeat;
+                    OperatorHandler.repeat = this.repeat;
+                    TextObjects.repeat = this.repeat;
                     this.matchedSequence = repeat.toString();
                     this.updateStatusBar();
                     return [true, undefined];
@@ -304,7 +308,7 @@ export class KeyHandler {
                 this.resetKeys();
             }
             else if (km.type === 'Action') {
-                let parseState = await km.action(this.matchedSequence);
+                let parseState = await km.action(this.matchedSequence, this.repeat);
                 // reset repeat to default after executing motion.
                 // this.resetKeys();
                 if (parseState !== KeyParseState.MoreInput) {
@@ -330,13 +334,16 @@ export class KeyHandler {
         this.statusBar.item.hide();
 
         VimState.register.reset();
-        MotionHandler.repeat = 0;
         MotionHandler.currentSeq = "";
         TextObjects.currentSeq = "";
-        Action.repeat = 0;
+        OperatorHandler.reset();
+
+        this.repeat = 0;
+        MotionHandler.repeat = 0;
         OperatorHandler.repeat = 0;
         TextObjects.repeat = 0;
     }
+
     // If key sequence isn't matched or timeout occurs, 
     // delegate sequence to be typed by vscode.
     flushSequence() {

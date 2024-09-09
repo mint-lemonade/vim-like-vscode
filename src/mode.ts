@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { KeyHandler } from './mapping';
 import { motionKeymap } from './motionHandler';
 import { operatorKeyMap } from './operatorHandler';
-import { actionKeymap } from './action';
+import { actionKeymap } from './actions';
 import { Logger, printCursorPositions } from './util';
 import { textObjectKeymap } from './text_objects';
 import { Register } from './register';

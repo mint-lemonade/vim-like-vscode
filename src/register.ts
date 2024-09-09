@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { VimState } from "./mode";
+import { Keymap, KeyParseState } from './mapping';
 
 export const REGISTERS = {
     DEFAULT_REG: "\"",
@@ -139,3 +140,15 @@ export class Register {
         vscode.window.showQuickPick(items);
     }
 }
+
+export const registerKeymap: Keymap = {
+    key: ['"', '{}'],
+    type: 'Action',
+    showInStatusBar: true,
+    longDesc: ['( " )reg: ', '[{}] '],
+    action: async (key: string) => {
+        VimState.register.set(key[1]);
+        return KeyParseState.MoreInput;
+    },
+    mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+};
