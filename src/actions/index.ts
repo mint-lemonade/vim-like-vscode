@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Keymap, KeyParseState } from "../mapping";
-import { VimState } from "../mode";
+import { Keymap, KeyParseState } from "../keyHandler";
+import { VimState } from "../vimState";
 import { switchModeKeymap } from './switch_mode';
 import { editActionKeymap } from './edit_actions';
 import { registerKeymap } from '../register';

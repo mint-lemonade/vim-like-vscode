@@ -1,10 +1,10 @@
 
 import * as vscode from 'vscode';
-import { Mode, VimState } from "./mode";
+import { Mode, VimState } from "./vimState";
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { Operator, default as OperatorHandler } from './operatorHandler';
 import { printCursorPositions } from './util';
-import { execTextObject, TextObject, TextObjects } from './text_objects';
+import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
 
 export type Keymap = {
     // In INSERT mode keys are time sensitive. 

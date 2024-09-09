@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { KeyHandler } from './mapping';
+import { KeyHandler } from './keyHandler';
 import { motionKeymap } from './motionHandler';
 import { operatorKeyMap } from './operatorHandler';
 import { actionKeymap } from './actions';
 import { Logger, printCursorPositions } from './util';
-import { textObjectKeymap } from './text_objects';
+import { textObjectKeymap } from './textObjectHandler';
 import { Register } from './register';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL' | 'VISUAL_LINE';

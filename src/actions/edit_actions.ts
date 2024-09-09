@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { VimState } from '../mode';
+import { VimState } from '../vimState';
 import { REGISTERS } from '../register';
 import { Logger } from '../util';
-import { Keymap } from '../mapping';
+import { Keymap } from '../keyHandler';
 
 function deleteChar(enterInsertMode: boolean, repeat: number) {
     let editor = vscode.window.activeTextEditor;

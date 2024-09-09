@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { Keymap, KeyParseState } from "../mapping";
-import { VimState } from '../mode';
-import { TextObjectData, TextObjects } from '../text_objects';
+import { Keymap, KeyParseState } from "../keyHandler";
+import { VimState } from '../vimState';
+import { TextObjectData, TextObjects } from '../textObjectHandler';
 import { highlightText } from '../util';
 import { Operator, OperatorHandler } from '../operatorHandler';
 

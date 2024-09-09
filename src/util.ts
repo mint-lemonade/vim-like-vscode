@@ -1,4 +1,4 @@
-import { VimState } from "./mode";
+import { VimState } from "./vimState";
 import * as vscode from 'vscode';
 
 export function printCursorPositions(mssg?: string) {

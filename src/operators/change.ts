@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { KeyParseState } from "../mapping";
-import { VimState } from "../mode";
+import { KeyParseState } from "../keyHandler";
+import { VimState } from "../vimState";
 import { OperatorHandler } from "../operatorHandler";
 import { REGISTERS } from "../register";
 import { Logger } from "../util";

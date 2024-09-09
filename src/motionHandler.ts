@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { VimState } from './mode';
-import { Keymap } from './mapping';
+import { VimState } from './vimState';
+import { Keymap } from './keyHandler';
 import { Logger } from './util';
 
 

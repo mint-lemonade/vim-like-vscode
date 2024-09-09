@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Keymap } from "../mapping";
-import { VimState } from "../mode";
+import { Keymap } from "../keyHandler";
+import { VimState } from "../vimState";
 
 type CursorPos =
     'before-cursor' | 'after-cursor' |

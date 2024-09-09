@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
-import { VimState } from './mode';
-import { Keymap, KeyParseState, OperatorKeymap } from './mapping';
+import { VimState } from './vimState';
+import { Keymap, KeyParseState, OperatorKeymap } from './keyHandler';
 import { Logger, printCursorPositions } from './util';
-import { execTextObject, TextObject, TextObjects } from './text_objects';
+import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
 import { Surround, Delete, Change, Yank } from './operators';
 
 export interface Operator {

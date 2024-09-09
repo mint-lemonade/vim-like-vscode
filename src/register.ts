@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { VimState } from "./mode";
-import { Keymap, KeyParseState } from './mapping';
+import { VimState } from "./vimState";
+import { Keymap, KeyParseState } from './keyHandler';
 
 export const REGISTERS = {
     DEFAULT_REG: "\"",
