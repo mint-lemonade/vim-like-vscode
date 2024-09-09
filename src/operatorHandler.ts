@@ -4,7 +4,7 @@ import { VimState } from './vimState';
 import { Keymap, KeyParseState, OperatorKeymap } from './keyHandler';
 import { Logger, printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
-import { Surround, Delete, Change, Yank, Move } from './operators';
+import { Surround, Delete, Change, Yank, Move, ToLowerCase, ToUpperCase } from './operators';
 
 export interface Operator {
     exec: (
@@ -122,6 +122,20 @@ export const operatorKeyMap: Keymap[] = [
         type: 'Operator',
         action: Move,
         longDesc: ['(m)ove'],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
+    {
+        key: ['g', 'u'],
+        type: 'Operator',
+        action: ToLowerCase,
+        // longDesc: ['(m)ove'],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
+    {
+        key: ['g', 'U'],
+        type: 'Operator',
+        action: ToUpperCase,
+        // longDesc: ['(m)ove'],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     },
     {
