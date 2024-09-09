@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { VimState } from './mode';
 import { Mode } from './mode';
-import { Keymap } from './mapping';
+import { Keymap, KeyParseState } from './mapping';
 import { Logger } from './util';
 import { REGISTERS } from './register';
 
@@ -91,8 +91,6 @@ export class Action {
 
     static async paste(where: 'before' | 'after') {
         let regEntry = VimState.register.read();
-
-        VimState.keyHandler.waitingForInput = false;
 
         if (VimState.register.selectedReg === REGISTERS.CLIPBOARD_REG) {
             // Paste clipboard content over range under selection
@@ -275,29 +273,32 @@ export const actionKeymap: Keymap[] = [
     {
         key: ['J'],
         type: 'Action',
-        action: () => vscode.commands.executeCommand("editor.action.joinLines"),
+        action: () => { vscode.commands.executeCommand("editor.action.joinLines"); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['"', '{}'],
         type: 'Action',
         showInStatusBar: true,
         longDesc: ['( " )reg: ', '[{}] '],
-        action: (key: string) => VimState.register.set(key[1]),
+        action: async (key: string) => {
+            VimState.register.set(key[1]);
+            return KeyParseState.MoreInput;
+        },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: [':'],
         type: 'Action',
-        action: () => vscode.commands.executeCommand("workbench.action.showCommands"),
+        action: () => { vscode.commands.executeCommand("workbench.action.showCommands"); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['p'],
         type: 'Action',
-        action: () => Action.paste('after'),
+        action: () => { Action.paste('after'); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['P'],
         type: 'Action',
-        action: () => Action.paste('before'),
+        action: () => { Action.paste('before'); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }, {
         key: ['o'],
@@ -307,25 +308,25 @@ export const actionKeymap: Keymap[] = [
     }, {
         key: ['g', 'd'],
         type: 'Action',
-        action: () => vscode.commands.executeCommand('editor.action.revealDefinition'),
+        action: () => { vscode.commands.executeCommand('editor.action.revealDefinition'); },
         mode: ['NORMAL'],
     }, {
         key: ['z', 'o'],
         type: 'Action',
         longDesc: ['(z)fold', 'open'],
-        action: () => vscode.commands.executeCommand('editor.unfold'),
+        action: () => { vscode.commands.executeCommand('editor.unfold'); },
         mode: ['NORMAL'],
     }, {
         key: ['z', 'c'],
         type: 'Action',
         longDesc: ['(z)fold', 'close'],
-        action: () => vscode.commands.executeCommand('editor.fold'),
+        action: () => { vscode.commands.executeCommand('editor.fold'); },
         mode: ['NORMAL'],
     }, {
         key: ['z', 'a'],
         type: 'Action',
         longDesc: ['(z)fold', 'toggle'],
-        action: () => vscode.commands.executeCommand('editor.toggleFold'),
+        action: () => { vscode.commands.executeCommand('editor.toggleFold'); },
         mode: ['NORMAL'],
     },
 ];

@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { Keymap } from "./mapping";
-import { VimState } from './mode';
-import { TextObjectData, TextObjects } from './text_objects';
-import { highlightText } from './util';
+import { Keymap, KeyParseState } from "../mapping";
+import { VimState } from '../mode';
+import { TextObjectData, TextObjects } from '../text_objects';
+import { highlightText } from '../util';
+import { Operator, OperatorHandler } from '../operatorHandler';
 
 const STOP_PARSE = true;
 const CONT_PARSE = false;
@@ -20,11 +21,8 @@ const brackets = "{}[]()<>";
 
 export class Surround {
     static editor: vscode.TextEditor;
-
-    // static preArgs: string[];
     static modifier: string;
     static linewise: boolean;
-    // static postArgs: any[];
     static state: 'on' | 'off' = 'off';
     static surround_at: {
         start: vscode.Position;
@@ -36,24 +34,24 @@ export class Surround {
         end: string
     } | undefined;
 
-    static async op(
-        ranges: vscode.Range[] | undefined,
-        preArgs = "", postArg = "",
-        km?: Keymap
-    ): Promise<boolean> {
+    static async exec(OH: OperatorHandler, {
+        preArgs = "", postArg = "", km
+    }: {
+        preArgs?: string, postArg?: string, km?: Keymap
+    }): Promise<KeyParseState> {
         if (vscode.window.activeTextEditor) {
             this.editor = vscode.window.activeTextEditor;
         } else {
-            return true;
+            return KeyParseState.Failed;
         }
 
         if (this.state === 'off' && !"dcy".includes(preArgs)) {
-            return STOP_PARSE;
+            return KeyParseState.Failed;
         }
         if (this.state === 'off') {
             this.state = 'on';
             this.modifier = preArgs;
-            return CONT_PARSE;
+            return KeyParseState.MoreInput;
         }
 
         // braces are interpreted as motion, 
@@ -64,7 +62,7 @@ export class Surround {
         }
 
         if (this.getSurroundInput) {
-            if (km) { return STOP_PARSE; }
+            if (km) { return KeyParseState.Failed; }
 
             if (quotes.includes(postArg)) {
                 this.surround_with = {
@@ -77,19 +75,19 @@ export class Surround {
                     end: closingBrackets[postArg]
                 };
             } else {
-                return STOP_PARSE;
+                return KeyParseState.Failed;
             }
-            await this.execSurround();
-            return STOP_PARSE;
+            await this.surround();
+            return KeyParseState.Success;
         }
 
         let textObjData: TextObjectData;
         if (this.modifier === 'd' || this.modifier === 'c') {
             if (km) {
-                return STOP_PARSE;
+                return KeyParseState.Failed;
             }
             if (!quotes.includes(postArg) && !brackets.includes(postArg)) {
-                return STOP_PARSE;
+                return KeyParseState.Failed;
             }
             if (quotes.includes(postArg)) {
                 textObjData = TextObjects.quotesObject(postArg, 'around');
@@ -106,7 +104,7 @@ export class Surround {
         }
         else if (this.modifier === 'y') {
             if (preArgs === 's') {
-                if (this.linewise) { return STOP_PARSE; }
+                if (this.linewise) { return KeyParseState.Failed; }
                 this.linewise = true;
                 this.getSurroundInput = true;
                 this.surround_at = VimState.vimCursor.selections.map(sel => {
@@ -116,10 +114,10 @@ export class Surround {
                         end: line.range.end
                     };
                 });
-                return CONT_PARSE;
+                return KeyParseState.MoreInput;
             }
             if (km?.type !== 'TextObject') {
-                return STOP_PARSE;
+                return KeyParseState.Failed;
             }
             textObjData = km.action.call(TextObjects, ...(km.args || []));
             this.surround_at = textObjData.filter(t => t).map(txtObj => {
@@ -130,18 +128,18 @@ export class Surround {
             });
         } else {
             console.error(`Invalid surround modifer ${this.modifier}`);
-            return STOP_PARSE;
+            return KeyParseState.Failed;
         }
 
         if (this.modifier === 'd') {
-            this.execSurround();
-            return STOP_PARSE;
+            await this.surround();
+            return KeyParseState.Success;
         }
         this.getSurroundInput = true;
-        return CONT_PARSE;
+        return KeyParseState.MoreInput;
     }
 
-    static async execSurround() {
+    static async surround() {
         let edit;
         let highlightRanges: vscode.Position[] = [];
         if (this.modifier === 'd') {
@@ -154,7 +152,7 @@ export class Surround {
         } else if (this.modifier === 'c') {
             if (!this.surround_with) {
                 console.error("surround_with shouldn't be empty!");
-                return STOP_PARSE;
+                return KeyParseState.Failed;
             }
             edit = this.editor.edit(e => {
                 for (let at of this.surround_at) {
@@ -166,7 +164,7 @@ export class Surround {
         } else if (this.modifier === 'y') {
             if (!this.surround_with) {
                 console.error("surround_with shouldn't be empty!");
-                return STOP_PARSE;
+                return KeyParseState.Failed;
             }
             edit = this.editor.edit(e => {
                 for (let at of this.surround_at) {
@@ -193,5 +191,5 @@ export class Surround {
         this.surround_with = undefined;
     }
 }
-const surround = Surround.op.bind(Surround);
-export { surround };
+// const surround = Surround.op.bind(Surround);
+// export { surround };

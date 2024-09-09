@@ -44,7 +44,6 @@ export class Register {
             throw new Error(`Trying to set Invalid register ${reg}`);
         }
         this.selectedReg = reg;
-        VimState.keyHandler.waitingForInput = true;
     }
 
     reset() {

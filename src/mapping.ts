@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
 import { executeMotion, Motion, MotionHandler } from "./motion";
-import { execOperators, Operator, Operators } from './operator';
+import { Operator, default as OperatorHandler } from './operatorHandler';
 import { Action } from './action';
 import { printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './text_objects';
@@ -30,13 +30,19 @@ export type OperatorKeymap = {
 };
 type ActionKeymap = {
     type: 'Action',
-    action: Function,
+    action: (...args: any[]) => void | Promise<KeyParseState>,
 };
 type TextObjectKeymap = {
     type: "TextObject",
     action: TextObject,
     args?: any[]
 };
+
+export enum KeyParseState {
+    Failed,
+    Success,
+    MoreInput
+}
 
 export class KeyHandler {
     statusBar: {
@@ -50,7 +56,6 @@ export class KeyHandler {
     visualLineModeMap: Keymap[] = [];
     operatorPendingModeMap: Keymap[] = [];
 
-    waitingForInput: boolean;
     currentSequence: string[] = [];
     matchedSequence: string = "";
     expectingSequence: boolean;
@@ -91,7 +96,6 @@ export class KeyHandler {
             }
         }
         this.expectingSequence = false;
-        this.waitingForInput = false;
     }
 
     // returns false if no mapping was found and no action was executed. true otherwise.
@@ -108,11 +112,11 @@ export class KeyHandler {
 
             // In OP_PENDING_MODE
             this.updateStatusBar();
-            let reset = await execOperators(this.operator!.op, {
+            let parseState = await OperatorHandler.execute(this.operator!.op, {
                 postArg: key, preArgs: this.operator?.preArgs,
                 // km: this.operator!.km
             });
-            if (reset) {
+            if (parseState !== KeyParseState.MoreInput) {
                 this.resetKeys();
                 return true;
             }
@@ -148,7 +152,7 @@ export class KeyHandler {
                 } else {
                     MotionHandler.repeat = MotionHandler.repeat * 10 + repeat;
                     Action.repeat = Action.repeat * 10 + repeat;
-                    Operators.repeat = Operators.repeat * 10 + repeat;
+                    OperatorHandler.repeat = OperatorHandler.repeat * 10 + repeat;
                     TextObjects.repeat = TextObjects.repeat * 10 + repeat;
                     this.matchedSequence = repeat.toString();
                     this.updateStatusBar();
@@ -238,21 +242,23 @@ export class KeyHandler {
 
         if (this.operatorPendingMode) {
             if (km.type === 'Motion') {
-                let reset = await execOperators(this.operator!.op, {
+                let parseState = await OperatorHandler.execute(this.operator!.op, {
                     motion: km.action, motionArgs: km.args || [],
                     preArgs: this.operator?.preArgs, postArgKm: km, km: this.operator?.km
                 });
-                if (reset) {
+                if (parseState !== KeyParseState.MoreInput) {
                     this.resetKeys();
                 }
                 return;
             }
             else if (km.type === 'Operator') {
                 let preArgs = this.operator!.key;
-                if (await execOperators(km.action, { preArgs, km })) {
+                let parseState = await OperatorHandler.execute(km.action, { preArgs, km });
+                if (parseState !== KeyParseState.MoreInput) {
                     this.resetKeys();
                     return;
                 }
+
                 this.operator = {
                     op: km.action, key: km.key[0], km,
                     preArgs,
@@ -261,11 +267,11 @@ export class KeyHandler {
             }
             else if (km.type === 'TextObject') {
                 TextObjects.currentSeq = this.matchedSequence;
-                let reset = await execOperators(this.operator!.op, {
+                let parseState = await OperatorHandler.execute(this.operator!.op, {
                     textObject: km.action, textObjectArgs: km.args || [],
                     km: this.operator?.km, postArgKm: km
                 });
-                if (reset) {
+                if (parseState !== KeyParseState.MoreInput) {
                     this.resetKeys();
                 }
                 return;
@@ -289,7 +295,7 @@ export class KeyHandler {
 
                 } else if (VimState.currentMode === 'VISUAL' || VimState.currentMode === 'VISUAL_LINE') {
                     // execute operator on currently selected ranges.
-                    execOperators(km.action);
+                    OperatorHandler.execute(km.action);
                     this.resetKeys();
                 }
             }
@@ -298,10 +304,10 @@ export class KeyHandler {
                 this.resetKeys();
             }
             else if (km.type === 'Action') {
-                km.action(this.matchedSequence);
+                let parseState = await km.action(this.matchedSequence);
                 // reset repeat to default after executing motion.
                 // this.resetKeys();
-                if (!this.waitingForInput) {
+                if (parseState !== KeyParseState.MoreInput) {
                     this.resetKeys();
                 }
             }
@@ -316,7 +322,6 @@ export class KeyHandler {
 
         this.matchedSequence = "";
         this.expectingSequence = false;
-        this.waitingForInput = false;
         vscode.commands.executeCommand(
             'setContext', "vim.expectingSequence", this.expectingSequence
         );
@@ -329,7 +334,7 @@ export class KeyHandler {
         MotionHandler.current_key = "";
         TextObjects.currentSeq = "";
         Action.repeat = 0;
-        Operators.repeat = 0;
+        OperatorHandler.repeat = 0;
         TextObjects.repeat = 0;
     }
     // If key sequence isn't matched or timeout occurs, 
