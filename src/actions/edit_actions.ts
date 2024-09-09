@@ -100,6 +100,10 @@ async function paste(where: 'before' | 'after') {
     });
 }
 
+function undo() {
+
+}
+
 function joinLine() {
     let editor = vscode.window.activeTextEditor;
     if (!editor) { return; }
@@ -149,6 +153,12 @@ export const editActionKeymap: Keymap[] = [
         key: ['P'],
         type: 'Action',
         action: () => { paste('before'); },
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
+    {
+        key: ['u'],
+        type: 'Action',
+        action: () => { vscode.commands.executeCommand('undo'); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     },
 ];
