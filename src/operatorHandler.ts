@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { executeMotion, Motion, MotionHandler } from "./motion";
+import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { VimState } from './mode';
 import { Keymap, KeyParseState, OperatorKeymap } from './mapping';
 import { Logger, printCursorPositions } from './util';

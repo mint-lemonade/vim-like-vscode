@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { KeyHandler } from './mapping';
-import { motionKeymap } from './motion';
+import { motionKeymap } from './motionHandler';
 import { operatorKeyMap } from './operatorHandler';
 import { actionKeymap } from './action';
 import { Logger, printCursorPositions } from './util';

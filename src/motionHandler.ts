@@ -12,17 +12,23 @@ type MotionData = {
 };
 export type Motion = (...args: any[]) => MotionData;
 
+const WHITESPACE = /\s/;
+const WORDCHARS = {
+    word: /\w/,
+    WORD: /[^\s]/
+};
+
 export class MotionHandler {
     static editor: vscode.TextEditor;
     // 0 is default value, motion will executed once when repeat is either 0 or 1
     static repeat: number = 0;
 
-    static current_key: string;
+    static currentSeq: string;
     static prevHorizantalPos: number[] = [];
 
     // data for repeating search
-    static search_char: string;
-    static include_char: boolean;
+    static searchChar: string;
+    static includeChar: boolean;
 
     static isCursorAtLineStart(curIdx: number): boolean {
         let curPos = VimState.vimCursor.selections[curIdx].active;
@@ -142,19 +148,19 @@ export class MotionHandler {
                 search_dir = -1;
             }
 
-            let validChars = wordChars[type];
+            let validChars = WORDCHARS[type];
             // this checks if char is invalid sequence i.e. nor valid char neither whitespace.
-            let isInvalidSeqChar = (c: number) => !whitespace.test(line.text[c]) && !validChars.test(line.text[c]);
+            let isInvalidSeqChar = (c: number) => !WHITESPACE.test(line.text[c]) && !validChars.test(line.text[c]);
 
             // set up search state.
             let onWord: boolean = validChars.test(line.text[c]);
             let onNonWhitespaceInvalidSeq: boolean = isInvalidSeqChar(c);
-            let onWhitespace = whitespace.test(line.text[c]);
+            let onWhitespace = WHITESPACE.test(line.text[c]);
 
             while (true) {
                 c += search_dir;
                 if (by === 'next-end') {
-                    if (whitespace.test(line.text[c])) {
+                    if (WHITESPACE.test(line.text[c])) {
                         // skip whitespace
                         continue;
                     }
@@ -203,7 +209,7 @@ export class MotionHandler {
                         onNonWhitespaceInvalidSeq = false;
                     }
 
-                    if (whitespace.test(line.text[c]) || line.isEmptyOrWhitespace) {
+                    if (WHITESPACE.test(line.text[c]) || line.isEmptyOrWhitespace) {
                         // skip whitespace and reset search state.
                         onNonWhitespaceInvalidSeq = false;
                         onWord = false;
@@ -222,7 +228,7 @@ export class MotionHandler {
                     break;
                 } else if (by === 'prev-start') {
 
-                    if (whitespace.test(line.text[c])) {
+                    if (WHITESPACE.test(line.text[c])) {
                         // skip whitespace
                         continue;
                     }
@@ -250,7 +256,7 @@ export class MotionHandler {
                         continue;
                     }
 
-                    if (!validChars.test(line.text[c]) && !validChars.test(line.text[c - 1]) && !whitespace.test(line.text[c - 1])) {
+                    if (!validChars.test(line.text[c]) && !validChars.test(line.text[c - 1]) && !WHITESPACE.test(line.text[c - 1])) {
                         // Current and next char are non-whitespace invalid so not reached end of invalid seq.
                         continue;
                     }
@@ -272,7 +278,7 @@ export class MotionHandler {
                         onNonWhitespaceInvalidSeq = false;
                     }
 
-                    if (whitespace.test(line.text[c]) || line.isEmptyOrWhitespace) {
+                    if (WHITESPACE.test(line.text[c]) || line.isEmptyOrWhitespace) {
                         // skip whitespace and reset search state.
                         onNonWhitespaceInvalidSeq = false;
                         onWord = false;
@@ -314,9 +320,9 @@ export class MotionHandler {
                         continue;
                     }
 
-                    if (onWhitespace && whitespace.test(line.text[c])) {
+                    if (onWhitespace && WHITESPACE.test(line.text[c])) {
                         continue;
-                    } else if (onWhitespace && !whitespace.test(line.text[c])) {
+                    } else if (onWhitespace && !WHITESPACE.test(line.text[c])) {
                         c -= search_dir;
                         break;
                     }
@@ -346,9 +352,9 @@ export class MotionHandler {
                         continue;
                     }
 
-                    if (onWhitespace && whitespace.test(line.text[c])) {
+                    if (onWhitespace && WHITESPACE.test(line.text[c])) {
                         continue;
-                    } else if (onWhitespace && !whitespace.test(line.text[c])) {
+                    } else if (onWhitespace && !WHITESPACE.test(line.text[c])) {
                         c -= search_dir;
                         break;
                     }
@@ -370,21 +376,21 @@ export class MotionHandler {
      * @param include_char true for f/F. false for t/T  
      */
     static findChar(search_dir: 1 | -1, include_char?: boolean): MotionData {
-        if (['f', 'F', 't', 'T'].includes(this.current_key[0])) {
-            this.search_char = this.current_key[1];
-            this.include_char = include_char!;
-        } else if (!this.search_char) {
+        if (['f', 'F', 't', 'T'].includes(this.currentSeq[0])) {
+            this.searchChar = this.currentSeq[1];
+            this.includeChar = include_char!;
+        } else if (!this.searchChar) {
             return {
                 positions: VimState.vimCursor.selections.map(sel => sel.active)
             };
         }
-        Logger.info("FIND: ", this.current_key);
+        Logger.info("FIND: ", this.currentSeq);
         let positions = VimState.vimCursor.selections.map((sel, i) => {
             let curPos = sel.active;
             let line = this.editor.document.lineAt(curPos.line);
             let c = curPos.character;
 
-            if (!this.include_char) {
+            if (!this.includeChar) {
                 // in t/T operator skip immediate char to avoid getting stuck
                 c += search_dir;
             }
@@ -393,8 +399,8 @@ export class MotionHandler {
                 if (c < 0 || c > line.text.length - 1) {
                     break;
                 }
-                if (line.text[c] === this.search_char) {
-                    if (this.include_char) {
+                if (line.text[c] === this.searchChar) {
+                    if (this.includeChar) {
                         return new vscode.Position(curPos.line, c);
                     }
                     return new vscode.Position(curPos.line, c).translate(0, search_dir * -1);
@@ -575,19 +581,6 @@ function registerMotion(commandName?: string) {
         });
     };
 }
-
-
-// const whitespace = " \t\r\n";
-const whitespace = /\s/;
-const wordDelim = {
-    word: " []{}-()\t\r\n,",
-    WORD: " \t\r\n"
-};
-
-const wordChars = {
-    word: /\w/,
-    WORD: /[^\s]/
-};
 
 export const motionKeymap: Keymap[] = [
     {

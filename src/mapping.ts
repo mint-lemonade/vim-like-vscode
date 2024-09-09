@@ -1,7 +1,7 @@
 
 import * as vscode from 'vscode';
 import { Mode, VimState } from "./mode";
-import { executeMotion, Motion, MotionHandler } from "./motion";
+import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { Operator, default as OperatorHandler } from './operatorHandler';
 import { Action } from './action';
 import { printCursorPositions } from './util';
@@ -127,7 +127,7 @@ export class KeyHandler {
         if (!matchedKeymap) { return true; }
 
         if (matchedKeymap.type === 'Motion') {
-            MotionHandler.current_key = this.matchedSequence;
+            MotionHandler.currentSeq = this.matchedSequence;
         } else if (matchedKeymap.type === 'TextObject') {
             TextObjects.currentSeq = this.matchedSequence;
         }
@@ -331,7 +331,7 @@ export class KeyHandler {
 
         VimState.register.reset();
         MotionHandler.repeat = 0;
-        MotionHandler.current_key = "";
+        MotionHandler.currentSeq = "";
         TextObjects.currentSeq = "";
         Action.repeat = 0;
         OperatorHandler.repeat = 0;

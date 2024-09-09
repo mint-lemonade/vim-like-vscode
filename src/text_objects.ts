@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { Range } from "vscode";
 import { Keymap } from "./mapping";
 import { VimState } from './mode';
-import { MotionHandler } from './motion';
+import { MotionHandler } from './motionHandler';
 import { Scanner } from './scanner';
 
 export type TextObjectData = ({
