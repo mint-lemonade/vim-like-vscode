@@ -10,7 +10,7 @@ function deleteChar(enterInsertMode: boolean, repeat: number) {
     repeat = Math.max(repeat, 1);
     let ranges: vscode.Range[] = [];
     if (VimState.currentMode === 'NORMAL') {
-        ranges = VimState.vimCursor.selections.map(sel => new vscode.Range(sel.active, sel.active.translate(0, repeat)));
+        ranges = VimState.cursor.selections.map(sel => new vscode.Range(sel.active, sel.active.translate(0, repeat)));
     } else if (VimState.currentMode === 'VISUAL' ||
         VimState.currentMode === 'VISUAL_LINE'
     ) {
@@ -48,7 +48,7 @@ async function paste(where: 'before' | 'after') {
 
     // Spread Entries over cursors or bunch paste them all.
     let spreadEntries: boolean = false;
-    if (regEntry.text.length === VimState.vimCursor.selections.length) {
+    if (regEntry.text.length === VimState.cursor.selections.length) {
         spreadEntries = true;
     }
 
@@ -105,7 +105,7 @@ function joinLine() {
     if (!editor) { return; }
     editor.edit(e => {
         if (!editor) { return; }
-        for (let sel of VimState.vimCursor.selections) {
+        for (let sel of VimState.cursor.selections) {
             let curLine = editor.document.lineAt(sel.active);
             let nextLine = editor.document.lineAt(sel.active.line + 1);
             let start = curLine.range.end;

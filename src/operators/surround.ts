@@ -107,7 +107,7 @@ export class Surround {
                 if (this.linewise) { return KeyParseState.Failed; }
                 this.linewise = true;
                 this.getSurroundInput = true;
-                this.surround_at = VimState.vimCursor.selections.map(sel => {
+                this.surround_at = VimState.cursor.selections.map(sel => {
                     let line = this.editor.document.lineAt(sel.active);
                     return {
                         start: line.range.start,

@@ -20,7 +20,7 @@ export class Change {
         let linewise = false;
         if (preArgs === 'c') {
             linewise = true;
-            VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
+            VimState.cursor.selections = VimState.cursor.selections.map(sel => {
                 let line = OH.editor.document.lineAt(sel.active);
                 let endLine: vscode.TextLine | undefined;
                 if (OH.repeat) {

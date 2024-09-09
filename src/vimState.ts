@@ -21,7 +21,7 @@ export class VimState {
     // - Unlike vs-code cursor, vim cursor selects char under text in visual mode
     // - Vim block cursor do not moves last charcter of line. 
     // So we create our own respresentation of vim cursor.
-    static vimCursor: {
+    static cursor: {
         selections: {
             anchor: vscode.Position,
             active: vscode.Position
@@ -138,14 +138,14 @@ export class VimState {
                         // });
 
                         // Setup text decoration to mimic the block cursor.
-                        if (!this.vimCursor.visualModeTextDecoration) {
+                        if (!this.cursor.visualModeTextDecoration) {
                             const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
                             const textColor = new vscode.ThemeColor('editorCursor.background');
                             const decorationType = vscode.window.createTextEditorDecorationType({
                                 backgroundColor: cursorColor,
                                 color: textColor
                             });
-                            this.vimCursor.visualModeTextDecoration = decorationType;
+                            this.cursor.visualModeTextDecoration = decorationType;
                         }
 
                         break;
@@ -173,8 +173,8 @@ export class VimState {
     static syncVimCursor() {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
-        if (!this.vimCursor) {
-            this.vimCursor = {
+        if (!this.cursor) {
+            this.cursor = {
                 selections: [],
                 visualModeTextDecoration: null
             };
@@ -184,7 +184,7 @@ export class VimState {
             // modify internal vim selections
             return;
         }
-        this.vimCursor.selections = editor.selections.map((sel, i) => {
+        this.cursor.selections = editor.selections.map((sel, i) => {
             if (this.currentMode === 'NORMAL') {
                 if (sel.active.isBefore(sel.anchor)) {
                     return {
@@ -224,10 +224,10 @@ export class VimState {
             } else if (this.currentMode === 'VISUAL_LINE') {
                 return {
                     anchor: sel.anchor.with({
-                        character: this.vimCursor.selections[i]?.anchor.character || 0
+                        character: this.cursor.selections[i]?.anchor.character || 0
                     }),
                     active: sel.active.with({
-                        character: this.vimCursor.selections[i]?.active.character || 0
+                        character: this.cursor.selections[i]?.active.character || 0
                     })
                 };
             }
@@ -247,7 +247,7 @@ export class VimState {
 
         let startPosition: vscode.Position[] = [];
         let endPosition: vscode.Position[] = [];
-        for (let [i, sel] of this.vimCursor.selections.entries()) {
+        for (let [i, sel] of this.cursor.selections.entries()) {
             if (this.currentMode === 'NORMAL') {
                 startPosition[i] = sel.active;
                 endPosition[i] = sel.active;
@@ -298,7 +298,7 @@ export class VimState {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
 
-        let selections = this.vimCursor.selections.map((sel, i) => {
+        let selections = this.cursor.selections.map((sel, i) => {
             let startPosition: vscode.Position;
             let endPosition: vscode.Position;
             if (this.currentMode === 'VISUAL_LINE') {
@@ -332,22 +332,22 @@ export class VimState {
     static updateVisualModeCursor(position?: vscode.Position) {
 
         let editor = vscode.window.activeTextEditor;
-        if (!editor || !this.vimCursor.visualModeTextDecoration) { return; }
+        if (!editor || !this.cursor.visualModeTextDecoration) { return; }
         Logger.log("Updating visual mode cursor....");
 
-        editor.setDecorations(this.vimCursor.visualModeTextDecoration, []);
+        editor.setDecorations(this.cursor.visualModeTextDecoration, []);
         if (this.currentMode === 'VISUAL') {
-            let cursors = this.vimCursor.selections.map(sel => {
+            let cursors = this.cursor.selections.map(sel => {
                 return new vscode.Range(sel.active, sel.active.translate(0, 1));
             });
             Logger.log("visual mode cursros: ", cursors);
-            editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
+            editor.setDecorations(this.cursor.visualModeTextDecoration, cursors);
         } else if (this.currentMode === 'VISUAL_LINE') {
-            let cursors = this.vimCursor.selections.map(sel => {
+            let cursors = this.cursor.selections.map(sel => {
                 return new vscode.Range(sel.active, sel.active.translate(0, 1));
             });
             Logger.log("visual mode cursros: ", cursors);
-            editor.setDecorations(this.vimCursor.visualModeTextDecoration, cursors);
+            editor.setDecorations(this.cursor.visualModeTextDecoration, cursors);
         }
     }
 }

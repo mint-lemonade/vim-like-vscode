@@ -6,7 +6,7 @@ import { editActionKeymap } from './edit_actions';
 import { registerKeymap } from '../register';
 
 function invertSelection() {
-    VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
+    VimState.cursor.selections = VimState.cursor.selections.map(sel => {
         return {
             active: sel.anchor,
             anchor: sel.active

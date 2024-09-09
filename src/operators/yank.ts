@@ -19,7 +19,7 @@ export class Yank {
 
         if (preArgs === 'y') {
             linewise = true;
-            VimState.vimCursor.selections = VimState.vimCursor.selections.map(sel => {
+            VimState.cursor.selections = VimState.cursor.selections.map(sel => {
                 let line = OH.editor!.document.lineAt(sel.active);
                 let endLine: vscode.TextLine | undefined;
                 if (OH.repeat) {
@@ -53,7 +53,7 @@ export class Yank {
                     VimState.setMode('NORMAL');
                 }
                 setImmediate(() => {
-                    VimState.vimCursor.selections = selections;
+                    VimState.cursor.selections = selections;
                     VimState.syncVsCodeCursorOrSelection();
                 });
             }

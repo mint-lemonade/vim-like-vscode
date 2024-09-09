@@ -23,7 +23,7 @@ export class TextObjects {
         MotionHandler.editor = this.editor;
         let start = MotionHandler.findWordBoundry('cur-start', wordType);
         let end = MotionHandler.findWordBoundry('cur-end', wordType);
-        let ranges = VimState.vimCursor.selections.map((sel, i) => {
+        let ranges = VimState.cursor.selections.map((sel, i) => {
             return {
                 range: new Range(start.positions[i], end.positions[i]).union(new Range(sel.anchor, sel.active)),
                 openingWrapper: start.positions[i],
@@ -39,7 +39,7 @@ export class TextObjects {
             console.error(`Invalid "${c}" character for textObject`);
             throw new Error(`Invalid "${c}" character for textObject`);
         }
-        return VimState.vimCursor.selections.map(sel => {
+        return VimState.cursor.selections.map(sel => {
             let range: Range;
             let line = this.editor.document.lineAt(sel.active);
             let ci = sel.active.character;
@@ -113,7 +113,7 @@ export class TextObjects {
             throw new Error(`Invalid "${c}" character for brackets textObject`);
         }
 
-        return VimState.vimCursor.selections.map(sel => {
+        return VimState.cursor.selections.map(sel => {
             let objectRange: Range | undefined;
 
             let openingBracketAhead: vscode.Position | undefined;
@@ -258,7 +258,7 @@ export function execTextObject(
         texObjData = textObject.call(TextObjects, ...args);
 
         if (texObjData.some(t => !t)) { return texObjData; }
-        VimState.vimCursor.selections = VimState.vimCursor.selections.map((sel, i) => {
+        VimState.cursor.selections = VimState.cursor.selections.map((sel, i) => {
             if (!texObjData[i]) { return sel; }
             return {
                 anchor: texObjData[i]!.range.start,

@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 export function printCursorPositions(mssg?: string) {
     if (mssg) { Logger.log(mssg); }
     Logger.log(" |  Vim: [anchor, active]");
-    Logger.log(" |\t", VimState.vimCursor.selections.map(s => {
+    Logger.log(" |\t", VimState.cursor.selections.map(s => {
         return `[(${s.anchor.line}, ${s.anchor.character}) to (${s.active.line}, ${s.active.character})]`;
     }).toString());
     Logger.log(" |  Vscode: [anchor, active]");

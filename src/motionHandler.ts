@@ -31,7 +31,7 @@ export class MotionHandler {
     static includeChar: boolean;
 
     static isCursorAtLineStart(curIdx: number): boolean {
-        let curPos = VimState.vimCursor.selections[curIdx].active;
+        let curPos = VimState.cursor.selections[curIdx].active;
         if (curPos.character === 0) {
             return true;
         }
@@ -39,7 +39,7 @@ export class MotionHandler {
     }
 
     static isCursorAtLineEnd(curIdx: number): boolean {
-        let curPos = VimState.vimCursor.selections[curIdx].active;
+        let curPos = VimState.cursor.selections[curIdx].active;
         let line = this.editor.document.lineAt(curPos.line);
         if (curPos.character === line.text.length - 1) {
             return true;
@@ -50,7 +50,7 @@ export class MotionHandler {
     @registerMotion()
     static moveLeft(): MotionData {
         let data = {
-            positions: VimState.vimCursor.selections.map((sel, i) => {
+            positions: VimState.cursor.selections.map((sel, i) => {
                 if (this.isCursorAtLineStart(i)) {
                     return sel.active;
                 }
@@ -64,7 +64,7 @@ export class MotionHandler {
     @registerMotion()
     static moveRight(): MotionData {
         let data = {
-            positions: VimState.vimCursor.selections.map((sel, i) => {
+            positions: VimState.cursor.selections.map((sel, i) => {
                 if (this.isCursorAtLineEnd(i)) {
                     return sel.active;
                 }
@@ -79,7 +79,7 @@ export class MotionHandler {
     static moveUp(isRepeated: boolean): MotionData {
         let visibleRanges = this.editor.visibleRanges;
         return {
-            positions: VimState.vimCursor.selections.map((sel, i) => {
+            positions: VimState.cursor.selections.map((sel, i) => {
                 // if on first line, return current position
                 if (sel.active.line === 0) {
                     return sel.active;
@@ -107,7 +107,7 @@ export class MotionHandler {
         let visibleRanges = this.editor.visibleRanges;
         return {
             // if on last line, return current position
-            positions: VimState.vimCursor.selections.map((sel, i) => {
+            positions: VimState.cursor.selections.map((sel, i) => {
                 if (sel.active.line === this.editor.document.lineCount - 1) {
                     return sel.active;
                 }
@@ -135,7 +135,7 @@ export class MotionHandler {
         type: 'word' | 'WORD'
     ): MotionData {
         let lineCount = this.editor.document.lineCount;
-        let positions = VimState.vimCursor.selections.map((sel, i) => {
+        let positions = VimState.cursor.selections.map((sel, i) => {
             let curPos = sel.active;
             let line = this.editor.document.lineAt(curPos.line);
 
@@ -381,11 +381,11 @@ export class MotionHandler {
             this.includeChar = include_char!;
         } else if (!this.searchChar) {
             return {
-                positions: VimState.vimCursor.selections.map(sel => sel.active)
+                positions: VimState.cursor.selections.map(sel => sel.active)
             };
         }
         Logger.info("FIND: ", this.currentSeq);
-        let positions = VimState.vimCursor.selections.map((sel, i) => {
+        let positions = VimState.cursor.selections.map((sel, i) => {
             let curPos = sel.active;
             let line = this.editor.document.lineAt(curPos.line);
             let c = curPos.character;
@@ -420,12 +420,12 @@ export class MotionHandler {
         let data: MotionData;
         if (line === 'first') {
             data = {
-                positions: VimState.vimCursor.selections.map(_ => new vscode.Position(0, 0))
+                positions: VimState.cursor.selections.map(_ => new vscode.Position(0, 0))
             };
         } else {
             let line = this.editor.document.lineCount - 1;
             data = {
-                positions: VimState.vimCursor.selections.map(_ => new vscode.Position(line, 0))
+                positions: VimState.cursor.selections.map(_ => new vscode.Position(line, 0))
             };
         }
         this.prevHorizantalPos = data.positions.map(p => p.character);
@@ -436,7 +436,7 @@ export class MotionHandler {
         let positions: vscode.Position[];
         switch (to) {
             case 'first-char':
-                positions = VimState.vimCursor.selections
+                positions = VimState.cursor.selections
                     .map(sel => {
                         let line = this.editor.document.lineAt(sel.active.line);
                         return new vscode.Position(
@@ -445,11 +445,11 @@ export class MotionHandler {
                     });
                 break;
             case 'start':
-                positions = VimState.vimCursor.selections
+                positions = VimState.cursor.selections
                     .map(sel => new vscode.Position(sel.active.line, 0));
                 break;
             case 'end':
-                positions = VimState.vimCursor.selections
+                positions = VimState.cursor.selections
                     .map(sel => {
                         let line = this.editor.document.lineAt(sel.active.line);
                         return new vscode.Position(sel.active.line, line.text.length - 1);
@@ -491,20 +491,20 @@ export class MotionHandler {
             position = this.editor.visibleRanges.at(-1)!.end;
         } else {
             console.error("Invalid argument on screen move");
-            return { positions: VimState.vimCursor.selections.map(sel => sel.active) };
+            return { positions: VimState.cursor.selections.map(sel => sel.active) };
         }
         let line = this.editor.document.lineAt(position);
         position = position.with({ character: line.firstNonWhitespaceCharacterIndex });
         this.prevHorizantalPos = [position.character];
         return {
             // positions: [position, ...VimState.vimCursor.selections.slice(1).map(sel => sel.active)]
-            positions: VimState.vimCursor.selections.map(_ => position),
+            positions: VimState.cursor.selections.map(_ => position),
             revealCursor: false
         };
     }
 
     static moveToParagraph(to: 1 | -1): MotionData {
-        let positions = VimState.vimCursor.selections.map(sel => {
+        let positions = VimState.cursor.selections.map(sel => {
             let l = sel.active.line;
             let startedOnPara = this.editor.document.lineAt(l).isEmptyOrWhitespace;
             while (true) {
@@ -551,7 +551,7 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
                 moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
             }
         });
-        VimState.vimCursor.selections.forEach((sel, i) => {
+        VimState.cursor.selections.forEach((sel, i) => {
             sel.active = moveTo.positions[i];
         });
         repeat -= 1;
@@ -559,7 +559,7 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
 
     if (syncVsCodeCursor) {
         if (VimState.currentMode === 'NORMAL') {
-            VimState.vimCursor.selections.forEach((sel, i) => {
+            VimState.cursor.selections.forEach((sel, i) => {
                 sel.anchor = sel.active;
             });
         }

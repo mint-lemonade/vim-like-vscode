@@ -16,7 +16,7 @@ async function switchToInsertModeAt(cursorPos: CursorPos) {
         await vscode.commands.executeCommand('editor.action.insertLineAfter');
     }
 
-    for (let [i, sel] of VimState.vimCursor.selections.entries()) {
+    for (let [i, sel] of VimState.cursor.selections.entries()) {
         switch (cursorPos) {
             case 'after-cursor':
                 sel.active = editor!.selections[i].active.translate(0, 1);

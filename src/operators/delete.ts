@@ -20,7 +20,7 @@ export class Delete {
         let linewise = false;
         if (preArgs === 'd') {
             linewise = true;
-            linewiseRanges = VimState.vimCursor.selections.map(sel => {
+            linewiseRanges = VimState.cursor.selections.map(sel => {
                 let line = OH.editor.document.lineAt(sel.active).rangeIncludingLineBreak;
                 if (OH.repeat) {
                     let endLine = OH.editor.document.lineAt(sel.active.line + OH.repeat - 1).rangeIncludingLineBreak;
