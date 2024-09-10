@@ -6,7 +6,7 @@ import { Logger } from './util';
 
 type MotionData = {
     positions: vscode.Position[],
-    includeCurrentCharUnderSelection?: boolean
+    includeCharUnderCursor?: boolean
     revealCursor?: boolean;
     // jump_by: number,
 };
@@ -134,6 +134,7 @@ export class MotionHandler {
         by: 'next-start' | 'next-end' | 'prev-start' | 'prev-end' | 'cur-start' | 'cur-end',
         type: 'word' | 'WORD'
     ): MotionData {
+        let includeCharUnderCursor = true;
         let lineCount = this.editor.document.lineCount;
         let positions = VimState.cursor.selections.map((sel, i) => {
             let curPos = sel.active;
@@ -225,6 +226,7 @@ export class MotionHandler {
                         continue;
                     }
                     // Found first valid char or first non-whitespace invalid char.
+                    includeCharUnderCursor = false;
                     break;
                 } else if (by === 'prev-start') {
 
@@ -366,7 +368,7 @@ export class MotionHandler {
         this.prevHorizantalPos = positions.map(p => p.character);
         return {
             positions,
-            includeCurrentCharUnderSelection: true
+            includeCharUnderCursor
         };
     }
 
@@ -412,7 +414,7 @@ export class MotionHandler {
         this.prevHorizantalPos = positions.map(p => p.character);
         return {
             positions,
-            includeCurrentCharUnderSelection: true
+            includeCharUnderCursor: true
         };
     }
 
@@ -533,7 +535,7 @@ export class MotionHandler {
     }
 }
 
-export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]) => {
+export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]): MotionData | void => {
     let editor = vscode.window.activeTextEditor;
     if (!editor) { return; }
 
@@ -567,6 +569,8 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
             revealCursor: moveTo!.revealCursor === undefined ? true : moveTo!.revealCursor
         });
     }
+
+    return moveTo!;
 };
 
 /**

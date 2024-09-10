@@ -46,7 +46,12 @@ export class OperatorHandler {
         let result: KeyParseState;
         if (args?.motion && !(this.curOpKeymap)?.handlePostArgs) {
             // Operator is executed in normal mode with provided motion as range
-            executeMotion(args.motion, false, ...(args.motionArgs || []));
+            let motionData = executeMotion(args.motion, false, ...(args.motionArgs || []));
+            if (motionData && !motionData.includeCharUnderCursor) {
+                VimState.cursor.selections.forEach(sel => {
+                    sel.active = sel.active.translate(0, -1);
+                });
+            }
 
             result = await op.exec(this, {
                 preArgs: args.preArgs, postArg: args.postArg
