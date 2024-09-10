@@ -72,7 +72,9 @@ async function paste(where: 'before' | 'after') {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         let selections = editor.selections;
-
+        // TODO: after 'p'asting handle formating for all pasted code.
+        // Currently only line under cursor is getting formatted.
+        let formatRanges: vscode.Range[] = [];
         await editor.edit(e => {
             for (let [i, sel] of selections.entries()) {
                 if (VimState.currentMode === 'NORMAL') {
@@ -93,7 +95,11 @@ async function paste(where: 'before' | 'after') {
             }
         }).then(res => {
             Logger.log("edit possible: ", res);
+            if (pasteAt instanceof vscode.Position) {
+                pasteAt = editor!.document.lineAt(pasteAt.line).range;
+            }
             setImmediate(() => {
+                vscode.commands.executeCommand('editor.action.formatSelection', pasteAt);
                 VimState.setMode('NORMAL');
             });
         });

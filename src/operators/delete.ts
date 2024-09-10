@@ -16,22 +16,34 @@ export class Delete {
             return KeyParseState.Failed;
         }
 
-        let linewiseRanges: vscode.Range[] | undefined;
+        // ranges to be deleted including line break
+        let linewiseDeleteRanges: vscode.Range[] | undefined;
+        // ranges to be saved in register without linebreak
+        let linewiseTextRanges: vscode.Range[] | undefined;
         let linewise = false;
         if (preArgs === 'd') {
             linewise = true;
-            linewiseRanges = VimState.cursor.selections.map(sel => {
-                let line = OH.editor.document.lineAt(sel.active).rangeIncludingLineBreak;
+            linewiseDeleteRanges = [];
+            linewiseTextRanges = [];
+            VimState.cursor.selections.forEach(sel => {
+                let startLine = OH.editor.document.lineAt(sel.active);
+                let endLine = startLine;
                 if (OH.repeat) {
-                    let endLine = OH.editor.document.lineAt(sel.active.line + OH.repeat - 1).rangeIncludingLineBreak;
-                    line = new vscode.Range(line.start, endLine.end);
+                    endLine = OH.editor.document
+                        .lineAt(sel.active.line + OH.repeat - 1);
                 }
-                return line;
+                linewiseTextRanges!.push(new vscode.Range(
+                    startLine.range.start, endLine.range.end
+                ));
+                linewiseDeleteRanges!.push(new vscode.Range(
+                    startLine.range.start, endLine.rangeIncludingLineBreak.end
+                ));
+                // return line;
             });
         }
 
         await VimState.syncSelectionAndExec(async () => {
-            let text = (linewiseRanges || OH.editor.selections)
+            let text = (linewiseTextRanges || OH.editor.selections)
                 .map(r => OH.editor.document.getText(r));
             VimState.register.write(text, 'delete', linewise);
 
@@ -43,7 +55,7 @@ export class Delete {
                     });
             } else {
                 await OH.editor.edit(e => {
-                    for (let range of (linewiseRanges || OH.editor.selections)) {
+                    for (let range of (linewiseDeleteRanges || OH.editor.selections)) {
                         e.delete(range);
                     }
                 }).then(res => {
