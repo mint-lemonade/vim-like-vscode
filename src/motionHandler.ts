@@ -6,7 +6,7 @@ import { Logger } from './util';
 
 type MotionData = {
     positions: vscode.Position[],
-    includeCharUnderCursor?: boolean
+    excludeCharUnderCursor?: boolean
     revealCursor?: boolean;
     // jump_by: number,
 };
@@ -134,7 +134,7 @@ export class MotionHandler {
         by: 'next-start' | 'next-end' | 'prev-start' | 'prev-end' | 'cur-start' | 'cur-end',
         type: 'word' | 'WORD'
     ): MotionData {
-        let includeCharUnderCursor = true;
+        let excludeCharUnderCursor = false;
         let lineCount = this.editor.document.lineCount;
         let positions = VimState.cursor.selections.map((sel, i) => {
             let curPos = sel.active;
@@ -226,7 +226,7 @@ export class MotionHandler {
                         continue;
                     }
                     // Found first valid char or first non-whitespace invalid char.
-                    includeCharUnderCursor = false;
+                    excludeCharUnderCursor = true;
                     break;
                 } else if (by === 'prev-start') {
 
@@ -368,7 +368,7 @@ export class MotionHandler {
         this.prevHorizantalPos = positions.map(p => p.character);
         return {
             positions,
-            includeCharUnderCursor
+            excludeCharUnderCursor
         };
     }
 
@@ -414,7 +414,6 @@ export class MotionHandler {
         this.prevHorizantalPos = positions.map(p => p.character);
         return {
             positions,
-            includeCharUnderCursor: true
         };
     }
 

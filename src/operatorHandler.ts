@@ -47,7 +47,7 @@ export class OperatorHandler {
         if (args?.motion && !(this.curOpKeymap)?.handlePostArgs) {
             // Operator is executed in normal mode with provided motion as range
             let motionData = executeMotion(args.motion, false, ...(args.motionArgs || []));
-            if (motionData && !motionData.includeCharUnderCursor) {
+            if (motionData && motionData.excludeCharUnderCursor) {
                 VimState.cursor.selections.forEach(sel => {
                     sel.active = sel.active.translate(0, -1);
                 });
