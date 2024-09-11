@@ -50,6 +50,17 @@ export function highlightText(at: readonly vscode.Range[] | vscode.Position[]) {
     }, duration);
 }
 
+export function posToString(positon: vscode.Position) {
+    return `(${positon.line},${positon.character})`;
+}
+export function stringToPos(str: string) {
+    if (!/\((\d+),(\d+)\)/.test(str)) {
+        throw new Error("Invalid string representaion for Position.");
+    }
+    let values = [...str.matchAll(/\((\d+),(\d+)\)/g)][0];
+    return new vscode.Position(parseInt(values[1]), parseInt(values[2]));
+}
+
 import assert from "assert";
 
 interface Equality<T> {

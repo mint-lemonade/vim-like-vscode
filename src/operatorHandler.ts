@@ -148,7 +148,7 @@ export const operatorKeyMap: Keymap[] = [
         type: 'Operator',
         action: Surround,
         longDesc: ['(s)urround'],
-        mode: ['OP_PENDING_MODE'],
+        mode: ['OPERATOR_PENDING'],
         handlePostArgs: true,
     },
 ];

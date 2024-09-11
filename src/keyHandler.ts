@@ -1,6 +1,6 @@
 
 import * as vscode from 'vscode';
-import { Mode, VimState } from "./vimState";
+import { Mode, SubMode, VimState } from "./vimState";
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { Operator, default as OperatorHandler } from './operatorHandler';
 import { printCursorPositions } from './util';
@@ -11,7 +11,7 @@ export type Keymap = {
     // So if sequence doesn't match or timeout occurs, typing is delegated to vscode.
     // In NORMAL and VISUAL mode no timout occurs and no delegation happens
     key: string[],
-    mode: (Mode | 'OP_PENDING_MODE')[],
+    mode: (Mode | SubMode)[],
     showInStatusBar?: boolean,
     longDesc?: string[]
 } & (MotionKeymap | OperatorKeymap | ActionKeymap | TextObjectKeymap);
@@ -57,6 +57,7 @@ export class KeyHandler {
     visualModeMap: Keymap[] = [];
     visualLineModeMap: Keymap[] = [];
     operatorPendingModeMap: Keymap[] = [];
+    multicursorModeMap: Keymap[] = [];
 
     // 0 is default value, command will executed once when repeat is either 0 or 1
     repeat: number = 0;
@@ -68,7 +69,6 @@ export class KeyHandler {
     debounceTime: number = 10; // in milliseconds
     lastKeyTimeStamp: number = 0;
 
-    operatorPendingMode: boolean = false;
     operator: {
         op: Operator, key: string, km: Keymap,
         preArgs: string,
@@ -95,8 +95,11 @@ export class KeyHandler {
             if (keymap.mode.includes('VISUAL_LINE')) {
                 this.visualLineModeMap.push(keymap);
             }
-            if (keymap.mode.includes('OP_PENDING_MODE')) {
+            if (keymap.mode.includes('OPERATOR_PENDING')) {
                 this.operatorPendingModeMap.push(keymap);
+            }
+            if (keymap.mode.includes('MULTI_CURSOR')) {
+                this.multicursorModeMap.push(keymap);
             }
         }
         this.expectingSequence = false;
@@ -109,12 +112,12 @@ export class KeyHandler {
         console.log("matched = ", matched);
         console.log("matchedKeymap", matchedKeymap);
         if (!matched) {
-            if (!this.operatorPendingMode) {
+            if (VimState.subMode !== 'OPERATOR_PENDING') {
                 this.resetKeys();
                 return false;
             }
 
-            // In OP_PENDING_MODE
+            // In OPERATOR_PENDING
             this.updateStatusBar();
             let parseState = await OperatorHandler.execute(this.operator!.op, {
                 postArg: key, preArgs: this.operator?.preArgs,
@@ -167,8 +170,10 @@ export class KeyHandler {
 
         // Get current keymap to be used based on mode.
         let currentKeymap: Keymap[];
-        if (this.operatorPendingMode) {
+        if (VimState.subMode === 'OPERATOR_PENDING') {
             currentKeymap = this.operatorPendingModeMap;
+        } else if (VimState.subMode === 'MULTI_CURSOR') {
+            currentKeymap = this.multicursorModeMap;
         } else {
             switch (VimState.currentMode) {
                 case 'INSERT':
@@ -187,7 +192,7 @@ export class KeyHandler {
         }
 
         // If same operator is pressed twice, we do not match and return its keymap immediately
-        if (this.operatorPendingMode) {
+        if (VimState.subMode === 'OPERATOR_PENDING') {
             if (this.operator?.key === key) {
                 // this.execAction(this.operator.km);
                 return [true, this.operator.km];
@@ -244,7 +249,7 @@ export class KeyHandler {
     async execAction(km: Keymap) {
         printCursorPositions("Before start execution");
 
-        if (this.operatorPendingMode) {
+        if (VimState.subMode === 'OPERATOR_PENDING') {
             if (km.type === 'Motion') {
                 let parseState = await OperatorHandler.execute(this.operator!.op, {
                     motion: km.action, motionArgs: km.args || [],
@@ -281,7 +286,7 @@ export class KeyHandler {
                 return;
             }
             else if (km.type === 'Action') {
-                console.error(`Action '${km.key}' cannot be executed in OP_PENDING_MODE!`);
+                console.error(`Action '${km.key}' cannot be executed in OPERATOR_PENDING!`);
             }
 
         } else {
@@ -292,7 +297,7 @@ export class KeyHandler {
             }
             else if (km.type === 'Operator') {
                 if (VimState.currentMode === 'NORMAL') {
-                    this.operatorPendingMode = true;
+                    VimState.subMode = 'OPERATOR_PENDING';
                     this.operator = {
                         op: km.action, key: km.key[0], km, preArgs: ""
                     };
@@ -322,7 +327,9 @@ export class KeyHandler {
 
     resetKeys() {
         this.operator = null;
-        this.operatorPendingMode = false;
+        if (VimState.subMode === 'OPERATOR_PENDING') {
+            VimState.subMode = 'NONE';
+        }
 
         this.matchedSequence = "";
         this.expectingSequence = false;
@@ -378,7 +385,7 @@ export class KeyHandler {
 
     updateStatusBar(km?: Keymap, keyIdx: number = 0) {
         if (VimState.currentMode === 'INSERT') { return; }
-        if (this.operatorPendingMode) {
+        if (VimState.subMode === 'OPERATOR_PENDING') {
             if (!km) {
                 this.statusBar.item.text += this.matchedSequence;
                 return;

@@ -26,7 +26,7 @@ export class MotionHandler {
     static currentSeq: string;
     static prevHorizantalPos: number[] = [];
 
-    // data for repeating search
+    // data for repeating f/t search
     static searchChar: string;
     static includeChar: boolean;
 
@@ -591,174 +591,174 @@ export const motionKeymap: Keymap[] = [
         key: ['h'],
         type: 'Motion',
         action: MotionHandler.moveLeft,
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['l'],
         type: 'Motion',
         action: MotionHandler.moveRight,
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['j'],
         type: 'Motion',
         action: MotionHandler.moveDown,
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['k'],
         type: 'Motion',
         action: MotionHandler.moveUp,
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['w'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-start', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['W'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-start', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['e'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-end', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['E'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['next-end', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['b'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-start', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['B'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-start', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
 
     }, {
         key: ['g', 'e'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-end', 'word'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['g', 'E'],
         type: 'Motion',
         action: MotionHandler.findWordBoundry,
         args: ['prev-end', 'WORD'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['f', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1, true],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['F', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1, true],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['t', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1, false],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['T', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1, false],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: [';'],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: [','],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['g', 'g'],
         type: 'Motion',
         action: MotionHandler.gotoLine,
         args: ['first'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['G'],
         type: 'Motion',
         action: MotionHandler.gotoLine,
         args: ['last'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['^'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
         args: ['first-char'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['0'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
         args: ['start'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['$'],
         type: 'Motion',
         action: MotionHandler.moveInLine,
         args: ['end'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['H'],
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['top'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['M'],
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['middle'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['L'],
         type: 'Motion',
         action: MotionHandler.moveOnScreen,
         args: ['end'],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['{'],
         type: 'Motion',
         action: MotionHandler.moveToParagraph,
         args: [1],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['}'],
         type: 'Motion',
         action: MotionHandler.moveToParagraph,
         args: [-1],
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OP_PENDING_MODE']
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     },
 ];

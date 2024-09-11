@@ -280,82 +280,82 @@ export const textObjectKeymap: Keymap[] = [
         type: 'TextObject',
         action: TextObjects.bracesObject,
         longDesc: ['(i)nside ', '{} '],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['a', '{}'],
         type: 'TextObject',
         action: TextObjects.bracesObject,
         longDesc: ['(a)round ', '{} '],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['i', 'w'],
         type: 'TextObject',
         action: TextObjects.wordObject,
         longDesc: ['(i)nside ', '{} '],
         args: ['word', 'inside'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['i', 'W'],
         type: 'TextObject',
         action: TextObjects.wordObject,
         longDesc: ['(i)nside ', '{} '],
         args: ['WORD', 'inside'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['i', '"'],
         type: 'TextObject',
         action: TextObjects.quotesObject,
         longDesc: ['(i)nside ', '{} '],
         args: ['"', 'inside'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['i', '\''],
         type: 'TextObject',
         action: TextObjects.quotesObject,
         longDesc: ['(i)nside ', '{} '],
         args: ['\'', 'inside'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['i', '`'],
         type: 'TextObject',
         action: TextObjects.quotesObject,
         longDesc: ['(i)nside ', '{} '],
         args: ['`', 'inside'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['a', 'w'],
         type: 'TextObject',
         action: TextObjects.wordObject,
         longDesc: ['(a)round ', '{} '],
         args: ['word', 'around'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['a', 'W'],
         type: 'TextObject',
         action: TextObjects.wordObject,
         longDesc: ['(a)round ', '{} '],
         args: ['WORD', 'around'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['a', '"'],
         type: 'TextObject',
         action: TextObjects.quotesObject,
         longDesc: ['(a)round ', '{} '],
         args: ['"', 'around'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['a', '\''],
         type: 'TextObject',
         action: TextObjects.quotesObject,
         longDesc: ['(a)round ', '{} '],
         args: ['\'', 'around'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     }, {
         key: ['a', '`'],
         type: 'TextObject',
         action: TextObjects.quotesObject,
         longDesc: ['(a)round ', '{} '],
         args: ['`', 'around'],
-        mode: ['VISUAL', 'OP_PENDING_MODE']
+        mode: ['VISUAL', 'OPERATOR_PENDING']
     },
 ];

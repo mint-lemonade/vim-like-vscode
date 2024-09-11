@@ -6,11 +6,14 @@ import { actionKeymap } from './actions';
 import { Logger, printCursorPositions } from './util';
 import { textObjectKeymap } from './textObjectHandler';
 import { Register } from './register';
+import assert from 'assert';
 
 export type Mode = 'NORMAL' | 'INSERT' | 'VISUAL' | 'VISUAL_LINE';
+export type SubMode = 'OPERATOR_PENDING' | 'MULTI_CURSOR' | 'NONE';
 
 export class VimState {
     static currentMode: Mode = 'NORMAL';
+    static subMode: SubMode = 'NONE';
     static lastMode: Mode;
     static deferredModeSwitch: Mode | undefined;
     static statusBar: vscode.StatusBarItem;
@@ -31,7 +34,9 @@ export class VimState {
         visualModeTextDecoration: vscode.TextEditorDecorationType | null;
     };
 
-    static activeEditorMap: WeakMap<vscode.TextDocument, Mode> = new WeakMap();
+    static activeEditorMap: WeakMap<vscode.TextDocument, {
+        mode: Mode, subMode: SubMode
+    }> = new WeakMap();
 
     static init(context: vscode.ExtensionContext) {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
@@ -52,16 +57,20 @@ export class VimState {
                 if (!editor) { return; }
                 Logger.log("Active editor mode: ", this.activeEditorMap.get(editor.document));
                 if (this.activeEditorMap.has(editor.document)) {
-                    if (this.activeEditorMap.get(editor.document) === 'INSERT') {
+                    if (this.activeEditorMap.get(editor.document)?.mode === 'INSERT') {
                         this.syncVimCursor();
                     }
-                    this.setMode(this.activeEditorMap.get(editor.document)!);
+                    let savedMode = this.activeEditorMap.get(editor.document);
+                    this.setMode(savedMode?.mode!, savedMode?.subMode);
                 } else {
                     Logger.log("anchor: ", editor.selection.anchor);
                     Logger.log("active: ", editor.selection.active);
                     this.setMode('NORMAL');
                     // this.syncVimCursor();
-                    this.activeEditorMap.set(editor.document, this.currentMode);
+                    this.activeEditorMap.set(editor.document, {
+                        mode: this.currentMode,
+                        subMode: this.subMode
+                    });
                 }
             });
         });
@@ -109,21 +118,36 @@ export class VimState {
         }
     }
 
-    static setMode(mode: Mode) {
+    static setMode(mode: Mode, subMode: SubMode = 'NONE') {
         this.lastMode = this.currentMode;
         this.currentMode = mode;
-        Logger.log(`Switching mode from ${this.lastMode} to ${this.currentMode}`);
-        this.statusBar.text = `--${mode}--`.replace('_', ' ');
+        this.subMode = subMode;
+
+        Logger.log(`Switching mode from ${this.lastMode} to ${this.currentMode}:${this.subMode}`);
+
+        if (this.subMode === 'MULTI_CURSOR') {
+            assert.deepEqual(this.currentMode, 'NORMAL');
+            this.statusBar.text = `--${subMode}--`.replace('_', ' ');
+        } else {
+            this.statusBar.text = `--${mode}--`.replace('_', ' ');
+        }
         this.statusBar.tooltip = 'Vim Mode';
         this.statusBar.show();
+
         let editor = vscode.window.activeTextEditor;
         if (editor) {
-            this.activeEditorMap.set(editor.document, this.currentMode);
+            this.activeEditorMap.set(editor.document, {
+                mode: this.currentMode,
+                subMode: this.subMode
+            });
             switch (mode) {
                 case 'NORMAL': {
-                    editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
+                    if (this.subMode === 'MULTI_CURSOR') {
+                        editor.options.cursorStyle = vscode.TextEditorCursorStyle.BlockOutline;
+                    } else {
+                        editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
+                    }
                     this.syncVimCursor();
-
                     break;
                 }
 
@@ -164,6 +188,7 @@ export class VimState {
             this.syncVsCodeCursorOrSelection();
         }
         vscode.commands.executeCommand('setContext', "vim.currentMode", mode);
+        vscode.commands.executeCommand('setContext', "vim.subMode", subMode);
     }
 
     static setModeAfterNextSlectionUpdate(mode: Mode) {
@@ -283,7 +308,7 @@ export class VimState {
             }
         }
 
-        let selections = editor.selections.map((sel, i) => {
+        let selections = this.cursor.selections.map((sel, i) => {
             return new vscode.Selection(startPosition[i], endPosition[i]);
         });
 

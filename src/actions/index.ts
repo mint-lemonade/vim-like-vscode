@@ -4,6 +4,7 @@ import { VimState } from "../vimState";
 import { switchModeKeymap } from './switch_mode';
 import { editActionKeymap } from './edit_actions';
 import { registerKeymap } from '../register';
+import { multiCursorKeymap } from '../multiCursor';
 
 function invertSelection() {
     VimState.cursor.selections = VimState.cursor.selections.map(sel => {
@@ -18,6 +19,7 @@ function invertSelection() {
 
 export const actionKeymap: Keymap[] = [
     ...switchModeKeymap,
+    ...multiCursorKeymap,
     ...editActionKeymap,
     registerKeymap,
     {
