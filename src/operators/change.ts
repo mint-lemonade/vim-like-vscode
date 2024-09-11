@@ -7,13 +7,13 @@ import { Logger } from "../util";
 
 export class Change {
     static async exec(OH: OperatorHandler, {
-        preArgs = "", postArgs = ""
+        preArgs = "", postArg = ""
     }): Promise<KeyParseState> {
         Logger.log("Inside operator call.");
         if (preArgs.length > 0 && preArgs !== 'c') {
             return KeyParseState.Failed;
         }
-        if (postArgs.length > 0) {
+        if (postArg.length > 0) {
             return KeyParseState.Failed;
         }
 

@@ -6,12 +6,12 @@ import { REGISTERS } from "../register";
 import { highlightText, Logger } from "../util";
 
 export class Yank {
-    static async exec(OH: OperatorHandler, { preArgs = "", postArgs = "" }): Promise<KeyParseState> {
+    static async exec(OH: OperatorHandler, { preArgs = "", postArg = "" }): Promise<KeyParseState> {
         Logger.log("Inside operator call.");
         if (preArgs.length > 0 && preArgs !== 'y') {
             return KeyParseState.Failed;
         }
-        if (postArgs.length > 0) {
+        if (postArg.length > 0) {
             return KeyParseState.Failed;
         }
 
