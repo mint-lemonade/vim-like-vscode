@@ -3,6 +3,7 @@ import { VimState } from './vimState';
 import { Keymap } from './keyHandler';
 import { Logger } from './util';
 
+type SearchDir = 1 | -1;
 
 type MotionData = {
     positions: vscode.Position[],
@@ -29,6 +30,9 @@ export class MotionHandler {
     // data for repeating f/t search
     static searchChar: string;
     static includeChar: boolean;
+    // data for repeating word search.
+    static searchWord: string;
+    static searchWordDir: SearchDir;
 
     static isCursorAtLineStart(curIdx: number): boolean {
         let curPos = VimState.cursor.selections[curIdx].active;
@@ -377,7 +381,7 @@ export class MotionHandler {
      * @param search_dir 
      * @param include_char true for f/F. false for t/T  
      */
-    static findChar(search_dir: 1 | -1, include_char?: boolean): MotionData {
+    static findChar(search_dir: SearchDir, include_char?: boolean): MotionData {
         if (['f', 'F', 't', 'T'].includes(this.currentSeq[0])) {
             this.searchChar = this.currentSeq[1];
             this.includeChar = include_char!;
@@ -415,6 +419,60 @@ export class MotionHandler {
         return {
             positions,
         };
+    }
+
+    static findWord(word: string, searchDir: SearchDir, changeDir: SearchDir = 1): MotionData {
+        this.searchWord = word;
+        this.searchWordDir = searchDir;
+        searchDir *= changeDir;
+        let lineCount = this.editor.document.lineCount;
+        let positions = VimState.cursor.selections.map(sel => {
+            let lineNo = sel.active.line;
+            let line: string;
+            if (searchDir === 1) {
+                line = this.editor.document.lineAt(lineNo).text.slice(sel.active.character + 1);
+            } else {
+                line = this.editor.document.lineAt(lineNo).text.slice(0, sel.active.character);
+            }
+            while (true) {
+                let i: number;
+                if (searchDir === 1) {
+                    i = line.indexOf(word);
+                } else {
+                    i = line.lastIndexOf(word);
+                }
+                if (i >= 0) {
+                    if (searchDir === 1 && lineNo === sel.active.line) {
+                        return new vscode.Position(
+                            lineNo,
+                            sel.active.character + i + 1
+                        );
+                    }
+                    return new vscode.Position(lineNo, i);
+                }
+                lineNo += searchDir;
+                if (lineNo >= lineCount || lineNo < 0) { return sel.active; }
+                line = this.editor.document.lineAt(lineNo).text;
+            }
+        });
+        this.prevHorizantalPos = positions.map(p => p.character);
+        return {
+            positions,
+            excludeCharUnderCursor: true
+        };
+    }
+
+    static repeatWordSearch(changDir: SearchDir): MotionData {
+        if (!this.searchWord || !this.searchWordDir) {
+            return {
+                positions: VimState.cursor.selections.map(sel => sel.active)
+            };
+        }
+        return this.findWord(
+            this.searchWord,
+            this.searchWordDir,
+            changDir
+        );
     }
 
     static gotoLine(line: 'first' | 'last'): MotionData {
@@ -504,7 +562,7 @@ export class MotionHandler {
         };
     }
 
-    static moveToParagraph(to: 1 | -1): MotionData {
+    static moveToParagraph(to: SearchDir): MotionData {
         let positions = VimState.cursor.selections.map(sel => {
             let l = sel.active.line;
             let startedOnPara = this.editor.document.lineAt(l).isEmptyOrWhitespace;
@@ -757,6 +815,42 @@ export const motionKeymap: Keymap[] = [
         key: ['}'],
         type: 'Motion',
         action: MotionHandler.moveToParagraph,
+        args: [-1],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
+    }, {
+        key: ['/'],
+        type: 'Motion',
+        action: MotionHandler.findWord,
+        textInput: true,
+        args: ["", 1, 1],
+        longDesc: ['( / )search_fwd:  '],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
+    }, {
+        key: ['?'],
+        type: 'Motion',
+        action: MotionHandler.findWord,
+        textInput: true,
+        args: ["", -1, 1],
+        longDesc: ['( ? )search_bwd: '],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
+    },
+    // {
+    //     key: ['*'],
+    //     type: 'Action',
+    //     action: () => { findWordNative('none'); },
+    //     mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'MULTI_CURSOR']
+    // },
+    {
+        key: ['n'],
+        type: 'Motion',
+        action: MotionHandler.repeatWordSearch,
+        args: [1],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
+    },
+    {
+        key: ['N'],
+        type: 'Motion',
+        action: MotionHandler.repeatWordSearch,
         args: [-1],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     },

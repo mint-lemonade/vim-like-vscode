@@ -58,6 +58,11 @@
         "when": "suggestWidgetVisible && textInputFocus && (vim.currentMode==INSERT)"
       },
       {
+        "key": "backspace",
+        "command": "vim.textInputBackspace",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && vim.expectingSequence"
+      },
+      {
         "key": "Space",
         "command": "runCommands",
         "args": {

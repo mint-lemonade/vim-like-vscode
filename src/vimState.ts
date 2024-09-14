@@ -47,7 +47,7 @@ export class VimState {
             ...actionKeymap,
             ...operatorKeyMap,
             ...textObjectKeymap
-        ]);
+        ], context);
         this.register = new Register(undefined, context);
 
         vscode.window.onDidChangeActiveTextEditor((editor) => {

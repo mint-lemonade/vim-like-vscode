@@ -51,6 +51,7 @@ export class Surround {
         if (this.state === 'off') {
             this.state = 'on';
             this.modifier = preArgs;
+            this.updateStatusBar();
             return KeyParseState.MoreInput;
         }
 
@@ -59,6 +60,8 @@ export class Surround {
         if (km?.type === 'Motion' && brackets.includes(km.key[0])) {
             postArg = km.key[0];
             km = undefined;
+            // remove from status bar, as it will be added again as uknown key.
+            VimState.keyHandler.statusBar.contents.pop();
         }
 
         if (this.getSurroundInput) {
@@ -101,11 +104,13 @@ export class Surround {
                     end: textObj!.closingWrapper
                 };
             });
+            this.updateStatusBar(postArg);
         }
         else if (this.modifier === 'y') {
             if (preArgs === 's') {
                 if (this.linewise) { return KeyParseState.Failed; }
                 this.linewise = true;
+                this.updateStatusBar();
                 this.getSurroundInput = true;
                 this.surround_at = VimState.cursor.selections.map(sel => {
                     let line = this.editor.document.lineAt(sel.active);
@@ -137,6 +142,25 @@ export class Surround {
         }
         this.getSurroundInput = true;
         return KeyParseState.MoreInput;
+    }
+
+    static updateStatusBar(str: string = "") {
+        let statusBarText: string = "";
+        if (this.modifier === 'd') {
+            statusBarText = '(ds)delete-surrounding ';
+        } else if (this.modifier === 'c') {
+            statusBarText = '(cs)change-surrounding ';
+        } else if (this.modifier === 'y') {
+            if (this.linewise) {
+                statusBarText = '(yss)surround-line-with ';
+            } else {
+                statusBarText = '(ys)add-surrounding ';
+            }
+        }
+        statusBarText += str;
+        VimState.keyHandler.updateStatusBarContent(
+            'op', undefined, undefined, statusBarText
+        );
     }
 
     static async surround() {

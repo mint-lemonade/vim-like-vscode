@@ -106,34 +106,6 @@ async function paste(where: 'before' | 'after') {
     });
 }
 
-function findWord(where: 'next' | 'prev' | 'none') {
-    switch (where) {
-        case 'none':
-            vscode.commands.executeCommand('actions.find');
-            setImmediate(async () => {
-                // Bring back focus to editor from find-widget. 
-                // Directory calling focusEditor command does not bring
-                // focus to editor.
-                // First focus on side bar to simulate as if focusEditor is being called from
-                // command palette . 
-                await vscode.commands.executeCommand('workbench.action.focusSideBar');
-                vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
-            });
-            break;
-        case 'prev':
-            vscode.commands.executeCommand('editor.action.previousMatchFindAction');
-            break;
-        case 'next':
-            vscode.commands.executeCommand('editor.action.nextMatchFindAction');
-            break;
-        default:
-            break;
-    }
-    // setImmediate(() => {
-    //     VimState.sync
-    // })
-}
-
 function undo() {
 
 }
@@ -194,23 +166,5 @@ export const editActionKeymap: Keymap[] = [
         type: 'Action',
         action: () => { vscode.commands.executeCommand('undo'); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
-    },
-    {
-        key: ['/'],
-        type: 'Action',
-        action: () => { findWord('none'); },
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'MULTI_CURSOR']
-    },
-    {
-        key: ['n'],
-        type: 'Action',
-        action: () => { findWord('next'); },
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'MULTI_CURSOR']
-    },
-    {
-        key: ['N'],
-        type: 'Action',
-        action: () => { findWord('prev'); },
-        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'MULTI_CURSOR']
     },
 ];

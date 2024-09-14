@@ -3,8 +3,10 @@ import * as vscode from 'vscode';
 import { Mode, SubMode, VimState } from "./vimState";
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { Operator, default as OperatorHandler } from './operatorHandler';
-import { printCursorPositions } from './util';
+import { Logger, printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
+import { EOL } from 'os';
+import assert from 'assert';
 
 export type Keymap = {
     // In INSERT mode keys are time sensitive. 
@@ -13,7 +15,9 @@ export type Keymap = {
     key: string[],
     mode: (Mode | SubMode)[],
     showInStatusBar?: boolean,
-    longDesc?: string[]
+    longDesc?: string[],
+    textInput?: boolean, // If keymap requires arbitrary long input. 
+    args?: any[]
 } & (MotionKeymap | OperatorKeymap | ActionKeymap | TextObjectKeymap);
 
 type MotionKeymap = {
@@ -45,11 +49,15 @@ export enum KeyParseState {
     Success,
     MoreInput
 }
+type StatusBarContentType = 'op' | 'inputText' | 'other';
 
 export class KeyHandler {
     statusBar: {
         item: vscode.StatusBarItem,
-        content: string[]
+        contents: {
+            type: StatusBarContentType,
+            text: string;
+        }[],
     };
 
     insertModeMap: Keymap[] = [];
@@ -66,6 +74,12 @@ export class KeyHandler {
     expectingSequence: boolean;
     sequenceTimeout: number = 500; // in milliseconds
 
+    textInput: {
+        input: string,
+        forKm: Keymap,
+        on: boolean
+    } | undefined;
+
     debounceTime: number = 10; // in milliseconds
     lastKeyTimeStamp: number = 0;
 
@@ -74,10 +88,10 @@ export class KeyHandler {
         preArgs: string,
     } | undefined | null;
 
-    constructor(keymaps: Keymap[]) {
+    constructor(keymaps: Keymap[], context: vscode.ExtensionContext) {
         this.statusBar = {
             item: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1),
-            content: []
+            contents: [],
         };
         this.statusBar.item.text = '';
 
@@ -103,14 +117,20 @@ export class KeyHandler {
             }
         }
         this.expectingSequence = false;
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'vim.textInputBackspace', this.textInputBackspace, this
+            )
+        );
     }
 
     // returns false if no mapping was found and no action was executed. true otherwise.
     async execute(key: any): Promise<Boolean> {
-        // let key: string = text.text;
         let [matched, matchedKeymap] = this.matchKey(key);
-        console.log("matched = ", matched);
-        console.log("matchedKeymap", matchedKeymap);
+        Logger.log("matched = ", matched);
+        Logger.log("matchedKeymap", matchedKeymap);
+        this.renderStatusBar();
         if (!matched) {
             if (VimState.subMode !== 'OPERATOR_PENDING') {
                 this.resetKeys();
@@ -118,20 +138,42 @@ export class KeyHandler {
             }
 
             // In OPERATOR_PENDING
-            this.updateStatusBar();
             let parseState = await OperatorHandler.execute(this.operator!.op, {
                 postArg: key, preArgs: this.operator?.preArgs,
                 // km: this.operator!.km
             });
-            if (parseState !== KeyParseState.MoreInput) {
+            if (parseState === KeyParseState.MoreInput) {
+                this.renderStatusBar();
+                return false;
+            } else {
                 this.resetKeys();
                 return true;
             }
-            return false;
         }
 
-        // if matched but matchedKeymap is undefined, means middle of an expected sequence.
-        if (!matchedKeymap) { return true; }
+        /**
+         * if matched but matchedKeymap is undefined, 
+         * means middle of an expected sequence
+         * or middle of taking input.
+         */
+        if (!matchedKeymap) {
+            // this.renderStatusBar();
+            return true;
+        }
+
+        if (matchedKeymap.textInput && !this.textInput) {
+            this.expectingSequence = true;
+            vscode.commands.executeCommand(
+                'setContext', "vim.expectingSequence", this.expectingSequence
+            );
+            this.textInput = {
+                input: "",
+                forKm: matchedKeymap,
+                on: true
+            };
+            // this.renderStatusBar();
+            return true;
+        }
 
         if (matchedKeymap.type === 'Motion') {
             MotionHandler.currentSeq = this.matchedSequence;
@@ -139,12 +181,30 @@ export class KeyHandler {
             TextObjects.currentSeq = this.matchedSequence;
         }
 
-        this.execAction(matchedKeymap).then(() => {
+        this.execAction(matchedKeymap).then((parseState) => {
+            if (parseState === KeyParseState.MoreInput) {
+                this.renderStatusBar();
+            } else {
+                this.resetKeys();
+            }
         });
         return true;
     }
 
     matchKey(key: string): [boolean, Keymap | undefined] {
+        if (this.textInput) {
+            if (key === EOL) {
+                this.textInput.on = false;
+                // push input into keymap args, so can be passed when executing
+                this.textInput.forKm.args![0] = this.textInput.input;
+                return [true, this.textInput.forKm];
+            }
+            this.textInput.input += key;
+            this.matchedSequence += key;
+            this.updateStatusBarContent('inputText');
+            return [true, undefined];
+        }
+
         if (['NORMAL', 'VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
             // if (this.debounceKey()) {
             //     return false;
@@ -162,7 +222,7 @@ export class KeyHandler {
                     OperatorHandler.repeat = this.repeat;
                     TextObjects.repeat = this.repeat;
                     this.matchedSequence = repeat.toString();
-                    this.updateStatusBar();
+                    this.updateStatusBarContent('other');
                     return [true, undefined];
                 }
             }
@@ -203,7 +263,13 @@ export class KeyHandler {
             for (let km of currentKeymap) {
                 if (km.key[0] === key) {
                     this.matchedSequence = key;
-                    this.updateStatusBar(km);
+
+                    if (km.type === 'Operator') {
+                        this.updateStatusBarContent('op', km);
+                    } else {
+                        this.updateStatusBarContent('other', km);
+                    }
+
                     if (km.key.length === 1) {
                         return [true, km];
                     }
@@ -212,6 +278,7 @@ export class KeyHandler {
                         'setContext', "vim.expectingSequence", this.expectingSequence
                     );
                     this.currentSequence.push(key);
+
                     if (VimState.currentMode === 'INSERT') {
                         setTimeout(this.flushSequence.bind(this), this.sequenceTimeout);
                     }
@@ -226,7 +293,18 @@ export class KeyHandler {
                 }
                 if (km.key.every((k, i) => k === this.currentSequence[i] || k === '{}')) {
                     this.matchedSequence = this.currentSequence.join("");
-                    this.updateStatusBar(km, this.currentSequence.length - 1);
+
+                    // update status bar content.
+                    if (km.type === 'Operator') {
+                        this.updateStatusBarContent(
+                            'op', km, this.currentSequence.length - 1
+                        );
+                    } else {
+                        this.updateStatusBarContent(
+                            'other', km, this.currentSequence.length - 1
+                        );
+                    }
+
                     if (km.key.length === this.currentSequence.length) {
                         this.clearSequence();
                         return [true, km];
@@ -246,7 +324,7 @@ export class KeyHandler {
         return [false, undefined];
     }
 
-    async execAction(km: Keymap) {
+    async execAction(km: Keymap): Promise<KeyParseState> {
         printCursorPositions("Before start execution");
 
         if (VimState.subMode === 'OPERATOR_PENDING') {
@@ -255,24 +333,18 @@ export class KeyHandler {
                     motion: km.action, motionArgs: km.args || [],
                     preArgs: this.operator?.preArgs, postArgKm: km, km: this.operator?.km
                 });
-                if (parseState !== KeyParseState.MoreInput) {
-                    this.resetKeys();
-                }
-                return;
+                return parseState;
             }
             else if (km.type === 'Operator') {
                 let preArgs = this.operator!.key;
                 let parseState = await OperatorHandler.execute(km.action, { preArgs, km });
-                if (parseState !== KeyParseState.MoreInput) {
-                    this.resetKeys();
-                    return;
+                if (parseState === KeyParseState.MoreInput) {
+                    this.operator = {
+                        op: km.action, key: km.key[0], km,
+                        preArgs,
+                    };
                 }
-
-                this.operator = {
-                    op: km.action, key: km.key[0], km,
-                    preArgs,
-                };
-                return;
+                return parseState;
             }
             else if (km.type === 'TextObject') {
                 TextObjects.currentSeq = this.matchedSequence;
@@ -280,20 +352,16 @@ export class KeyHandler {
                     textObject: km.action, textObjectArgs: km.args || [],
                     km: this.operator?.km, postArgKm: km
                 });
-                if (parseState !== KeyParseState.MoreInput) {
-                    this.resetKeys();
-                }
-                return;
+                return parseState;
             }
             else if (km.type === 'Action') {
                 console.error(`Action '${km.key}' cannot be executed in OPERATOR_PENDING!`);
+                return KeyParseState.Failed;
             }
-
         } else {
             if (km.type === 'Motion') {
                 executeMotion(km.action, true, ...(km.args || []));
-                this.resetKeys();
-                // return;
+                return KeyParseState.Success;
             }
             else if (km.type === 'Operator') {
                 if (VimState.currentMode === 'NORMAL') {
@@ -302,27 +370,27 @@ export class KeyHandler {
                         op: km.action, key: km.key[0], km, preArgs: ""
                     };
 
+                    // this.updateStatusBarContent('op', km);
+                    return KeyParseState.MoreInput;
+
                 } else if (VimState.currentMode === 'VISUAL' || VimState.currentMode === 'VISUAL_LINE') {
                     // execute operator on currently selected ranges.
                     OperatorHandler.execute(km.action);
-                    this.resetKeys();
+                    return KeyParseState.Success;
                 }
             }
             else if (km.type === 'TextObject') {
                 execTextObject(km.action, true, ...(km.args || []));
-                this.resetKeys();
+                return KeyParseState.Success;
             }
             else if (km.type === 'Action') {
                 let parseState = await km.action(this.matchedSequence, this.repeat);
-                // reset repeat to default after executing motion.
-                // this.resetKeys();
-                if (parseState !== KeyParseState.MoreInput) {
-                    this.resetKeys();
-                }
+
+                return parseState || KeyParseState.Success;
             }
         }
-
         printCursorPositions("After complete execution");
+        return KeyParseState.Failed;
     }
 
     resetKeys() {
@@ -336,9 +404,9 @@ export class KeyHandler {
         vscode.commands.executeCommand(
             'setContext', "vim.expectingSequence", this.expectingSequence
         );
+        this.textInput = undefined;
 
-        this.statusBar.item.text = '';
-        this.statusBar.item.hide();
+        this.resetStatusBar();
 
         VimState.register.reset();
         MotionHandler.currentSeq = "";
@@ -383,26 +451,80 @@ export class KeyHandler {
         }
     }
 
-    updateStatusBar(km?: Keymap, keyIdx: number = 0) {
-        if (VimState.currentMode === 'INSERT') { return; }
-        if (VimState.subMode === 'OPERATOR_PENDING') {
-            if (!km) {
-                this.statusBar.item.text += this.matchedSequence;
+    // backspace handling when taking more input.
+    textInputBackspace() {
+        if (this.textInput?.on) {
+            if (this.textInput.input.length === 0) {
+                this.resetKeys();
                 return;
             }
-            this.statusBar.item.text += km.longDesc ? km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) : km.key[keyIdx];
-        } else {
-            if (km && km.key.length === 1 && km.type !== 'Operator') {
+            this.textInput.input = this.textInput.input.slice(0, -1);
+
+            let inputText = this.statusBar.contents.filter(c => c.type === 'inputText');
+            assert.equal(inputText.length, 1);
+            inputText[0].text = this.textInput.input;
+            this.renderStatusBar();
+        }
+    }
+
+    updateStatusBarContent(
+        type: StatusBarContentType,
+        km?: Keymap, keyIdx: number = 0,
+        text: string = ""
+    ) {
+        let showLongDesc = true;
+        if (!km) {
+            if (type === 'inputText') {
+                let inputText = this.statusBar.contents.filter(c => c.type === 'inputText');
+                if (inputText.length) {
+                    inputText[0].text = this.textInput!.input;
+                } else {
+                    this.statusBar.contents.push({
+                        type: 'inputText',
+                        text: this.textInput!.input
+                    });
+                }
+            } else if (type === 'other') {
+                this.statusBar.contents.push({
+                    type: 'other',
+                    text: this.matchedSequence.at(-1) || "!",
+                });
+            } else if (type === 'op') {
+                let opText = this.statusBar.contents.filter(c => c.type === 'op');
+                if (opText.length) {
+                    assert.equal(opText.length, 1);
+                    opText[0].text = text;
+                }
+            }
+            return;
+        }
+
+        if (type === 'op') {
+            let opText = this.statusBar.contents.filter(c => c.type === 'op');
+            if (opText.length) {
+                assert.equal(opText.length, 1);
+                opText[0].text += showLongDesc && km.longDesc ?
+                    km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) :
+                    km.key[keyIdx];
                 return;
             }
-            if (km) {
-                this.statusBar.item.text += km.longDesc ? km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) : km.key[keyIdx];
-            }
         }
-        if (this.statusBar.item.text.length) {
-            this.statusBar.item.show();
-        } else {
-            this.statusBar.item.hide();
-        }
+        this.statusBar.contents.push({
+            type,
+            text: showLongDesc && km.longDesc ?
+                km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) :
+                km.key[keyIdx]
+        });
+    }
+
+    renderStatusBar() {
+        this.statusBar.item.text = this.statusBar.contents.map(c => c.text).join("");
+        this.statusBar.item.show();
+    }
+
+    resetStatusBar() {
+        this.statusBar.contents = [];
+        this.statusBar.item.text = "";
+        this.statusBar.item.hide();
     }
 }
