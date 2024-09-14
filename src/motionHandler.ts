@@ -462,6 +462,13 @@ export class MotionHandler {
         };
     }
 
+    static findNextWordOccurance(): MotionData {
+        let wordRange = this.editor.document
+            .getWordRangeAtPosition(VimState.cursor.selections[0].active);
+        let word = this.editor.document.getText(wordRange);
+        return this.findWord(word, 1);
+    }
+
     static repeatWordSearch(changDir: SearchDir): MotionData {
         if (!this.searchWord || !this.searchWordDir) {
             return {
@@ -834,12 +841,13 @@ export const motionKeymap: Keymap[] = [
         longDesc: ['( ? )search_bwd: '],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     },
-    // {
-    //     key: ['*'],
-    //     type: 'Action',
-    //     action: () => { findWordNative('none'); },
-    //     mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'MULTI_CURSOR']
-    // },
+    {
+        key: ['*'],
+        type: 'Motion',
+        action: MotionHandler.findNextWordOccurance,
+        args: [1],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
+    },
     {
         key: ['n'],
         type: 'Motion',
