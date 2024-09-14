@@ -450,8 +450,10 @@ export class MotionHandler {
                     }
                     return new vscode.Position(lineNo, i);
                 }
-                lineNo += searchDir;
-                if (lineNo >= lineCount || lineNo < 0) { return sel.active; }
+                lineNo = ((lineNo + searchDir + lineCount) % lineCount);
+                if (lineNo === sel.active.line) {
+                    return sel.active;
+                }
                 line = this.editor.document.lineAt(lineNo).text;
             }
         });
