@@ -83,6 +83,21 @@
           ]
         },
         "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && !vim.expectingSequence"
+      },
+      {
+        "key": "t",
+        "command": "togglePeekWidgetFocus",
+        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (inReferenceSearchEditor || referenceSearchVisible)"
+      },
+      {
+        "key": "j",
+        "command": "list.focusDown",
+        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
+      },
+      {
+        "key": "k",
+        "command": "list.focusUp",
+        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
       }
     ],
     "commands": [
