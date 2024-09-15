@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { Mode, VimState } from './vimState';
+import { MultiCursorHandler } from './multiCursor';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -12,6 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "helloworld" is now active!');
 
 	VimState.init(context);
+	MultiCursorHandler.setUp(context);
 
 	context.subscriptions.push(vscode.commands.registerCommand('type', (text) => {
 		VimState.type(text.text);

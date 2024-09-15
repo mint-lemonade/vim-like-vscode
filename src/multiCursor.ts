@@ -6,7 +6,21 @@ import { posToString, stringToPos } from './util';
 
 export class MultiCursorHandler {
     static cursors: Set<string> = new Set();
+    static sortedCursors: Position[] = [];
     static cursorStyle: TextEditorDecorationType;
+
+    static setUp(context: vscode.ExtensionContext) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand("vim.cycleMulticursorForward", () => {
+                this.cycleCursors(1);
+            }, this)
+        );
+        context.subscriptions.push(
+            vscode.commands.registerCommand("vim.cycleMulticursorBackward", () => {
+                this.cycleCursors(-1);
+            }, this)
+        );
+    }
 
     static enterMultiCursorMode() {
         let config = vscode.workspace.getConfiguration("vim-like");
@@ -20,12 +34,16 @@ export class MultiCursorHandler {
         VimState.setMode('NORMAL', 'MULTI_CURSOR');
         if (VimState.cursor.selections.length > 1) {
             this.addCursor();
+            VimState.cursor.selections = [VimState.cursor.selections.at(-1)!];
+            VimState.syncVsCodeCursorOrSelection();
         }
     }
 
     static addCursor() {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; };
+        this.sortedCursors = []; // Clear sorted cursors. 
+
         VimState.cursor.selections.forEach(sel => {
             this.cursors.add(posToString(sel.active));
         });
@@ -41,7 +59,9 @@ export class MultiCursorHandler {
 
     static removeCursor() {
         let editor = vscode.window.activeTextEditor;
-        if (!editor) { return; };
+        if (!editor) { return; }
+        this.sortedCursors = []; // Clear sorted cursors. 
+
         VimState.cursor.selections.forEach(sel => {
             this.cursors.delete(posToString(sel.active));
         });
@@ -59,6 +79,8 @@ export class MultiCursorHandler {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; };
         this.cursors.clear();
+        this.sortedCursors = []; // Clear sorted cursors. 
+
         editor.setDecorations(
             this.cursorStyle,
             Array.from(this.cursors)
@@ -68,7 +90,7 @@ export class MultiCursorHandler {
                 })
         );
     }
-    // TODO Make sure exiting without selection doesnt throw errors. 
+
     static exitMultiCursorMode() {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; };
@@ -87,10 +109,58 @@ export class MultiCursorHandler {
             VimState.cursor.selections = [VimState.cursor.selections[0]];
         }
         this.cursors.clear();
+        this.sortedCursors = []; // Clear sorted cursors. 
+
         VimState.syncVsCodeCursorOrSelection();
         setImmediate(() => {
             VimState.setMode('NORMAL');
         });
+    }
+
+    static cycleCursors(dir: 1 | -1) {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor) { return; };
+        if (this.sortedCursors.length === 0) {
+            this.sortCursors();
+        }
+        if (editor.selections.length > VimState.cursor.selections.length) {
+            editor.selections = [editor.selection];
+        }
+        setImmediate(() => {
+            let snapTo: number;
+            let startCursor = VimState.cursor.selections[0];
+
+            let i = dir === 1 ? 0 : this.sortedCursors.length - 1;
+            if (dir === 1 && startCursor.active.isAfterOrEqual(this.sortedCursors.at(-1)!)) {
+                snapTo = 0;
+            } else if (dir === -1 && startCursor.active.isBeforeOrEqual(this.sortedCursors.at(0)!)) {
+                snapTo = this.sortedCursors.length - 1;
+            } else {
+                while (i >= 0 && i < this.sortedCursors.length) {
+                    let cmp = this.sortedCursors[i].compareTo(startCursor.active);
+                    if (cmp === dir) {
+                        snapTo = i;
+                        break;
+                    }
+                    i += dir;
+                }
+            }
+            VimState.cursor.selections.forEach((sel) => {
+                sel.active = this.sortedCursors[snapTo % this.sortedCursors.length];
+                sel.anchor = this.sortedCursors[snapTo % this.sortedCursors.length];
+                snapTo += 1;
+            });
+
+            VimState.syncVsCodeCursorOrSelection();
+        });
+    }
+
+    static sortCursors() {
+        this.sortedCursors = Array.from(this.cursors)
+            .map(c => stringToPos(c))
+            .sort((a, b) => {
+                return a.compareTo(b);
+            });
     }
 }
 
@@ -124,6 +194,12 @@ export const multiCursorKeymap: Keymap[] = [
         key: ['c'],
         type: 'Action',
         action: () => MultiCursorHandler.clearAllCursors(),
+        mode: ['MULTI_CURSOR']
+    },
+    {
+        key: ['i'],
+        type: 'Action',
+        action: () => MultiCursorHandler.cycleCursors(1),
         mode: ['MULTI_CURSOR']
     },
 ];

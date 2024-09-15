@@ -98,6 +98,16 @@
         "key": "k",
         "command": "list.focusUp",
         "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
+      },
+      {
+        "key": "Tab",
+        "command": "vim.cycleMulticursorForward",
+        "when": "editorTextFocus && vim.subMode===MULTI_CURSOR"
+      },
+      {
+        "key": "Shift+Tab",
+        "command": "vim.cycleMulticursorBackward",
+        "when": "editorTextFocus && vim.subMode===MULTI_CURSOR"
       }
     ],
     "commands": [
