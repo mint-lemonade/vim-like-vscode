@@ -735,24 +735,28 @@ export const motionKeymap: Keymap[] = [
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1, true],
+        longDesc: ['(f)ind ', '{}'],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['F', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1, true],
+        longDesc: ['(F)ind ', '{}'],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['t', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [1, false],
+        longDesc: ['(t)find ', '{}'],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: ['T', "{}"],
         type: 'Motion',
         action: MotionHandler.findChar,
         args: [-1, false],
+        longDesc: ['(T)find ', '{}'],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
     }, {
         key: [';'],
