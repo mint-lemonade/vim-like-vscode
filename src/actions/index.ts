@@ -17,6 +17,44 @@ function invertSelection() {
     VimState.syncVsCodeCursorOrSelection();
 }
 
+function foldLevel(matched: string) {
+    let level = parseInt(matched[1]);
+    if (Number.isNaN(level)) { return KeyParseState.Failed; }
+    if (level > 7 || level < 0) {
+        return KeyParseState.Failed;
+    }
+    vscode.commands.executeCommand(`editor.foldLevel${level}`);
+}
+
+async function findWordNative(where: 'next' | 'prev' | 'none') {
+    switch (where) {
+        case 'none':
+            await vscode.commands.executeCommand('actions.find');
+            // Bring back focus to editor from find-widget. 
+            // Directory calling focusEditor command does not bring
+            // focus to editor.
+            // First focus on side bar to simulate as if focusEditor is being called from
+            // command palette . 
+            await vscode.commands.executeCommand('workbench.action.focusSideBar');
+            await vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup');
+            await vscode.commands.executeCommand('editor.action.nextMatchFindAction');
+            setImmediate(async () => {
+                if (VimState.currentMode !== 'VISUAL') {
+                    VimState.setMode('VISUAL');
+                }
+            });
+            break;
+        case 'prev':
+            vscode.commands.executeCommand('editor.action.previousMatchFindAction');
+            break;
+        case 'next':
+            vscode.commands.executeCommand('editor.action.nextMatchFindAction');
+            break;
+        default:
+            break;
+    }
+}
+
 export const actionKeymap: Keymap[] = [
     ...switchModeKeymap,
     ...multiCursorKeymap,
@@ -38,6 +76,12 @@ export const actionKeymap: Keymap[] = [
         key: ['g', 'd'],
         type: 'Action',
         action: () => { vscode.commands.executeCommand('editor.action.revealDefinition'); },
+        mode: ['NORMAL'],
+    },
+    {
+        key: ['z', '{}'],
+        type: 'Action',
+        action: (matched) => { foldLevel(matched); },
         mode: ['NORMAL'],
     },
     {
