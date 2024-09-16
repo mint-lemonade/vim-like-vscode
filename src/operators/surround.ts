@@ -145,16 +145,18 @@ export class Surround {
     }
 
     static updateStatusBar(str: string = "") {
+        let showLongDesc = vscode.workspace.getConfiguration("vim-like")
+            .get('longStatusBarText') as boolean;
         let statusBarText: string = "";
         if (this.modifier === 'd') {
-            statusBarText = '(ds)delete-surrounding ';
+            statusBarText = showLongDesc ? '(ds)delete-surrounding ' : 'ds';
         } else if (this.modifier === 'c') {
-            statusBarText = '(cs)change-surrounding ';
+            statusBarText = showLongDesc ? '(cs)change-surrounding ' : 'cs';
         } else if (this.modifier === 'y') {
             if (this.linewise) {
-                statusBarText = '(yss)surround-line-with ';
+                statusBarText = showLongDesc ? '(yss)surround-line-with ' : 'yss';
             } else {
-                statusBarText = '(ys)add-surrounding ';
+                statusBarText = showLongDesc ? '(ys)add-surrounding ' : 'ys';
             }
         }
         statusBarText += str;

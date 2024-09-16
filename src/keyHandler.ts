@@ -472,7 +472,9 @@ export class KeyHandler {
         km?: Keymap, keyIdx: number = 0,
         text: string = ""
     ) {
-        let showLongDesc = true;
+        let showLongDesc = vscode.workspace.getConfiguration("vim-like")
+            .get('longStatusBarText') as boolean;
+
         if (!km) {
             if (type === 'inputText') {
                 let inputText = this.statusBar.contents.filter(c => c.type === 'inputText');
@@ -505,7 +507,7 @@ export class KeyHandler {
                 assert.equal(opText.length, 1);
                 opText[0].text += showLongDesc && km.longDesc ?
                     km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) :
-                    km.key[keyIdx];
+                    km.key[keyIdx].replace('{}', this.matchedSequence[keyIdx]);
                 return;
             }
         }
@@ -513,7 +515,7 @@ export class KeyHandler {
             type,
             text: showLongDesc && km.longDesc ?
                 km.longDesc[keyIdx].replace('{}', this.matchedSequence[keyIdx]) :
-                km.key[keyIdx]
+                km.key[keyIdx].replace('{}', this.matchedSequence[keyIdx])
         });
     }
 

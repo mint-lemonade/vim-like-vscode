@@ -146,6 +146,11 @@
           "type": "boolean",
           "default": true,
           "description": "User relative line numbers when in Normal, Visual or Visual Line mode."
+        },
+        "vim-like.longStatusBarText": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show more descriptive texts in status bar for current key pressed."
         }
       }
     }
