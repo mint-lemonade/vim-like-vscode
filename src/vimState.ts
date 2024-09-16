@@ -104,6 +104,8 @@ export class VimState {
             //     this.syncVimCursor();
             // }
         });
+
+        vscode.workspace.onDidChangeConfiguration(this.updateLineNumbers, this);
     }
 
     static async type(text: string) {
@@ -122,6 +124,8 @@ export class VimState {
         this.lastMode = this.currentMode;
         this.currentMode = mode;
         this.subMode = subMode;
+
+        this.updateLineNumbers();
 
         Logger.log(`Switching mode from ${this.lastMode} to ${this.currentMode}:${this.subMode}`);
 
@@ -373,6 +377,25 @@ export class VimState {
             });
             Logger.log("visual mode cursros: ", cursors);
             editor.setDecorations(this.cursor.visualModeTextDecoration, cursors);
+        }
+    }
+
+    static updateLineNumbers(e?: vscode.ConfigurationChangeEvent) {
+        if (e) {
+            if (!e.affectsConfiguration("vim-like.normalModeRelativeLineNumbers")) {
+                return;
+            }
+        }
+        let config = vscode.workspace.getConfiguration("vim-like");
+        let relativeLines = config.get('normalModeRelativeLineNumbers') as boolean;
+        if (relativeLines) {
+            if (['NORMAL', 'VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
+                vscode.workspace.getConfiguration('editor')
+                    .update("lineNumbers", 'relative');
+            }
+        }
+        if (!relativeLines || VimState.currentMode === 'INSERT') {
+            vscode.workspace.getConfiguration('editor').update("lineNumbers", undefined);
         }
     }
 }

@@ -125,7 +125,7 @@
       }
     ],
     "configuration": {
-      "title": "Yank Highlight",
+      "title": "Vim-Like",
       "properties": {
         "vim-like.yankHighlightBackgroundColor": {
           "type": "string",
@@ -141,6 +141,11 @@
           "type": "number",
           "default": "300",
           "description": "Duration for which yanked  should be highlighted (in ms)"
+        },
+        "vim-like.normalModeRelativeLineNumbers": {
+          "type": "boolean",
+          "default": true,
+          "description": "User relative line numbers when in Normal, Visual or Visual Line mode."
         }
       }
     }
