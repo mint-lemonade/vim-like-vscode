@@ -42,6 +42,7 @@ export class VimState {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
         this.syncVimCursor();
         this.setMode('NORMAL');
+
         this.keyHandler = new KeyHandler([
             ...motionKeymap,
             ...actionKeymap,
@@ -391,11 +392,11 @@ export class VimState {
         if (relativeLines) {
             if (['NORMAL', 'VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
                 vscode.workspace.getConfiguration('editor')
-                    .update("lineNumbers", 'relative');
+                    .update("lineNumbers", 'relative', true);
+            } else {
+                vscode.workspace.getConfiguration('editor')
+                    .update("lineNumbers", 'on', true);
             }
-        }
-        if (!relativeLines || VimState.currentMode === 'INSERT') {
-            vscode.workspace.getConfiguration('editor').update("lineNumbers", undefined);
         }
     }
 }
