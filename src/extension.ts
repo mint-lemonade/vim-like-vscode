@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { Mode, VimState } from './vimState';
 import { MultiCursorHandler } from './multiCursor';
+import { ActionHandler } from './actions';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -14,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	VimState.init(context);
 	MultiCursorHandler.setUp(context);
+	ActionHandler.setup(context);
 
 	context.subscriptions.push(vscode.commands.registerCommand('type', (text) => {
 		VimState.type(text.text);

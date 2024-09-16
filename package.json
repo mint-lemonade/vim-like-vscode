@@ -64,24 +64,12 @@
       },
       {
         "key": "Space",
-        "command": "runCommands",
-        "args": {
-          "commands": [
-            "scrollLineDown",
-            "scrollLineDown"
-          ]
-        },
+        "command": "vim.spaceBarScrollDown",
         "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && !vim.expectingSequence"
       },
       {
         "key": "Shift+Space",
-        "command": "runCommands",
-        "args": {
-          "commands": [
-            "scrollLineUp",
-            "scrollLineUp"
-          ]
-        },
+        "command": "vim.spaceBarScrollUp",
         "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && !vim.expectingSequence"
       },
       {
@@ -151,6 +139,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show more descriptive texts in status bar for current key pressed."
+        },
+        "vim-like.spaceScrollByLines": {
+          "type": "number",
+          "default": 5,
+          "description": "Set how many lines are srolled by spacebar."
         }
       }
     }

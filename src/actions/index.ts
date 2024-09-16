@@ -6,6 +6,16 @@ import { editActionKeymap } from './edit_actions';
 import { registerKeymap } from '../register';
 import { multiCursorKeymap } from '../multiCursor';
 
+// Setup Actions.
+function setup(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+        vscode.commands.registerCommand("vim.spaceBarScrollUp", () => scroll('up'))
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand("vim.spaceBarScrollDown", () => scroll('down'))
+    );
+}
+
 function invertSelection() {
     VimState.cursor.selections = VimState.cursor.selections.map(sel => {
         return {
@@ -54,6 +64,25 @@ async function findWordNative(where: 'next' | 'prev' | 'none') {
             break;
     }
 }
+
+function scroll(dir: 'up' | 'down') {
+    let command = dir === 'up' ? 'scrollLineUp' : 'scrollLineDown';
+    let repeat = vscode.workspace
+        .getConfiguration("vim-like")
+        .get('spaceScrollByLines') as number;
+    if (!repeat) {
+        return;
+    }
+    let commands = Array(repeat).fill(command);
+    vscode.commands.executeCommand('runCommands', {
+        "commands": commands
+    });
+}
+
+
+export const ActionHandler = {
+    setup
+};
 
 export const actionKeymap: Keymap[] = [
     ...switchModeKeymap,
