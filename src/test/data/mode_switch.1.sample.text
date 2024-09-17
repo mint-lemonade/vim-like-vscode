@@ -1,0 +1,6 @@
+function add(x, y) {
+    return x+y;
+}
+let a = 5;
+let b = 10;
+console.log(add(a, b));

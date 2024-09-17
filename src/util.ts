@@ -73,3 +73,7 @@ export function assertEqual<T extends Equality<T>>(a: T, b: T, replaceMssg?: str
         assert.fail(errorMessage);
     }
 }
+
+export async function sleep(milliseconds: number) {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
