@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { KeyHandler } from './keyHandler';
 import { motionKeymap } from './motionHandler';
 import { operatorKeyMap } from './operatorHandler';
-import { actionKeymap } from './actions';
+import { ActionHandler, actionKeymap, insertToModeKeymap } from './actions';
 import { Logger, printCursorPositions } from './util';
 import { textObjectKeymap } from './textObjectHandler';
 import { Register } from './register';
@@ -45,6 +45,7 @@ export class VimState {
 
         this.keyHandler = new KeyHandler([
             ...motionKeymap,
+            ...insertToModeKeymap,
             ...actionKeymap,
             ...operatorKeyMap,
             ...textObjectKeymap
@@ -106,7 +107,7 @@ export class VimState {
             // }
         });
 
-        vscode.workspace.onDidChangeConfiguration(this.updateLineNumbers, this);
+        vscode.workspace.onDidChangeConfiguration(this.handleConfigChange, this);
     }
 
     static async type(text: string) {
@@ -381,12 +382,7 @@ export class VimState {
         }
     }
 
-    static updateLineNumbers(e?: vscode.ConfigurationChangeEvent) {
-        if (e) {
-            if (!e.affectsConfiguration("vim-like.normalModeRelativeLineNumbers")) {
-                return;
-            }
-        }
+    static updateLineNumbers() {
         let config = vscode.workspace.getConfiguration("vim-like");
         let relativeLines = config.get('normalModeRelativeLineNumbers') as boolean;
         if (relativeLines) {
@@ -397,6 +393,25 @@ export class VimState {
                 vscode.workspace.getConfiguration('editor')
                     .update("lineNumbers", 'on', true);
             }
+        }
+    }
+
+    static handleConfigChange(e: vscode.ConfigurationChangeEvent) {
+        if (e.affectsConfiguration("vim-like.normalModeRelativeLineNumbers")) {
+            this.updateLineNumbers();
+        }
+        if (e.affectsConfiguration("vim-like.switchInsertToVisualKeybinding") ||
+            e.affectsConfiguration("vim-like.switchInsertToNormalKeybinding")
+        ) {
+            ActionHandler.updateInsertToModeKm();
+            this.keyHandler.setupKeymaps([
+                ...motionKeymap,
+                ...insertToModeKeymap,
+                ...actionKeymap,
+                ...operatorKeyMap,
+                ...textObjectKeymap
+            ]);
+
         }
     }
 }

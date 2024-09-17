@@ -94,7 +94,22 @@ export class KeyHandler {
             contents: [],
         };
         this.statusBar.item.text = '';
+        this.setupKeymaps(keymaps);
+        this.expectingSequence = false;
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'vim.textInputBackspace', this.textInputBackspace, this
+            )
+        );
+    }
 
+    setupKeymaps(keymaps: Keymap[]) {
+        this.insertModeMap = [];
+        this.normalModeMap = [];
+        this.visualModeMap = [];
+        this.visualLineModeMap = [];
+        this.operatorPendingModeMap = [];
+        this.multicursorModeMap = [];
         for (let i = keymaps.length - 1; i >= 0; i--) {
             let keymap = keymaps[i];
             if (keymap.mode.includes('INSERT')) {
@@ -116,13 +131,6 @@ export class KeyHandler {
                 this.multicursorModeMap.push(keymap);
             }
         }
-        this.expectingSequence = false;
-
-        context.subscriptions.push(
-            vscode.commands.registerCommand(
-                'vim.textInputBackspace', this.textInputBackspace, this
-            )
-        );
     }
 
     // returns false if no mapping was found and no action was executed. true otherwise.

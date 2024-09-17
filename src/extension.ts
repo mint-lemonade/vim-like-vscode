@@ -28,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let d1 = vscode.commands.registerCommand('vim.goToNormalMode', () => {
 		VimState.setMode('NORMAL');
+		return false;
 	});
 	context.subscriptions.push(d1);
 

@@ -144,6 +144,22 @@
           "type": "number",
           "default": 5,
           "description": "Set how many lines are srolled by spacebar."
+        },
+        "vim-like.switchInsertToNormalKeybinding": {
+          "type": "array",
+          "default": [
+            "j",
+            "f"
+          ],
+          "description": "Keybinding to switch from Insert mode to NORMAL mode."
+        },
+        "vim-like.switchInsertToVisualKeybinding": {
+          "type": "array",
+          "default": [
+            "j",
+            "v"
+          ],
+          "description": "Keybinding to switch from Insert mode to VISUAL mode."
         }
       }
     }

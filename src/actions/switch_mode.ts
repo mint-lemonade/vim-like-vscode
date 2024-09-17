@@ -53,19 +53,36 @@ async function switchToInsertModeAt(cursorPos: CursorPos) {
     VimState.setMode('INSERT');
 }
 
+/**
+ * Setup keybindings to switch from Insert mode to either Visual or Normal mode.
+ */
+export let insertToModeKeymap: Keymap[] = [];
+export function updateInsertToModeKm() {
+    insertToModeKeymap = [];
+    let config = vscode.workspace.getConfiguration("vim-like");
+    let insertToNormal = config.get('switchInsertToNormalKeybinding') as Array<string>;
+    let insertToVisual = config.get('switchInsertToVisualKeybinding') as Array<string>;
+    if (insertToNormal.length) {
+        insertToModeKeymap.push({
+            key: insertToNormal,
+            type: 'Action',
+            action: () => VimState.setMode('NORMAL'),
+            mode: ['INSERT']
+        });
+    }
+    if (insertToVisual.length) {
+        insertToModeKeymap.push({
+            key: insertToVisual,
+            type: 'Action',
+            action: () => VimState.setMode('VISUAL'),
+            mode: ['INSERT']
+        });
+    }
+}
+updateInsertToModeKm();
+
 export const switchModeKeymap: Keymap[] = [
     {
-        key: ['j', 'f'],
-        type: 'Action',
-        action: () => VimState.setMode('NORMAL'),
-        mode: ['INSERT']
-    },
-    {
-        key: ['j', 'v'],
-        type: 'Action',
-        action: () => VimState.setMode('VISUAL'),
-        mode: ['INSERT']
-    }, {
         key: ['v'],
         type: 'Action',
         action: () => VimState.setMode('VISUAL'),

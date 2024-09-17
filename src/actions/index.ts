@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { Keymap, KeyParseState } from "../keyHandler";
 import { VimState } from "../vimState";
-import { switchModeKeymap } from './switch_mode';
+import { insertToModeKeymap, switchModeKeymap, updateInsertToModeKm } from './switch_mode';
 import { editActionKeymap } from './edit_actions';
 import { registerKeymap } from '../register';
 import { multiCursorKeymap } from '../multiCursor';
@@ -81,8 +81,11 @@ function scroll(dir: 'up' | 'down') {
 
 
 export const ActionHandler = {
-    setup
+    setup,
+    updateInsertToModeKm
 };
+
+export { insertToModeKeymap };
 
 export const actionKeymap: Keymap[] = [
     ...switchModeKeymap,
