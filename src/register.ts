@@ -35,7 +35,7 @@ export class Register {
             .get<RegisterEntry[]>(HistoryPersistencekey, []);
 
         context.subscriptions.push(
-            vscode.commands.registerCommand("vim.registers", this.showRegisters, this)
+            vscode.commands.registerCommand("vim-like.registers", this.showRegisters, this)
         );
         this.vscodeContext = context;
     }

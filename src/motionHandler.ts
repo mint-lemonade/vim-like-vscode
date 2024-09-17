@@ -646,7 +646,7 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
 function registerMotion(commandName?: string) {
     return function (originalFunc: Motion, context: any) {
         commandName = commandName || originalFunc.name;
-        vscode.commands.registerCommand(`vim.${commandName}`, () => {
+        vscode.commands.registerCommand(`vim-like.${commandName}`, () => {
             executeMotion(originalFunc, true);
         });
     };

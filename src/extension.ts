@@ -26,18 +26,18 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(disposable);
 
-	let d1 = vscode.commands.registerCommand('vim.goToNormalMode', () => {
+	let d1 = vscode.commands.registerCommand('vim-like.goToNormalMode', () => {
 		VimState.setMode('NORMAL');
 		return false;
 	});
 	context.subscriptions.push(d1);
 
-	let d2 = vscode.commands.registerCommand('vim.goToInsertMode', () => {
+	let d2 = vscode.commands.registerCommand('vim-like.goToInsertMode', () => {
 		VimState.setMode('INSERT');
 	});
 	context.subscriptions.push(d2);
 
-	let d3 = vscode.commands.registerCommand('vim.goToVisualMode', () => {
+	let d3 = vscode.commands.registerCommand('vim-like.goToVisualMode', () => {
 		VimState.setMode('VISUAL');
 	});
 	context.subscriptions.push(d3);

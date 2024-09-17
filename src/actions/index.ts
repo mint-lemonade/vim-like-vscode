@@ -9,10 +9,10 @@ import { multiCursorKeymap } from '../multiCursor';
 // Setup Actions.
 function setup(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-        vscode.commands.registerCommand("vim.spaceBarScrollUp", () => scroll('up'))
+        vscode.commands.registerCommand("vim-like.spaceBarScrollUp", () => scroll('up'))
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand("vim.spaceBarScrollDown", () => scroll('down'))
+        vscode.commands.registerCommand("vim-like.spaceBarScrollDown", () => scroll('down'))
     );
 }
 

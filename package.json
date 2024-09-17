@@ -1,7 +1,7 @@
 {
-  "name": "vsvim",
-  "displayName": "vs-vim",
-  "description": "Very simple Vim",
+  "name": "vim-like",
+  "displayName": "Vim-Like",
+  "description": "power of vim + ease of vscode",
   "publisher": "self",
   "version": "0.0.1",
   "engines": {
@@ -19,73 +19,73 @@
     "keybindings": [
       {
         "key": "escape",
-        "command": "vim.goToNormalMode",
-        "when": "editorTextFocus && vim.currentMode !== NORMAL && vim.subMode !== MULTI_CURSOR"
+        "command": "vim-like.goToNormalMode",
+        "when": "editorTextFocus && vim-like.currentMode !== NORMAL && vim-like.subMode !== MULTI_CURSOR"
       },
       {
         "key": "alt+k",
         "command": "editor.action.moveLinesUpAction",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+j",
         "command": "editor.action.moveLinesDownAction",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+h",
         "command": "workbench.action.navigateBack",
-        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+l",
         "command": "workbench.action.navigateForward",
-        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+k",
         "command": "editor.action.insertCursorAbove",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+j",
         "command": "editor.action.insertCursorBelow",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "Right",
-        "command": "vim.moveRight",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "command": "vim-like.moveRight",
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "Left",
-        "command": "vim.moveLeft",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "command": "vim-like.moveLeft",
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "Up",
-        "command": "vim.moveUp",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "command": "vim-like.moveUp",
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "Down",
-        "command": "vim.moveDown",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "command": "vim-like.moveDown",
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
       },
       {
         "key": "Tab",
         "command": "selectNextSuggestion",
-        "when": "suggestWidgetVisible && textInputFocus && (vim.currentMode==INSERT)"
+        "when": "suggestWidgetVisible && textInputFocus && (vim-like.currentMode==INSERT)"
       },
       {
         "key": "Shift+Tab",
         "command": "selectPrevSuggestion",
-        "when": "suggestWidgetVisible && textInputFocus && (vim.currentMode==INSERT)"
+        "when": "suggestWidgetVisible && textInputFocus && (vim-like.currentMode==INSERT)"
       },
       {
         "key": "backspace",
-        "command": "vim.textInputBackspace",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && vim.expectingSequence"
+        "command": "vim-like.textInputBackspace",
+        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && vim-like.expectingSequence"
       },
       {
         "key": "alt+j",
@@ -99,38 +99,38 @@
       },
       {
         "key": "Space",
-        "command": "vim.spaceBarScrollDown",
-        "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && !vim.expectingSequence"
+        "command": "vim-like.spaceBarScrollDown",
+        "when": "editorTextFocus &&(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && !vim-like.expectingSequence"
       },
       {
         "key": "Shift+Space",
-        "command": "vim.spaceBarScrollUp",
-        "when": "editorTextFocus &&(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && !vim.expectingSequence"
+        "command": "vim-like.spaceBarScrollUp",
+        "when": "editorTextFocus &&(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && !vim-like.expectingSequence"
       },
       {
         "key": "t",
         "command": "togglePeekWidgetFocus",
-        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (inReferenceSearchEditor || referenceSearchVisible)"
+        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && (inReferenceSearchEditor || referenceSearchVisible)"
       },
       {
         "key": "j",
         "command": "list.focusDown",
-        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
+        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
       },
       {
         "key": "k",
         "command": "list.focusUp",
-        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
+        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
       },
       {
         "key": "Tab",
-        "command": "vim.cycleMulticursorForward",
-        "when": "editorTextFocus && vim.subMode===MULTI_CURSOR"
+        "command": "vim-like.cycleMulticursorForward",
+        "when": "editorTextFocus && vim-like.subMode===MULTI_CURSOR"
       },
       {
         "key": "Shift+Tab",
-        "command": "vim.cycleMulticursorBackward",
-        "when": "editorTextFocus && vim.subMode===MULTI_CURSOR"
+        "command": "vim-like.cycleMulticursorBackward",
+        "when": "editorTextFocus && vim-like.subMode===MULTI_CURSOR"
       }
     ],
     "commands": [
@@ -143,7 +143,7 @@
         "command": "supp.timeDate"
       },
       {
-        "command": "vim.registers",
+        "command": "vim-like.registers",
         "title": "Vim-Like: Show Registers"
       }
     ],

@@ -98,7 +98,7 @@ export class KeyHandler {
         this.expectingSequence = false;
         context.subscriptions.push(
             vscode.commands.registerCommand(
-                'vim.textInputBackspace', this.textInputBackspace, this
+                'vim-like.textInputBackspace', this.textInputBackspace, this
             )
         );
     }
@@ -172,7 +172,7 @@ export class KeyHandler {
         if (matchedKeymap.textInput && !this.textInput) {
             this.expectingSequence = true;
             vscode.commands.executeCommand(
-                'setContext', "vim.expectingSequence", this.expectingSequence
+                'setContext', "vim-like.expectingSequence", this.expectingSequence
             );
             this.textInput = {
                 input: "",
@@ -283,7 +283,7 @@ export class KeyHandler {
                     }
                     this.expectingSequence = true;
                     vscode.commands.executeCommand(
-                        'setContext', "vim.expectingSequence", this.expectingSequence
+                        'setContext', "vim-like.expectingSequence", this.expectingSequence
                     );
                     this.currentSequence.push(key);
 
@@ -410,7 +410,7 @@ export class KeyHandler {
         this.matchedSequence = "";
         this.expectingSequence = false;
         vscode.commands.executeCommand(
-            'setContext', "vim.expectingSequence", this.expectingSequence
+            'setContext', "vim-like.expectingSequence", this.expectingSequence
         );
         this.textInput = undefined;
 
@@ -432,7 +432,7 @@ export class KeyHandler {
     flushSequence() {
         this.expectingSequence = false;
         vscode.commands.executeCommand(
-            'setContext', "vim.expectingSequence", this.expectingSequence
+            'setContext', "vim-like.expectingSequence", this.expectingSequence
         );
         if (this.currentSequence.length) {
             vscode.commands.executeCommand('default:type', { text: this.currentSequence.join('') });
@@ -443,7 +443,7 @@ export class KeyHandler {
     clearSequence() {
         this.expectingSequence = false;
         vscode.commands.executeCommand(
-            'setContext', "vim.expectingSequence", this.expectingSequence
+            'setContext', "vim-like.expectingSequence", this.expectingSequence
         );
         this.currentSequence = [];
     }

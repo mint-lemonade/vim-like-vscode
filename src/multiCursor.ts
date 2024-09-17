@@ -11,12 +11,12 @@ export class MultiCursorHandler {
 
     static setUp(context: vscode.ExtensionContext) {
         context.subscriptions.push(
-            vscode.commands.registerCommand("vim.cycleMulticursorForward", () => {
+            vscode.commands.registerCommand("vim-like.cycleMulticursorForward", () => {
                 this.cycleCursors(1);
             }, this)
         );
         context.subscriptions.push(
-            vscode.commands.registerCommand("vim.cycleMulticursorBackward", () => {
+            vscode.commands.registerCommand("vim-like.cycleMulticursorBackward", () => {
                 this.cycleCursors(-1);
             }, this)
         );
