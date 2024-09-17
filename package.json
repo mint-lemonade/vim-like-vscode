@@ -18,6 +18,11 @@
   "contributes": {
     "keybindings": [
       {
+        "key": "escape",
+        "command": "vim.goToNormalMode",
+        "when": "editorTextFocus && vim.currentMode !== NORMAL && vim.subMode !== MULTI_CURSOR"
+      },
+      {
         "key": "alt+k",
         "command": "editor.action.moveLinesUpAction",
         "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
