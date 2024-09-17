@@ -35,12 +35,12 @@
       {
         "key": "alt+h",
         "command": "workbench.action.navigateBack",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "alt+l",
         "command": "workbench.action.navigateForward",
-        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+        "when": "(vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+k",
