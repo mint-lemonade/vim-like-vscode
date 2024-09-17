@@ -53,6 +53,26 @@
         "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
       },
       {
+        "key": "Right",
+        "command": "vim.moveRight",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+      },
+      {
+        "key": "Left",
+        "command": "vim.moveLeft",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+      },
+      {
+        "key": "Up",
+        "command": "vim.moveUp",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+      },
+      {
+        "key": "Down",
+        "command": "vim.moveDown",
+        "when": "editorTextFocus && (vim.currentMode==NORMAL || vim.currentMode===VISUAL || vim.currentMode===VISUAL_LINE)"
+      },
+      {
         "key": "Tab",
         "command": "selectNextSuggestion",
         "when": "suggestWidgetVisible && textInputFocus && (vim.currentMode==INSERT)"
