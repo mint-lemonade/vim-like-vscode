@@ -42,7 +42,8 @@ export class Yank {
                 // copy range under selection
                 await vscode.commands.executeCommand('editor.action.clipboardCopyAction')
                     .then(_res => {
-                        VimState.setModeAfterNextSlectionUpdate('INSERT');
+                        // VimState.setModeAfterNextSlectionUpdate('INSERT');
+                        setImmediate(() => VimState.setMode('NORMAL'));
                     });
             } else {
                 let selections = OH.editor.selections.map(r => ({

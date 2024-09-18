@@ -51,7 +51,8 @@ export class Delete {
                 // cut range under selection
                 await vscode.commands.executeCommand('editor.action.clipboardCutAction')
                     .then(_res => {
-                        VimState.setModeAfterNextSlectionUpdate('NORMAL');
+                        // VimState.setModeAfterNextSlectionUpdate('NORMAL');
+                        setImmediate(() => VimState.setMode('NORMAL'));
                     });
             } else {
                 await OH.editor.edit(e => {

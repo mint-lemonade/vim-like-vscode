@@ -39,7 +39,8 @@ async function paste(where: 'before' | 'after') {
         // Paste clipboard content over range under selection
         await vscode.commands.executeCommand('editor.action.clipboardPasteAction')
             .then(_res => {
-                VimState.setModeAfterNextSlectionUpdate('NORMAL');
+                // VimState.setModeAfterNextSlectionUpdate('NORMAL');
+                setImmediate(() => VimState.setMode('NORMAL'));
             });
         return;
     }

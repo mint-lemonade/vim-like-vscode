@@ -41,7 +41,8 @@ export class Change {
                 // cut range under selection
                 await vscode.commands.executeCommand('editor.action.clipboardCutAction')
                     .then(_res => {
-                        VimState.setModeAfterNextSlectionUpdate('INSERT');
+                        // VimState.setModeAfterNextSlectionUpdate('INSERT');
+                        setImmediate(() => VimState.setMode('INSERT'));
                     });
             } else {
                 await OH.editor.edit(e => {

@@ -78,6 +78,9 @@ export class VimState {
         });
 
         vscode.window.onDidChangeTextEditorSelection((e) => {
+            Logger.log("Selection Changed: ", e.kind ?
+                vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
+            );
             if (e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
                 // If selections are normalized then return early and let next
                 // selection change even handle syncing. 
@@ -85,31 +88,12 @@ export class VimState {
                     return;
                 }
             }
-            if (e.kind !== vscode.TextEditorSelectionChangeKind.Command) {
-                Logger.log("Selection Changed: ", e.kind ?
-                    vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
-                );
-                Logger.log("Syncing");
-                setImmediate(() => {
-                    printCursorPositions("Before SYNCING!");
-                    this.syncVimCursor();
-                    printCursorPositions("After SYNCING!");
-                    if (this.deferredModeSwitch) {
-                        this.setMode(this.deferredModeSwitch);
-                        this.deferredModeSwitch = undefined;
-                    }
-                });
-            } else {
-                Logger.log("[Bogus] Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
-                setImmediate(() => {
-                    printCursorPositions("Before SYNCING!");
-                    this.syncVimCursor();
-                    printCursorPositions("After SYNCING!");
-                });
-            }
-            // if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
-            //     this.syncVimCursor();
-            // }
+            Logger.log("Syncing");
+            setImmediate(() => {
+                printCursorPositions("Before SYNCING!");
+                this.syncVimCursor();
+                printCursorPositions("After SYNCING!");
+            });
         });
 
         vscode.workspace.onDidChangeConfiguration(this.handleConfigChange, this);
