@@ -14,6 +14,11 @@ function setup(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand("vim-like.spaceBarScrollDown", () => scroll('down'))
     );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "vim-like.addSelectionToNextMatch", () => selectNextMatch()
+        )
+    );
 }
 
 function invertSelection() {
@@ -76,6 +81,15 @@ function scroll(dir: 'up' | 'down') {
     let commands = Array(repeat).fill(command);
     vscode.commands.executeCommand('runCommands', {
         "commands": commands
+    });
+}
+
+async function selectNextMatch() {
+    await vscode.commands.executeCommand('editor.action.addSelectionToNextFindMatch');
+    setImmediate(() => {
+        if (VimState.currentMode !== 'VISUAL') {
+            VimState.setMode('VISUAL');
+        }
     });
 }
 

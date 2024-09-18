@@ -131,6 +131,11 @@
         "key": "Shift+Tab",
         "command": "vim-like.cycleMulticursorBackward",
         "when": "editorTextFocus && vim-like.subMode===MULTI_CURSOR"
+      },
+      {
+        "key": "ctrl+d",
+        "command": "vim-like.addSelectionToNextMatch",
+        "when": "editorFocus && vim-like.mode!==INSERT && vim-like.subMode===NONE"
       }
     ],
     "commands": [
