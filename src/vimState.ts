@@ -354,6 +354,7 @@ export class VimState {
      * @returns true if normalization was done or false if already normalized.
      */
     static normalizeEditorSelection(e: vscode.TextEditor) {
+        if (!e) { return false; }
         if (this.currentMode !== 'NORMAL') { return false; }
         let cursorPastLastChar = false;
         let normalizedSelections: vscode.Selection[] = [];

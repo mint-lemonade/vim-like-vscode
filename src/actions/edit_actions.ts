@@ -102,6 +102,7 @@ async function paste(where: 'before' | 'after') {
             setImmediate(() => {
                 vscode.commands.executeCommand('editor.action.formatSelection', pasteAt);
                 VimState.setMode('NORMAL');
+                VimState.normalizeEditorSelection(editor!);
             });
         });
     });

@@ -19,13 +19,13 @@ suite('Yank Paste', () => {
         {
             from: "Yada []Yada Yada.. interesting text.\nSome text in new line, some after coma. \n More yada yada in another new line.",
             inputs: "y y j j p",
-            to: "Yada Yada Yada.. interesting text.\nSome text in new line, some after coma. \n More yada yada in another new line.\n Yada Yada Yada.. interesting text.[]",
+            to: "Yada Yada Yada.. interesting text.\nSome text in new line, some after coma. \n More yada yada in another new line.\n Yada Yada Yada.. interesting text[].",
             // skip: true
         },
         {
             from: "Yada []Yada Yada.. interesting text.\nSome text in new line, some after coma. \n More yada yada in another new line.",
             inputs: '" b y y j y y j p " b P',
-            to: "Yada Yada Yada.. interesting text.\nSome text in new line, some after coma. \n More yada yada in another new line.\n Yada Yada Yada.. interesting text.[]\n Some text in new line, some after coma. ",
+            to: "Yada Yada Yada.. interesting text.\nSome text in new line, some after coma. \n More yada yada in another new line.\n Yada Yada Yada.. interesting text[].\n Some text in new line, some after coma. ",
             // skip: true
         }
     ];
