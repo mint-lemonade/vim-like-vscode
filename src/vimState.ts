@@ -374,7 +374,7 @@ export class VimState {
             }
         }
         if (cursorPastLastChar && vscode.window.activeTextEditor) {
-            Logger.log("**** BAHAR HAI SELECTION*****");
+            Logger.log("Normalizing Cursors..");
             vscode.window.activeTextEditor.selections = normalizedSelections;
         }
 
