@@ -78,8 +78,17 @@ export class VimState {
         });
 
         vscode.window.onDidChangeTextEditorSelection((e) => {
+            if (e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
+                // If selections are normalized then return early and let next
+                // selection change even handle syncing. 
+                if (this.normalizeEditorSelection(e.textEditor)) {
+                    return;
+                }
+            }
             if (e.kind !== vscode.TextEditorSelectionChangeKind.Command) {
-                Logger.log("Selection Changed: ", e.kind ? vscode.TextEditorSelectionChangeKind[e.kind] : e.kind);
+                Logger.log("Selection Changed: ", e.kind ?
+                    vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
+                );
                 Logger.log("Syncing");
                 setImmediate(() => {
                     printCursorPositions("Before SYNCING!");
@@ -96,10 +105,6 @@ export class VimState {
                     printCursorPositions("Before SYNCING!");
                     this.syncVimCursor();
                     printCursorPositions("After SYNCING!");
-                    // if (this.deferredModeSwitch) {
-                    //     this.setMode(this.deferredModeSwitch);
-                    //     this.deferredModeSwitch = undefined;
-                    // }
                 });
             }
             // if (e.kind === vscode.TextEditorSelectionChangeKind.Keyboard || e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
@@ -358,6 +363,37 @@ export class VimState {
         action();
         // this.syncVimCursor();
         // VimState.updateVisualModeCursor();
+    }
+
+    /**
+     * Make sure any editor cursor doesn't go past last line.
+     * @returns true if normalization was done or false if already normalized.
+     */
+    static normalizeEditorSelection(e: vscode.TextEditor) {
+        if (this.currentMode !== 'NORMAL') { return false; }
+        let cursorPastLastChar = false;
+        let normalizedSelections: vscode.Selection[] = [];
+        for (let sel of e.selections) {
+            let cursorPos = sel.active;
+            let line = e.document.lineAt(cursorPos);
+            if (cursorPos.character === line.text.length && line.text.length) {
+                normalizedSelections.push(
+                    new vscode.Selection(
+                        sel.anchor.translate(0, -1),
+                        sel.active.translate(0, -1)
+                    )
+                );
+                cursorPastLastChar = true;
+            } else {
+                normalizedSelections.push(sel);
+            }
+        }
+        if (cursorPastLastChar && vscode.window.activeTextEditor) {
+            Logger.log("**** BAHAR HAI SELECTION*****");
+            vscode.window.activeTextEditor.selections = normalizedSelections;
+        }
+
+        return cursorPastLastChar;
     }
 
     static updateVisualModeCursor(position?: vscode.Position) {
