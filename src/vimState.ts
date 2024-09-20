@@ -189,7 +189,7 @@ export class VimState {
             printCursorPositions("Before syncing VS code cursor!");
             this.syncVsCodeCursorOrSelection();
         }
-        vscode.commands.executeCommand('setContext', "vim-like.currentMode", mode);
+        vscode.commands.executeCommand('setContext', "vim-like.mode", mode);
         vscode.commands.executeCommand('setContext', "vim-like.subMode", subMode);
     }
 

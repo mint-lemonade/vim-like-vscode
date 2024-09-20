@@ -20,72 +20,72 @@
       {
         "key": "escape",
         "command": "vim-like.goToNormalMode",
-        "when": "editorTextFocus && vim-like.currentMode !== NORMAL && vim-like.subMode !== MULTI_CURSOR"
+        "when": "editorTextFocus && vim-like.mode !== NORMAL && vim-like.subMode !== MULTI_CURSOR"
       },
       {
         "key": "alt+k",
         "command": "editor.action.moveLinesUpAction",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "alt+j",
         "command": "editor.action.moveLinesDownAction",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "alt+h",
         "command": "workbench.action.navigateBack",
-        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "alt+l",
         "command": "workbench.action.navigateForward",
-        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+k",
         "command": "editor.action.insertCursorAbove",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "ctrl+alt+j",
         "command": "editor.action.insertCursorBelow",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "Right",
         "command": "vim-like.moveRight",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "Left",
         "command": "vim-like.moveLeft",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "Up",
         "command": "vim-like.moveUp",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "Down",
         "command": "vim-like.moveDown",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE)"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
         "key": "Tab",
         "command": "selectNextSuggestion",
-        "when": "suggestWidgetVisible && textInputFocus && (vim-like.currentMode==INSERT)"
+        "when": "suggestWidgetVisible && textInputFocus && (vim-like.mode==INSERT)"
       },
       {
         "key": "Shift+Tab",
         "command": "selectPrevSuggestion",
-        "when": "suggestWidgetVisible && textInputFocus && (vim-like.currentMode==INSERT)"
+        "when": "suggestWidgetVisible && textInputFocus && (vim-like.mode==INSERT)"
       },
       {
         "key": "backspace",
         "command": "vim-like.textInputBackspace",
-        "when": "editorTextFocus && (vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && vim-like.expectingSequence"
+        "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE) && vim-like.moreInput"
       },
       {
         "key": "alt+j",
@@ -100,27 +100,27 @@
       {
         "key": "Space",
         "command": "vim-like.spaceBarScrollDown",
-        "when": "editorTextFocus &&(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && !vim-like.expectingSequence"
+        "when": "editorTextFocus &&(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE) && !vim-like.moreInput"
       },
       {
         "key": "Shift+Space",
         "command": "vim-like.spaceBarScrollUp",
-        "when": "editorTextFocus &&(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && !vim-like.expectingSequence"
+        "when": "editorTextFocus &&(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE) && !vim-like.moreInput"
       },
       {
         "key": "t",
         "command": "togglePeekWidgetFocus",
-        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && (inReferenceSearchEditor || referenceSearchVisible)"
+        "when": "(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE) && (inReferenceSearchEditor || referenceSearchVisible)"
       },
       {
         "key": "j",
         "command": "list.focusDown",
-        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
+        "when": "(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
       },
       {
         "key": "k",
         "command": "list.focusUp",
-        "when": "(vim-like.currentMode==NORMAL || vim-like.currentMode===VISUAL || vim-like.currentMode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
+        "when": "(vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE) && (referenceSearchVisible && listFocus)"
       },
       {
         "key": "Tab",
@@ -135,7 +135,7 @@
       {
         "key": "ctrl+d",
         "command": "vim-like.addSelectionToNextMatch",
-        "when": "editorFocus && vim-like.currentMode!==INSERT && vim-like.subMode===NONE"
+        "when": "editorFocus && vim-like.mode!==INSERT && vim-like.subMode===NONE"
       },
       {
         "key": "k",

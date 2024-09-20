@@ -71,7 +71,7 @@ export class KeyHandler {
     repeat: number = 0;
     currentSequence: string[] = [];
     matchedSequence: string = "";
-    expectingSequence: boolean;
+    moreInput: boolean;
     sequenceTimeout: number = 500; // in milliseconds
 
     textInput: {
@@ -95,7 +95,7 @@ export class KeyHandler {
         };
         this.statusBar.item.text = '';
         this.setupKeymaps(keymaps);
-        this.expectingSequence = false;
+        this.moreInput = false;
         context.subscriptions.push(
             vscode.commands.registerCommand(
                 'vim-like.textInputBackspace', this.textInputBackspace, this
@@ -170,9 +170,9 @@ export class KeyHandler {
         }
 
         if (matchedKeymap.textInput && !this.textInput) {
-            this.expectingSequence = true;
+            this.moreInput = true;
             vscode.commands.executeCommand(
-                'setContext', "vim-like.expectingSequence", this.expectingSequence
+                'setContext', "vim-like.moreInput", this.moreInput
             );
             this.textInput = {
                 input: "",
@@ -221,7 +221,7 @@ export class KeyHandler {
             // if key is  a number then set up repeat value for how many
             // times next motion/operator is to be repeated.
             let repeat = parseInt(key);
-            if (!this.expectingSequence && !Number.isNaN(repeat)) {
+            if (!this.moreInput && !Number.isNaN(repeat)) {
                 if (repeat === 0 && this.repeat === 0) {
                     // Do nothing. Let the key be handled as '0' motion.
                 } else {
@@ -267,7 +267,7 @@ export class KeyHandler {
             }
         }
         // Match keys and execute action
-        if (!this.expectingSequence) {
+        if (!this.moreInput) {
             for (let km of currentKeymap) {
                 if (km.key[0] === key) {
                     this.matchedSequence = key;
@@ -281,9 +281,9 @@ export class KeyHandler {
                     if (km.key.length === 1) {
                         return [true, km];
                     }
-                    this.expectingSequence = true;
+                    this.moreInput = true;
                     vscode.commands.executeCommand(
-                        'setContext', "vim-like.expectingSequence", this.expectingSequence
+                        'setContext', "vim-like.moreInput", this.moreInput
                     );
                     this.currentSequence.push(key);
 
@@ -408,9 +408,9 @@ export class KeyHandler {
         }
 
         this.matchedSequence = "";
-        this.expectingSequence = false;
+        this.moreInput = false;
         vscode.commands.executeCommand(
-            'setContext', "vim-like.expectingSequence", this.expectingSequence
+            'setContext', "vim-like.moreInput", this.moreInput
         );
         this.textInput = undefined;
 
@@ -430,9 +430,9 @@ export class KeyHandler {
     // If key sequence isn't matched or timeout occurs, 
     // delegate sequence to be typed by vscode.
     flushSequence() {
-        this.expectingSequence = false;
+        this.moreInput = false;
         vscode.commands.executeCommand(
-            'setContext', "vim-like.expectingSequence", this.expectingSequence
+            'setContext', "vim-like.moreInput", this.moreInput
         );
         if (this.currentSequence.length) {
             vscode.commands.executeCommand('default:type', { text: this.currentSequence.join('') });
@@ -441,9 +441,9 @@ export class KeyHandler {
     }
 
     clearSequence() {
-        this.expectingSequence = false;
+        this.moreInput = false;
         vscode.commands.executeCommand(
-            'setContext', "vim-like.expectingSequence", this.expectingSequence
+            'setContext', "vim-like.moreInput", this.moreInput
         );
         this.currentSequence = [];
     }
