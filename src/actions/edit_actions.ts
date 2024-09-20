@@ -3,6 +3,9 @@ import { VimState } from '../vimState';
 import { REGISTERS } from '../register';
 import { Logger } from '../util';
 import { Keymap } from '../keyHandler';
+import { default as OperatorHandler } from '../operatorHandler';
+import { MotionHandler } from '../motionHandler';
+import { Change, Delete, Move } from '../operators';
 
 function deleteChar(enterInsertMode: boolean, repeat: number) {
     let editor = vscode.window.activeTextEditor;
@@ -146,6 +149,26 @@ function joinLine() {
     });
 }
 
+function deleteToLineEnd() {
+    OperatorHandler.execute(Delete, {
+        motion: MotionHandler.moveInLine,
+        motionArgs: ['end']
+    });
+}
+
+function changeToLineEnd() {
+    OperatorHandler.execute(Change, {
+        motion: MotionHandler.moveInLine,
+        motionArgs: ['end']
+    });
+}
+
+function cutToLineEnd() {
+    OperatorHandler.execute(Move, {
+        motion: MotionHandler.moveInLine,
+        motionArgs: ['end']
+    });
+}
 
 export const editActionKeymap: Keymap[] = [
     {
@@ -182,5 +205,23 @@ export const editActionKeymap: Keymap[] = [
         type: 'Action',
         action: () => { vscode.commands.executeCommand('undo'); },
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
+    {
+        key: ['D'],
+        type: 'Action',
+        action: () => deleteToLineEnd(),
+        mode: ['NORMAL']
+    },
+    {
+        key: ['C'],
+        type: 'Action',
+        action: () => changeToLineEnd(),
+        mode: ['NORMAL']
+    },
+    {
+        key: ['M'],
+        type: 'Action',
+        action: () => cutToLineEnd(),
+        mode: ['NORMAL']
     },
 ];

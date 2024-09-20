@@ -5,6 +5,9 @@ import { insertToModeKeymap, switchModeKeymap, updateInsertToModeKm } from './sw
 import { editActionKeymap } from './edit_actions';
 import { registerKeymap } from '../register';
 import { multiCursorKeymap } from '../multiCursor';
+import { MotionHandler } from '../motionHandler';
+import { default as OperatorHandler } from '../operatorHandler';
+import { Yank } from '../operators';
 
 // Setup Actions.
 function setup(context: vscode.ExtensionContext) {
@@ -93,6 +96,12 @@ async function selectNextMatch() {
     });
 }
 
+function yankToLineEnd() {
+    OperatorHandler.execute(Yank, {
+        motion: MotionHandler.moveInLine,
+        motionArgs: ['end']
+    });
+}
 
 export const ActionHandler = {
     setup,
@@ -151,4 +160,10 @@ export const actionKeymap: Keymap[] = [
         action: () => { vscode.commands.executeCommand('editor.toggleFold'); },
         mode: ['NORMAL'],
     },
+    {
+        key: ['Y'],
+        type: 'Action',
+        action: () => yankToLineEnd(),
+        mode: ['NORMAL']
+    }
 ];
