@@ -9,6 +9,10 @@ type MotionData = {
     positions: vscode.Position[],
     excludeCharUnderCursor?: boolean
     revealCursor?: boolean;
+    useVscodeCursorMove?: boolean;
+    cursorMove?: {
+        to: 'right' | 'left' | 'up' | 'down';
+    }
     // jump_by: number,
 };
 export type Motion = (...args: any[]) => MotionData;
@@ -45,7 +49,8 @@ export class MotionHandler {
     static isCursorAtLineEnd(curIdx: number): boolean {
         let curPos = VimState.cursor.selections[curIdx].active;
         let line = this.editor.document.lineAt(curPos.line);
-        if (curPos.character === line.text.length - 1) {
+        let extraChar = VimState.preventCursorPastBoundary ? 0 : 1;
+        if (curPos.character === line.text.length - 1 + extraChar) {
             return true;
         }
         return false;
@@ -101,8 +106,12 @@ export class MotionHandler {
                 }
                 return sel.active.translate(-1, 0).with({
                     character: this.prevHorizantalPos[i]
-                });;
-            })
+                });
+            }),
+            useVscodeCursorMove: true,
+            cursorMove: {
+                to: 'up',
+            }
         };
     }
 
@@ -129,8 +138,12 @@ export class MotionHandler {
                 }
                 return sel.active.translate(1, 0).with({
                     character: this.prevHorizantalPos[i]
-                });;
-            })
+                });
+            }),
+            useVscodeCursorMove: true,
+            cursorMove: {
+                to: 'down',
+            }
         };
     }
 
@@ -608,13 +621,17 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
     MotionHandler.editor = editor;
     let moveTo: MotionData;
     let repeat = Math.max(1, MotionHandler.repeat);
+    let extraChar = VimState.preventCursorPastBoundary ? 0 : 1;
     while (repeat) {
 
         moveTo = motion.call(MotionHandler, ...args, repeat > 1);
 
         // make sure vim cursor doesnt go past last char of line.
         moveTo.positions.forEach((pos, i) => {
-            let last_char_idx = Math.max(editor!.document.lineAt(pos.line).text.length - 1, 0);
+            let last_char_idx = Math.max(
+                editor!.document.lineAt(pos.line).text.length - 1 + extraChar,
+                0
+            );
             if (pos.character >= last_char_idx) {
                 moveTo.positions[i] = pos.translate(0, last_char_idx - pos.character);
             }
@@ -631,8 +648,11 @@ export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args
                 sel.anchor = sel.active;
             });
         }
+        let repeat = Math.max(1, MotionHandler.repeat);
         VimState.syncVsCodeCursorOrSelection({
-            revealCursor: moveTo!.revealCursor === undefined ? true : moveTo!.revealCursor
+            revealCursor: moveTo!.revealCursor === undefined ? true : moveTo!.revealCursor,
+            cursorMove: moveTo!.cursorMove,
+            repeat: repeat > 1 ? repeat : undefined
         });
     }
 

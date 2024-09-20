@@ -135,7 +135,7 @@
       {
         "key": "ctrl+d",
         "command": "vim-like.addSelectionToNextMatch",
-        "when": "editorFocus && vim-like.mode!==INSERT && vim-like.subMode===NONE"
+        "when": "editorFocus && vim-like.currentMode!==INSERT && vim-like.subMode===NONE"
       }
     ],
     "commands": [
@@ -200,6 +200,11 @@
             "v"
           ],
           "description": "Keybinding to switch from Insert mode to VISUAL mode."
+        },
+        "vim-like.preventCursorPastBoundary": {
+          "type": "boolean",
+          "default": false,
+          "description": "Like Vim, prevent cursor moving past last char on line. This can impact PERFORMANCE. If vim-like is slow after turning this on, try running extension in separate thread using affinity (check Readme) setting or turning off this setting."
         }
       }
     }

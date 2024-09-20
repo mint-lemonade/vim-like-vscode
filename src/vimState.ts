@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { KeyHandler } from './keyHandler';
-import { motionKeymap } from './motionHandler';
+import { MotionHandler, motionKeymap } from './motionHandler';
 import { operatorKeyMap } from './operatorHandler';
 import { ActionHandler, actionKeymap, insertToModeKeymap } from './actions';
 import { Logger, printCursorPositions } from './util';
@@ -19,6 +19,7 @@ export class VimState {
     static statusBar: vscode.StatusBarItem;
     static keyHandler: KeyHandler;
     static register: Register;
+    static preventCursorPastBoundary: boolean;
 
     // Vim block cursor behaves differently from vs-code block cursor. 
     // - Unlike vs-code cursor, vim cursor selects char under text in visual mode
@@ -52,6 +53,10 @@ export class VimState {
         ], context);
         this.register = new Register(undefined, context);
 
+        this.preventCursorPastBoundary = vscode.workspace
+            .getConfiguration('vim-like')
+            .get('preventCursorPastBoundary') || false;
+
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             Logger.log("Aactive editor Changes!");
             // if (!editor) { return; }
@@ -81,7 +86,11 @@ export class VimState {
             Logger.log("Selection Changed: ", e.kind ?
                 vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
             );
-            if (e.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
+
+            if (
+                e.kind === vscode.TextEditorSelectionChangeKind.Mouse &&
+                this.preventCursorPastBoundary
+            ) {
                 // If selections are normalized then return early and let next
                 // selection change even handle syncing. 
                 if (this.normalizeEditorSelection(e.textEditor)) {
@@ -89,11 +98,9 @@ export class VimState {
                 }
             }
             Logger.log("Syncing");
-            setImmediate(() => {
-                printCursorPositions("Before SYNCING!");
-                this.syncVimCursor();
-                printCursorPositions("After SYNCING!");
-            });
+            printCursorPositions("Before SYNCING!");
+            this.syncVimCursor(e.textEditor);
+            printCursorPositions("After SYNCING!");
         });
 
         vscode.workspace.onDidChangeConfiguration(this.handleConfigChange, this);
@@ -190,8 +197,11 @@ export class VimState {
         this.deferredModeSwitch = mode;
     }
 
-    static syncVimCursor() {
+    static syncVimCursor(e?: vscode.TextEditor) {
         let editor = vscode.window.activeTextEditor;
+        if (e) {
+            editor = e;
+        }
         if (!editor) { return; }
         if (!this.cursor) {
             this.cursor = {
@@ -260,11 +270,53 @@ export class VimState {
     }
 
     static syncVsCodeCursorOrSelection(opts: {
-        revealCursor: boolean
+        revealCursor: boolean,
+        cursorMove?: {
+            to: 'left' | 'right' | 'down' | 'up'
+        },
+        repeat?: number
     } = { revealCursor: true }) {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
 
+        /**
+         * For some motions that return cursorMove, use more efficient vscode
+         * APIs to move cursor rather then using assigning selections method.
+         */
+        let repeatedMotionSkipsFolds = false;
+        if (
+            opts.cursorMove &&
+            ['NORMAL', 'VISUAL'].includes(VimState.currentMode) &&
+            !this.preventCursorPastBoundary
+        ) {
+            if (opts.repeat && !repeatedMotionSkipsFolds) {
+                let moveBy = Math.abs(
+                    this.cursor.selections[0].active.line - editor.selection.active.line
+                );
+                vscode.commands.executeCommand('cursorMove', {
+                    to: opts.cursorMove.to,
+                    value: moveBy!,
+                    select: VimState.currentMode === 'VISUAL'
+                });
+            } else {
+                let command;
+                if (opts.cursorMove.to === 'down') {
+                    command = 'cursorDown';
+                } else if (opts.cursorMove.to === 'up') {
+                    command = 'cursorUp';
+                }
+                if (VimState.currentMode === 'VISUAL') { command += 'Select'; }
+                vscode.commands.executeCommand('runCommands', {
+                    commands: Array(opts.repeat).fill(command)
+                });
+            }
+            return;
+        }
+
+        /**
+         * Fallback to using "assigning selections" method, that has more control
+         * but can have perfomance impact.
+         */
         let startPosition: vscode.Position[] = [];
         let endPosition: vscode.Position[] = [];
         for (let [i, sel] of this.cursor.selections.entries()) {
@@ -306,11 +358,11 @@ export class VimState {
         let selections = this.cursor.selections.map((sel, i) => {
             return new vscode.Selection(startPosition[i], endPosition[i]);
         });
-
         editor.selections = selections;
         if (opts.revealCursor) {
             editor.revealRange(new vscode.Range(selections[0].active, selections[0].active), vscode.TextEditorRevealType.Default);
         }
+
         VimState.updateVisualModeCursor();
     }
 
@@ -342,7 +394,6 @@ export class VimState {
             }
             return new vscode.Selection(startPosition, endPosition);
         });
-
         editor.selections = selections;
         action();
         // this.syncVimCursor();
@@ -356,6 +407,8 @@ export class VimState {
     static normalizeEditorSelection(e: vscode.TextEditor) {
         if (!e) { return false; }
         if (this.currentMode !== 'NORMAL') { return false; }
+        if (!this.preventCursorPastBoundary) { return false; }
+
         let cursorPastLastChar = false;
         let normalizedSelections: vscode.Selection[] = [];
         for (let sel of e.selections) {
@@ -433,6 +486,11 @@ export class VimState {
                 ...textObjectKeymap
             ]);
 
+        }
+        if (e.affectsConfiguration("vim-like.preventCursorPastBoundary")) {
+            this.preventCursorPastBoundary = vscode.workspace
+                .getConfiguration('vim-like')
+                .get('preventCursorPastBoundary') || false;
         }
     }
 }
