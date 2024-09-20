@@ -73,9 +73,14 @@ async function paste(where: 'before' | 'after') {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         let selections = editor.selections;
-        // TODO: after 'p'asting handle formating for all pasted code.
-        // Currently only line under cursor is getting formatted.
-        let formatRanges: vscode.Range[] = [];
+
+        /**
+         * **[activePosition, linesPasted].**
+         * 
+         * Format ranges can be calculated using active position and number of lines pasted.
+         * Calculation is delayed to handle case of pasting code at end of document. 
+         */
+        let formatRanges: [vscode.Position, number][] = [];
         await editor.edit(e => {
             for (let [i, sel] of selections.entries()) {
                 if (VimState.currentMode === 'NORMAL') {
@@ -89,18 +94,27 @@ async function paste(where: 'before' | 'after') {
                 }
 
                 if (spreadEntries) {
-                    e.replace(pasteAt, regEntry.text[i]);
+                    e.replace(pasteAt, regEntry.text[i].trimStart());
+
+                    let linesPasted = regEntry.text[i].split("\n").length - 1;
+                    formatRanges.push([sel.active, linesPasted]);
                 } else {
-                    e.replace(pasteAt, regEntry.text.join("\n"));
+                    e.replace(pasteAt, regEntry.text.join("\n").trimStart());
+
+                    let linesPasted = regEntry.text.join("\n").split("\n").length - 1;
+                    formatRanges.push([sel.active, linesPasted]);
                 }
             }
         }).then(res => {
             Logger.log("edit possible: ", res);
-            if (pasteAt instanceof vscode.Position) {
-                pasteAt = editor!.document.lineAt(pasteAt.line).range;
-            }
             setImmediate(() => {
-                vscode.commands.executeCommand('editor.action.formatSelection', pasteAt);
+                formatRanges.forEach(([active, linesPasted]) => {
+                    let range = new vscode.Range(
+                        active.with({ character: 0 }),
+                        editor!.document.lineAt(active.line + linesPasted).range.end
+                    );
+                    vscode.commands.executeCommand('editor.action.formatSelection', range);
+                });
                 VimState.setMode('NORMAL');
                 VimState.normalizeEditorSelection(editor!);
             });
