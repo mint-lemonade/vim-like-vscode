@@ -165,5 +165,11 @@ export const actionKeymap: Keymap[] = [
         type: 'Action',
         action: () => yankToLineEnd(),
         mode: ['NORMAL']
+    },
+    {
+        key: ['g', 'i'],
+        type: 'Action',
+        action: () => vscode.commands.executeCommand('editor.action.showDefinitionPreviewHover'),
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     }
 ];

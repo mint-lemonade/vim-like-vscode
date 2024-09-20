@@ -136,6 +136,26 @@
         "key": "ctrl+d",
         "command": "vim-like.addSelectionToNextMatch",
         "when": "editorFocus && vim-like.currentMode!==INSERT && vim-like.subMode===NONE"
+      },
+      {
+        "key": "k",
+        "command": "editor.action.scrollUpHover",
+        "when": "editorHoverFocused"
+      },
+      {
+        "key": "j",
+        "command": "editor.action.scrollDownHover",
+        "when": "editorHoverFocused"
+      },
+      {
+        "key": "l",
+        "command": "editor.action.scrollRightHover",
+        "when": "editorHoverFocused"
+      },
+      {
+        "key": "h",
+        "command": "editor.action.scrollLeftHover",
+        "when": "editorHoverFocused"
       }
     ],
     "commands": [
