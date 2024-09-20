@@ -219,7 +219,7 @@ export const editActionKeymap: Keymap[] = [
         mode: ['NORMAL']
     },
     {
-        key: ['M'],
+        key: ['g', 'm'],
         type: 'Action',
         action: () => cutToLineEnd(),
         mode: ['NORMAL']
