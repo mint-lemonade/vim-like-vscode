@@ -458,20 +458,28 @@ export class VimState {
 
     static updateLineNumbers() {
         let config = vscode.workspace.getConfiguration("vim-like");
-        let relativeLines = config.get('normalModeRelativeLineNumbers') as boolean;
+        let relativeLines = config.get('smartRelativeLineNumbers') as boolean;
         if (relativeLines) {
             if (['NORMAL', 'VISUAL', 'VISUAL_LINE'].includes(VimState.currentMode)) {
-                vscode.workspace.getConfiguration('editor')
-                    .update("lineNumbers", 'relative', true);
+                // vscode.workspace.getConfiguration('editor')
+                //     .update("lineNumbers", 'relative', true);
+                let e = vscode.window.activeTextEditor;
+                if (e) {
+                    e.options.lineNumbers = vscode.TextEditorLineNumbersStyle.Relative;
+                }
             } else {
-                vscode.workspace.getConfiguration('editor')
-                    .update("lineNumbers", 'on', true);
+                // vscode.workspace.getConfiguration('editor')
+                //     .update("lineNumbers", 'on', true);
+                let e = vscode.window.activeTextEditor;
+                if (e) {
+                    e.options.lineNumbers = vscode.TextEditorLineNumbersStyle.On;
+                }
             }
         }
     }
 
     static handleConfigChange(e: vscode.ConfigurationChangeEvent) {
-        if (e.affectsConfiguration("vim-like.normalModeRelativeLineNumbers")) {
+        if (e.affectsConfiguration("vim-like.smartRelativeLineNumbers")) {
             this.updateLineNumbers();
         }
         if (e.affectsConfiguration("vim-like.switchInsertToVisualKeybinding") ||
