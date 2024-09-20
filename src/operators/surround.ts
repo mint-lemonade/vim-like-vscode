@@ -4,6 +4,7 @@ import { VimState } from '../vimState';
 import { TextObjectData, TextObjects } from '../textObjectHandler';
 import { highlightText } from '../util';
 import { Operator, OperatorHandler } from '../operatorHandler';
+import { executeMotion, MotionData, MotionHandler } from '../motionHandler';
 
 const STOP_PARSE = true;
 const CONT_PARSE = false;
@@ -85,6 +86,7 @@ export class Surround {
         }
 
         let textObjData: TextObjectData;
+        let motionData: MotionData;
         if (this.modifier === 'd' || this.modifier === 'c') {
             if (km) {
                 return KeyParseState.Failed;
@@ -121,16 +123,26 @@ export class Surround {
                 });
                 return KeyParseState.MoreInput;
             }
-            if (km?.type !== 'TextObject') {
+            if (km?.type === 'TextObject') {
+                textObjData = km.action.call(TextObjects, ...(km.args || []));
+                this.surround_at = textObjData.filter(t => t).map(txtObj => {
+                    return {
+                        start: txtObj!.range.start,
+                        end: txtObj!.range.end
+                    };
+                });
+            } else if (km?.type === 'Motion') {
+
+                executeMotion(km.action, false, ...(km.args || []));
+                this.surround_at = VimState.cursor.selections.map((sel, i) => {
+                    return {
+                        start: sel.anchor,
+                        end: sel.active
+                    };
+                });
+            } else {
                 return KeyParseState.Failed;
             }
-            textObjData = km.action.call(TextObjects, ...(km.args || []));
-            this.surround_at = textObjData.filter(t => t).map(txtObj => {
-                return {
-                    start: txtObj!.range.start,
-                    end: txtObj!.range.end
-                };
-            });
         } else {
             console.error(`Invalid surround modifer ${this.modifier}`);
             return KeyParseState.Failed;

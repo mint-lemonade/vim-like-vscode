@@ -5,7 +5,7 @@ import { Logger } from './util';
 
 type SearchDir = 1 | -1;
 
-type MotionData = {
+export type MotionData = {
     positions: vscode.Position[],
     excludeCharUnderCursor?: boolean
     revealCursor?: boolean;
