@@ -75,6 +75,27 @@ export class MultiCursorHandler {
         );
     }
 
+    static toggleCursor() {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor) { return; }
+        VimState.cursor.selections.forEach(sel => {
+            let pos = posToString(sel.active)
+            if (this.cursors.has(pos)) {
+                this.cursors.delete(pos);
+            } else {
+                this.cursors.add(pos);
+            }
+        });
+        editor.setDecorations(
+            this.cursorStyle,
+            Array.from(this.cursors)
+                .map(s => {
+                    let c = stringToPos(s);
+                    return new vscode.Range(c, c.translate(0, 1));
+                })
+        );
+    }
+
     static clearAllCursors() {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; };
@@ -188,6 +209,12 @@ export const multiCursorKeymap: Keymap[] = [
         key: ['r'],
         type: 'Action',
         action: () => MultiCursorHandler.removeCursor(),
+        mode: ['MULTI_CURSOR']
+    },
+    {
+        key: ['t'],
+        type: 'Action',
+        action: () => MultiCursorHandler.toggleCursor(),
         mode: ['MULTI_CURSOR']
     },
     {
