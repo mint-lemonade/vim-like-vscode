@@ -104,6 +104,7 @@ export class VimState {
         });
 
         vscode.workspace.onDidChangeConfiguration(this.handleConfigChange, this);
+        vscode.window.onDidChangeActiveColorTheme(this.setUpVisualModeCursorDecoration, this);
     }
 
     static async type(text: string) {
@@ -165,13 +166,7 @@ export class VimState {
 
                         // Setup text decoration to mimic the block cursor.
                         if (!this.cursor.visualModeTextDecoration) {
-                            const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
-                            const textColor = new vscode.ThemeColor('editorCursor.background');
-                            const decorationType = vscode.window.createTextEditorDecorationType({
-                                backgroundColor: cursorColor,
-                                color: textColor
-                            });
-                            this.cursor.visualModeTextDecoration = decorationType;
+                            this.setUpVisualModeCursorDecoration();
                         }
 
                         break;
@@ -432,6 +427,31 @@ export class VimState {
         }
 
         return cursorPastLastChar;
+    }
+
+    static setUpVisualModeCursorDecoration(theme?: vscode.ColorTheme) {
+        if (this.cursor.visualModeTextDecoration) {
+            this.cursor.visualModeTextDecoration.dispose();
+        }
+
+        const cursorColor = new vscode.ThemeColor('editorCursor.foreground');
+        let textColor: string;
+        theme = theme || vscode.window.activeColorTheme;
+        if (theme.kind === vscode.ColorThemeKind.Dark) {
+            textColor = "rgba(0,0,0,1)";
+        } else if (theme.kind === vscode.ColorThemeKind.Light) {
+            textColor = "rgba(255,255,255,1)";
+        } else if (theme.kind === vscode.ColorThemeKind.HighContrast) {
+            textColor = "rgba(0,0,0,1)";
+        } else /** theme.kind === HighContrastLight */ {
+            textColor = "rgba(255,255,255,1)";
+        }
+
+        const decorationType = vscode.window.createTextEditorDecorationType({
+            backgroundColor: cursorColor,
+            color: textColor
+        });
+        this.cursor.visualModeTextDecoration = decorationType;
     }
 
     static updateVisualModeCursor(position?: vscode.Position) {
