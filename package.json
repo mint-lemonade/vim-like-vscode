@@ -160,14 +160,6 @@
     ],
     "commands": [
       {
-        "command": "helloworld.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "title": "waassssupp!!",
-        "command": "supp.timeDate"
-      },
-      {
         "command": "vim-like.registers",
         "title": "Vim-Like: Show Registers"
       }

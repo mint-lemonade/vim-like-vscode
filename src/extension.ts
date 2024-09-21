@@ -9,9 +9,7 @@ import { ActionHandler } from './actions';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "helloworld" is now active!');
+	console.log('Extension "Vim-Like" activated!');
 
 	VimState.init(context);
 	MultiCursorHandler.setUp(context);
@@ -20,11 +18,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('type', (text) => {
 		VimState.type(text.text);
 	}));
-
-	let disposable = vscode.commands.registerCommand('helloworld.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello VS code!');
-	});
-	context.subscriptions.push(disposable);
 
 	let d1 = vscode.commands.registerCommand('vim-like.goToNormalMode', () => {
 		VimState.setMode('NORMAL');
