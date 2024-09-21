@@ -167,7 +167,7 @@ export const actionKeymap: Keymap[] = [
         mode: ['NORMAL']
     },
     {
-        key: ['g', 'i'],
+        key: ['g', 'h'],
         type: 'Action',
         action: () => vscode.commands.executeCommand('editor.action.showDefinitionPreviewHover'),
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
