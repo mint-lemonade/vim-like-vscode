@@ -1,71 +1,183 @@
-# helloworld README
+# Vim-Like
 
-This is the README for your extension "helloworld". After writing up a brief description, we recommend including the following sections.
+> Your first Vim experince. Power of Vim + Ease of Vscode.
 
-## Features
+Goal of this extension is not 100% vim emulation but to bring in as many features of vim as possible, while maintaining and leveraging behaviour of vscode. Some vim behaviour is tweaked to be more sensible and beginner friendly.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## Some Features
 
-For example if there is an image subfolder under your extension project workspace:
+- Switch between **VISUAL** and **INSERT** mode while preserving the selection. This makes things so much easier if you are new to vim.
+- Doesn't override standard vscode behaviour. ctrl+c, ctrl+v, ctrl+f etc works as expected.
+- Standard multi-cursor support. All vscode methods to place multiple cursors like alt+d, alt+click works as expected with vim motions.
+- Special [MultiCursor](#multicursor-mode) mode to place cursors completely via keyboard.
+- Registers supported.
+- [Surround](#surround-operator) plugin built in. Add replace and delete quotes/brackets around text without hassle. (_XML tags support coming soon.._)
 
-\!\[feature X\]\(images/feature-x.png\)
+## Modes
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Vim-Like provides 4 main modes: **NORMAL**, **INSERT**, **VISUAL**, **VISUAL-LINE**. \
+**INSERT** mode is pretty much a vanilla vscode experience.
 
-## Requirements
+| From Mode   | To Mode     | Keys                |
+| ----------- | ----------- | ------------------- |
+| Normal      | Insert      | `i`                 |
+| Insert      | Normal      | `jf` (customizable) |
+| Normal      | Visual      | `v`                 |
+| Visual      | Normal      | `v`                 |
+| Visual      | Insert      | `I`                 |
+| Insert      | Visual      | `jv` (customizable) |
+| Normal      | Visual Line | `V`                 |
+| Visual Line | Normal      | `vv`                |
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+> **Escape** key also switches to Normal mode.
 
-## Extension Settings
+## Operators
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Operators are used with motion and text objects as ranges to operate on. **op**{ _num_ }{ **motion**/**text-object** }
 
-For example:
+| Key  | Action                             |
+| ---- | ---------------------------------- |
+| `y`  | Yank (copy) Range                  |
+| `m`  | Move (cut) Range                   |
+| `d`  | Delete Range                       |
+| `c`  | Delete Range and enter Insert mode |
+| `gu` | Transform Range to lowercase       |
+| `gU` | Transform Range to uppercase       |
 
-This extension contributes the following settings:
+- Unlike Vim `d` operator does not write to default register
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `m` operator writes to default register. So in _vim-like_ `y` and `m` behaves like standard copy and cut operations and `d` like standard delete.
 
-## Known Issues
+- Unlike Vim all `m`oved `y`anked text is moved to numbered `(1-9)` history registers.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- All `d`eleted text that is atleast a line long or more is also moved to `(1-9)` registers.
 
-## Release Notes
+- `0` register always has the last yanked text.
 
-Users appreciate release notes as you update your extension.
+- If named registers are used then text is not written to any other registers.
 
-### 1.0.0
+> Use `p` to paste last yanked/moved text or `"{reg}p` to paste from a [register](#registers)
 
-Initial release of ...
+### <ins>Surround Operator
 
-### 1.0.1
+Add Replace and Delete quotes/brackets around text without hassle. (XML tags support coming soon..)
 
-Fixed issue #.
+| Key  | Input 1           | Input 2    | Action                                          |
+| ---- | ----------------- | ---------- | ----------------------------------------------- |
+| `cs` | _wrapchar_        | _wrapchar_ | Change surrounding _input-1_ with _input-2_     |
+| `ds` | _wrapchar_        |            | Delete surrounding _input-1_                    |
+| `ys` | motion/textobject | _wrapchar_ | Wrap range returned from _input-1_ by _input-2_ |
 
-### 1.1.0
+> wrapchar = { } ( ) [ ] < > " ' `
 
-Added features X, Y, and Z.
+## MultiCursor Mode
 
----
+Add multiple cursors completely via keyboard.
 
-## Following extension guidelines
+Press `q` to enter **MultiCursor** mode. \
+Use motions to navigate and place cursor markers\
+Press `q` to exit **MultiCursor** mode. All markrers will be converted to cursors.
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+![alt](media/multicursor_mode.gif)
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+| Key         | Action                   |
+| ----------- | ------------------------ |
+| `a`         | Add cursor marker        |
+| `r`         | Remove cursor marker     |
+| `t`         | Toggle cursor marker     |
+| `c`         | Clear all cursor markers |
+| `Tab`       | Go to next marked cursor |
+| `Shift+Tab` | Go to prev marked cursor |
 
-## Working with Markdown
+## Registers
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+Registers are like internal clipboards for vim. Select a register `"{reg}` to be used by next operator or paste action.
+| Register | Description |
+| --------- | ---------------------------------------------------- |
+| `"` |Default Register. If no register is selected by user the default register is used.|
+| `a-z` |Named Registers. eg. `"x`|
+| `0` |Yank Register. Stores the text from last yank.|
+| `1-9` |History registers. 1 being most recent and 9 the oldest|
+| `*` |System Clipboard Register. To yank/move/paste to and from System Clipboard.|
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+## Motions
 
-## For more information
+Combine motions with number to repeat them. `{num}motion`
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+| Keys      | Description                                          |
+| --------- | ---------------------------------------------------- |
+| `h`       | Move left.                                           |
+| `j`       | Move down.                                           |
+| `k`       | Move up.                                             |
+| `l`       | Move right.                                          |
+| `w`       | Next word start (exclusive)                          |
+| `W`       | Next WORD start (exclusive)                          |
+| `e`       | Next word end                                        |
+| `E`       | Next WORD end                                        |
+| `b`       | Prev word start                                      |
+| `B`       | Prev WORD start                                      |
+| `ge`      | Prev word end                                        |
+| `gE`      | Prev WORD end                                        |
+| `f{char}` | Jump to next occurrence of {char}                    |
+| `F{char}` | Jump to previous occurrence of {char}.               |
+| `t{char}` | Jump to 1 char before next occurrence of {char}.     |
+| `T{char}` | Jump to 1 char before previous occurrence of {char}. |
+| `;`       | Repeat last f/F/t/T motion                           |
+| `,`       | Repeat last f/F/t/T motion in opposite direction     |
+| `/{word}` | Search {word} forward and jump (exclusive)           |
+| `?{word}` | Search {word} backward and jump (exclusive)          |
+| `n`       | Repeat last word-search motion                       |
+| `N`       | Repeat last word-search motion in opposite direction |
+| `gg`      | First line of the document.                          |
+| `G`       | Last line of the document.                           |
+| `}`       | Down a paragraph.                                    |
+| `{`       | Up a paragraph.                                      |
+| `$`       | End of line.                                         |
+| `^`       | First non-white char of line.                        |
+| `0`       | Beginning of line.                                   |
+| `H`       | Top of screen.                                       |
+| `M`       | Middle of screen.                                    |
+| `L`       | Bottom of screen.                                    |
 
-**Enjoy!**
+## Other Actions
+
+### <ins>VSCode Actions
+
+| Keys          | Description                                                 |
+| ------------- | ----------------------------------------------------------- |
+| `za`          | Fold toggle                                                 |
+| `zc`          | Fold close                                                  |
+| `zo`          | Fold open                                                   |
+| `z{num}`      | Fold level {num}                                            |
+| `gd`          | Goto Definition / Peek Reference                            |
+| `t`           | Toggle peek widget focus (when reference editor is visible) |
+| `gh`          | Show hover type/error information                           |
+| `Space`       | Scroll down (default by 5 lines)                            |
+| `Shift+Space` | Scroll up (default by 5 lines)                              |
+| `:`           | Show command palette                                        |
+
+###
+
+| Keys | Description                                                                                  |
+| ---- | -------------------------------------------------------------------------------------------- |
+| `i`  | Switches to insert mode and allows you to edit text right before the current cursor position |
+| `I`  | Switches to insert mode and places the cursor at the beginning of the line                   |
+| `a`  | Switches to insert mode and allows you to edit text right after the current cursor position  |
+| `A`  | Switches to insert mode and places the cursor at the end of the line                         |
+| `o`  | Switches to insert mode adding a line below the current one                                  |
+| `O`  | Switches to insert mode adding a line above the current one                                  |
+| `J`  | Join lines                                                                                   |
+| `p`  | Paste yanked text after cursor                                                               |
+| `P`  | Paste yanked text before cursor                                                              |
+| `u`  | Undo                                                                                         |
+| `U`  | Redo                                                                                         |
+| `dd` | Delete line under cursor                                                                     |
+| `D`  | Delete to the end of the line                                                                |
+| `cc` | Delete line under cursor and enter Insert mode                                               |
+| `C`  | Delete to the end of the line and enter Insert mode                                          |
+| `yy` | Yank line under cursor                                                                       |
+| `Y`  | Yank to the end of the line                                                                  |
+| `mm` | Move (cut) line under cursor                                                                 |
+| `gm` | Move (cut) to the end of line                                                                |
+| `x`  | Delete selection                                                                             |
+| `s`  | Delete selection and enter Insert mode                                                       |

@@ -10,6 +10,10 @@
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mint-lemonade/vim-like-vscode"
+  },
   "activationEvents": [
     "onStartupFinished",
     "onCommand:type"
