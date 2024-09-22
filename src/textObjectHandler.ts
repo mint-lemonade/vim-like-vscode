@@ -37,7 +37,7 @@ export class TextObjects {
     static quotesObject(c: string, type: 'inside' | 'around'): TextObjectData {
         if (!['\"', '\'', '\`'].includes(c)) {
             console.error(`Invalid "${c}" character for textObject`);
-            throw new Error(`Invalid "${c}" character for textObject`);
+            return VimState.cursor.selections.map(_ => undefined);
         }
         return VimState.cursor.selections.map(sel => {
             let range: Range;
@@ -92,7 +92,7 @@ export class TextObjects {
 
         if (!'ai'.includes(rangeType)) {
             console.error(`Invalid rangeType '${rangeType} in bracket text object!`);
-            throw new Error(`Invalid rangeType '${rangeType} in bracket text object!`);
+            return VimState.cursor.selections.map(_ => undefined);
         }
 
         let c = s || this.currentSeq[1];
@@ -110,7 +110,7 @@ export class TextObjects {
 
         if (!OPENING_BRACKET || !CLOSING_BRACKET) {
             console.error(`Invalid "${c}" character for brackets textObject`);
-            throw new Error(`Invalid "${c}" character for brackets textObject`);
+            return VimState.cursor.selections.map(_ => undefined);
         }
 
         return VimState.cursor.selections.map(sel => {
