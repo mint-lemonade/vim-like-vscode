@@ -72,7 +72,7 @@ export class KeyHandler {
     currentSequence: string[] = [];
     matchedSequence: string = "";
     moreInput: boolean;
-    sequenceTimeout: number = 500; // in milliseconds
+    sequenceTimeout: number = 200; // in milliseconds
 
     textInput: {
         input: string,
