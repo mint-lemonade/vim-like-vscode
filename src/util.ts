@@ -46,7 +46,7 @@ export function highlightText(at: readonly vscode.Range[] | vscode.Position[]) {
     });
     editor.setDecorations(decorationType, ranges);
     setTimeout(() => {
-        editor?.setDecorations(decorationType, []);
+        decorationType.dispose();
     }, duration);
 }
 

@@ -93,6 +93,7 @@ export class KeyHandler {
             item: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1),
             contents: [],
         };
+        context.subscriptions.push(this.statusBar.item);
         this.statusBar.item.text = '';
         this.setupKeymaps(keymaps);
         this.moreInput = false;

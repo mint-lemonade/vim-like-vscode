@@ -41,6 +41,7 @@ export class VimState {
 
     static init(context: vscode.ExtensionContext) {
         this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
+        context.subscriptions.push(this.statusBar);
         this.syncVimCursor();
         this.setMode('NORMAL');
 
@@ -57,7 +58,7 @@ export class VimState {
             .getConfiguration('vim-like')
             .get('preventCursorPastBoundary') || false;
 
-        vscode.window.onDidChangeActiveTextEditor((editor) => {
+        let d0 = vscode.window.onDidChangeActiveTextEditor((editor) => {
             Logger.log("Aactive editor Changes!");
             // if (!editor) { return; }
             setImmediate(() => {
@@ -81,8 +82,9 @@ export class VimState {
                 }
             });
         });
+        context.subscriptions.push(d0);
 
-        vscode.window.onDidChangeTextEditorSelection((e) => {
+        let d1 = vscode.window.onDidChangeTextEditorSelection((e) => {
             Logger.log("Selection Changed: ", e.kind ?
                 vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
             );
@@ -102,9 +104,13 @@ export class VimState {
             this.syncVimCursor(e.textEditor);
             printCursorPositions("After SYNCING!");
         });
+        context.subscriptions.push(d1);
 
-        vscode.workspace.onDidChangeConfiguration(this.handleConfigChange, this);
-        vscode.window.onDidChangeActiveColorTheme(this.setUpVisualModeCursorDecoration, this);
+        let d2 = vscode.workspace.onDidChangeConfiguration(this.handleConfigChange, this);
+        context.subscriptions.push(d2);
+
+        let d3 = vscode.window.onDidChangeActiveColorTheme(this.setUpVisualModeCursorDecoration, this);
+        context.subscriptions.push(d3);
     }
 
     static async type(text: string) {

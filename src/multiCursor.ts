@@ -115,7 +115,7 @@ export class MultiCursorHandler {
     static exitMultiCursorMode() {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; };
-        editor.setDecorations(this.cursorStyle, []);
+        // editor.setDecorations(this.cursorStyle, []);
         let cursors = Array.from(this.cursors);
         if (cursors.length > 0) {
             VimState.cursor.selections = cursors.map(s => {
@@ -131,7 +131,7 @@ export class MultiCursorHandler {
         }
         this.cursors.clear();
         this.sortedCursors = []; // Clear sorted cursors. 
-
+        this.cursorStyle.dispose();
         VimState.syncVsCodeCursorOrSelection();
         setImmediate(() => {
             VimState.setMode('NORMAL');
