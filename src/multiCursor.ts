@@ -79,7 +79,7 @@ export class MultiCursorHandler {
         let editor = vscode.window.activeTextEditor;
         if (!editor) { return; }
         VimState.cursor.selections.forEach(sel => {
-            let pos = posToString(sel.active)
+            let pos = posToString(sel.active);
             if (this.cursors.has(pos)) {
                 this.cursors.delete(pos);
             } else {
