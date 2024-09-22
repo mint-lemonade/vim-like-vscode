@@ -5,13 +5,15 @@ import { MotionHandler } from '../motionHandler';
 import { VimState } from '../vimState';
 // import * as myExtension from '../../extension';
 import { assertEqual, sleep } from '../util';
+import path from 'path';
 
 suite('Motion Testing', async () => {
     // vscode.window.showInformationMessage('Start all tests.');
     let editor: vscode.TextEditor;
     suiteSetup(async () => {
 
-        let uri = vscode.Uri.parse('/home/urs/edu/vscode_extension/helloworld/src/test/data/motion.sample.text');
+        let filePath = path.join(__dirname, 'data/motion.sample.text');
+        let uri = vscode.Uri.parse(filePath);
         let doc = await vscode.workspace.openTextDocument(uri);
         editor = await vscode.window.showTextDocument(doc);
 

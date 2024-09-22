@@ -244,7 +244,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "cp -r src/test/data out/test/data && vscode-test"
   },
   "devDependencies": {
     "@types/vscode": "^1.87.0",
