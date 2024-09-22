@@ -21,7 +21,7 @@
     "modal",
     "keymaps",
     "surround",
-    "easy vim"
+    "multi-cursor"
   ],
   "repository": {
     "type": "git",
