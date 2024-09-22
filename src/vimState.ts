@@ -281,42 +281,37 @@ export class VimState {
         if (!editor) { return; }
 
         /**
-         * For some motions that return cursorMove, use more efficient vscode
+         * For some simple motions that return cursorMove, use in-built vscode
          * APIs to move cursor rather then using assigning selections method.
+         * This can cover some edge cases like wrapped lines and folds for
+         * vertical motions etc. 
+         * Sometimes also leads to better performance (Not sure, requires profiling)
          */
         let repeatedMotionSkipsFolds = false;
         if (
-            opts.cursorMove &&
+            opts.cursorMove && !opts.repeat &&
             ['NORMAL', 'VISUAL'].includes(VimState.currentMode) &&
             !this.preventCursorPastBoundary
         ) {
-            if (opts.repeat && !repeatedMotionSkipsFolds) {
-                let moveBy = Math.abs(
-                    this.cursor.selections[0].active.line - editor.selection.active.line
-                );
-                vscode.commands.executeCommand('cursorMove', {
-                    to: opts.cursorMove.to,
-                    value: moveBy!,
-                    select: VimState.currentMode === 'VISUAL'
-                });
-            } else {
-                let command;
-                if (opts.cursorMove.to === 'down') {
-                    command = 'cursorDown';
-                } else if (opts.cursorMove.to === 'up') {
-                    command = 'cursorUp';
-                }
-                if (VimState.currentMode === 'VISUAL') { command += 'Select'; }
-                vscode.commands.executeCommand('runCommands', {
-                    commands: Array(opts.repeat).fill(command)
-                });
+            let command;
+            if (opts.cursorMove.to === 'down') {
+                command = 'cursorDown';
+            } else if (opts.cursorMove.to === 'up') {
+                command = 'cursorUp';
+            } else if (opts.cursorMove.to === 'right') {
+                command = 'cursorRight';
             }
+            if (VimState.currentMode === 'VISUAL') { command += 'Select'; }
+            vscode.commands.executeCommand('runCommands', {
+                commands: Array(opts.repeat).fill(command)
+            });
             return;
         }
 
         /**
-         * Fallback to using "assigning selections" method, that has more control
-         * but can have perfomance impact.
+         * Fallback to using "assigning selections" method for repeated
+         * motions or when "preventCursorPastBoundary" setting is on or
+         * more complex motions.
          */
         let startPosition: vscode.Position[] = [];
         let endPosition: vscode.Position[] = [];

@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { MotionHandler } from '../motionHandler';
 import { VimState } from '../vimState';
 // import * as myExtension from '../../extension';
-import { assertEqual } from '../util';
+import { assertEqual, sleep } from '../util';
 
 suite('Motion Testing', async () => {
     // vscode.window.showInformationMessage('Start all tests.');
@@ -28,7 +28,7 @@ suite('Motion Testing', async () => {
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     });
 
-    test('w: Jump to next word start', () => {
+    test('w: Jump to next word start', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 5)],
@@ -44,6 +44,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(5, 29), new vscode.Position(6, 0)],
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -57,7 +58,7 @@ suite('Motion Testing', async () => {
     });
 
 
-    test('W: Jump to next WORD start', () => {
+    test('W: Jump to next WORD start', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 5)],
@@ -72,6 +73,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(7, 43), new vscode.Position(9, 0)], // skip empty line
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -84,7 +86,7 @@ suite('Motion Testing', async () => {
         }
     });
 
-    test('e: Jump to word end', () => {
+    test('e: Jump to word end', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 3)],
@@ -101,6 +103,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(5, 31), new vscode.Position(6, 2)],
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -114,7 +117,7 @@ suite('Motion Testing', async () => {
     });
 
 
-    test('E: Jump to WORD end', () => {
+    test('E: Jump to WORD end', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 3)],
@@ -127,6 +130,7 @@ suite('Motion Testing', async () => {
 
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -139,7 +143,7 @@ suite('Motion Testing', async () => {
         }
     });
 
-    test('b: Jump to prev word start', () => {
+    test('b: Jump to prev word start', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 0)],
@@ -158,6 +162,7 @@ suite('Motion Testing', async () => {
 
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -171,7 +176,7 @@ suite('Motion Testing', async () => {
     });
 
 
-    test('B: Jump to prev WORD start', () => {
+    test('B: Jump to prev WORD start', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 0)],
@@ -188,6 +193,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(5, 0), new vscode.Position(4, 20)],
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -200,7 +206,7 @@ suite('Motion Testing', async () => {
         }
     });
 
-    test('Word jumps to next line', () => {
+    test('Word jumps to next line', async () => {
         // testData = [ [startPostion, expectedMoveToPosition] ]
         let testData: [vscode.Position, vscode.Position][] = [
             [new vscode.Position(0, 0), new vscode.Position(0, 0)],
@@ -213,6 +219,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(2, 28), new vscode.Position(2, 21)],
         ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -225,7 +232,7 @@ suite('Motion Testing', async () => {
         }
     });
 
-    test('VISUAL mode word/WORD selection', () => {
+    test('VISUAL mode word/WORD selection', async () => {
         /**
          * testData = {
          *      
@@ -247,6 +254,7 @@ suite('Motion Testing', async () => {
         //     }
         // ];
         for (let [i, data] of testData.entries()) {
+            await sleep(100);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;

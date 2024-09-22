@@ -216,7 +216,7 @@
         "vim-like.preventCursorPastBoundary": {
           "type": "boolean",
           "default": false,
-          "description": "Like Vim, prevent cursor moving past last char on line. This can impact PERFORMANCE. If vim-like is slow after turning this on, try running extension in separate thread using affinity (check Readme) setting or turning off this setting."
+          "description": "Like Vim, prevent cursor moving past last char on line.But this also causes wrapped lines to be skipped when moving up and down."
         }
       }
     }

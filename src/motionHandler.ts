@@ -38,57 +38,111 @@ export class MotionHandler {
     static searchWord: string;
     static searchWordDir: SearchDir;
 
+    /**
+     * Keep track of continuous motion. i.e. if key pressed and held.
+     * If a key is pressed continuously, using just VimState.cursor to
+     * calculate next pos leads to erratic cursor movment due to VimState.cursor 
+     * syncing asynchronously. 
+     * 
+     * Calll updateInMotionState() function to use this for any motion. And use
+     * inMotionPositions instead of VimState.cursor
+     */
+    static inMotionPositions: vscode.Position[];
+    static lastKeyTime: number;
+    static readonly inMotionThreshold: number = 100;
+
+    static isInMotion(now: number): boolean {
+        if (!this.lastKeyTime) { this.lastKeyTime = now; }
+        return now - this.lastKeyTime < this.inMotionThreshold;
+    }
+
+    static updateInMotionState(now: number) {
+        if (!this.isInMotion(now) || !this.inMotionPositions) {
+            console.error("Not in motion..", now - this.lastKeyTime);
+            this.inMotionPositions = VimState.cursor.selections.map(sel => sel.active);
+        } else {
+            Logger.log("In motion...", now - this.lastKeyTime);
+        }
+        this.lastKeyTime = now;
+    }
+
     static isCursorAtLineStart(curIdx: number): boolean {
-        let curPos = VimState.cursor.selections[curIdx].active;
+        let curPos = this.inMotionPositions[curIdx];
+        // let curPos = VimState.cursor.selections[curIdx].active;
         if (curPos.character === 0) {
             return true;
         }
+        this.inMotionPositions[curIdx] = curPos.translate(0, -1);
         return false;
     }
 
-    static isCursorAtLineEnd(curIdx: number): boolean {
-        let curPos = VimState.cursor.selections[curIdx].active;
+    static isCursorAtLineEnd(curIdx: number, now: number): boolean {
+        let curPos = this.inMotionPositions[curIdx];
         let line = this.editor.document.lineAt(curPos.line);
         let extraChar = VimState.preventCursorPastBoundary ? 0 : 1;
         if (curPos.character === line.text.length - 1 + extraChar) {
             return true;
         }
+        this.inMotionPositions[curIdx] = curPos.translate(0, 1);
         return false;
     }
 
     @registerMotion()
     static moveLeft(): MotionData {
+        let now = new Date().getTime();
+        this.updateInMotionState(now);
+        let lineStartReached = false;
         let data = {
-            positions: VimState.cursor.selections.map((sel, i) => {
+            positions: this.inMotionPositions.map((sel, i) => {
                 if (this.isCursorAtLineStart(i)) {
-                    return sel.active;
+                    lineStartReached = true;
+                    return this.inMotionPositions[i];
                 }
-                return sel.active.translate(0, -1);
+                return sel.translate(0, -1);
             })
         };
         this.prevHorizantalPos = data.positions.map(p => p.character);
-        return data;
+        return {
+            positions: data.positions,
+            // useVscodeCursorMove: true,
+            // cursorMove: lineStartReached ? undefined : {
+            //     to: 'left'
+            // }
+        };
     }
 
     @registerMotion()
     static moveRight(): MotionData {
+        let now = new Date().getTime();
+        this.updateInMotionState(now);
+        let lineEndReached = false;
         let data = {
-            positions: VimState.cursor.selections.map((sel, i) => {
-                if (this.isCursorAtLineEnd(i)) {
-                    return sel.active;
+            positions: this.inMotionPositions.map((sel, i) => {
+                if (this.isCursorAtLineEnd(i, now)) {
+                    lineEndReached = true;
+                    return this.inMotionPositions[i];
                 }
-                return sel.active.translate(0, 1);
-            })
+                return sel.translate(0, 1);
+            }),
         };
         this.prevHorizantalPos = data.positions.map(p => p.character);
-        return data;
+        return {
+            positions: data.positions,
+            useVscodeCursorMove: true,
+            cursorMove: lineEndReached ? undefined : {
+                to: 'right'
+            }
+        };
     }
 
     @registerMotion()
     static moveUp(isRepeated: boolean): MotionData {
+        let now = new Date().getTime();
+        this.updateInMotionState(now);
         let visibleRanges = this.editor.visibleRanges;
-        return {
-            positions: VimState.cursor.selections.map((sel, i) => {
+        let data: MotionData = {
+            positions: this.inMotionPositions.map((p, i) => {
+                let sel = { active: p };
                 // if on first line, return current position
                 if (sel.active.line === 0) {
                     return sel.active;
@@ -113,14 +167,19 @@ export class MotionHandler {
                 to: 'up',
             }
         };
+        this.inMotionPositions = data.positions;
+        return data;
     }
 
     @registerMotion()
     static moveDown(isRepeated: boolean): MotionData {
+        let now = new Date().getTime();
+        this.updateInMotionState(now);
         let visibleRanges = this.editor.visibleRanges;
-        return {
+        let data: MotionData = {
             // if on last line, return current position
-            positions: VimState.cursor.selections.map((sel, i) => {
+            positions: this.inMotionPositions.map((p, i) => {
+                let sel = { active: p };
                 if (sel.active.line === this.editor.document.lineCount - 1) {
                     return sel.active;
                 }
@@ -145,16 +204,20 @@ export class MotionHandler {
                 to: 'down',
             }
         };
+        this.inMotionPositions = data.positions;
+        return data;
     }
 
     static findWordBoundry(
         by: 'next-start' | 'next-end' | 'prev-start' | 'prev-end' | 'cur-start' | 'cur-end',
         type: 'word' | 'WORD'
     ): MotionData {
+        let now = new Date().getTime();
+        this.updateInMotionState(now);
         let excludeCharUnderCursor = false;
         let lineCount = this.editor.document.lineCount;
-        let positions = VimState.cursor.selections.map((sel, i) => {
-            let curPos = sel.active;
+        let positions = this.inMotionPositions.map((sel, i) => {
+            let curPos = sel;
             let line = this.editor.document.lineAt(curPos.line);
 
             let c = curPos.character;
@@ -379,6 +442,7 @@ export class MotionHandler {
                     }
                 }
             }
+            this.inMotionPositions[i] = new vscode.Position(curPos.line, c);
             return new vscode.Position(curPos.line, c);
         });
 
