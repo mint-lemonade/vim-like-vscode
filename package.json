@@ -2,7 +2,7 @@
   "name": "vim-like",
   "displayName": "Vim-Like",
   "description": "power of vim + ease of vscode",
-  "publisher": "self",
+  "publisher": "TauCeti",
   "icon": "media/vim-like-icon.png",
   "version": "0.5.0",
   "engines": {
