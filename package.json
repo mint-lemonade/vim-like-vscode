@@ -4,7 +4,7 @@
   "description": "power of vim + ease of vscode",
   "publisher": "self",
   "icon": "media/vim-like-icon.png",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "engines": {
     "vscode": "^1.87.0"
   },
