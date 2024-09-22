@@ -3,12 +3,25 @@
   "displayName": "Vim-Like",
   "description": "power of vim + ease of vscode",
   "publisher": "self",
+  "icon": "media/vim-like-icon.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.87.0"
   },
+  "galleryBanner": {
+    "color": "#CFEAFC",
+    "theme": "dark"
+  },
   "categories": [
+    "Keymaps",
     "Other"
+  ],
+  "keywords": [
+    "vim",
+    "modal",
+    "keymaps",
+    "surround",
+    "easy vim"
   ],
   "repository": {
     "type": "git",
