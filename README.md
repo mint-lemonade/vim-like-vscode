@@ -92,13 +92,14 @@ Press `q` to exit **MultiCursor** mode. All markrers will be converted to cursor
 ## Registers
 
 Registers are like internal clipboards for vim. Select a register `"{reg}` to be used by next operator or paste action.
-| Register | Description |
-| --------- | ---------------------------------------------------- |
-| `"` |Default Register. If no register is selected by user the default register is used.|
-| `a-z` |Named Registers. eg. `"x`|
-| `0` |Yank Register. Stores the text from last yank.|
-| `1-9` |History registers. 1 being most recent and 9 the oldest|
-| `*` |System Clipboard Register. To yank/move/paste to and from System Clipboard.|
+
+| Register | Description                                                                        |
+| -------- | ---------------------------------------------------------------------------------- |
+| `"`      | Default Register. If no register is selected by user the default register is used. |
+| `a-z`    | Named Registers. eg. `"x`                                                          |
+| `0`      | Yank Register. Stores the text from last yank.                                     |
+| `1-9`    | History registers. 1 being most recent and 9 the oldest                            |
+| `*`      | System Clipboard Register. To yank/move/paste to and from System Clipboard.        |
 
 ## Motions
 
