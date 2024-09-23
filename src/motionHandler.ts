@@ -49,7 +49,7 @@ export class MotionHandler {
      */
     static inMotionPositions: vscode.Position[];
     static lastKeyTime: number;
-    static readonly inMotionThreshold: number = 100;
+    static readonly inMotionThreshold: number = 200;
 
     static isInMotion(now: number): boolean {
         if (!this.lastKeyTime) { this.lastKeyTime = now; }
