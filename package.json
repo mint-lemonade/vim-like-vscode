@@ -234,6 +234,11 @@
           "type": "boolean",
           "default": false,
           "description": "Like Vim, prevent cursor moving past last char on line.But this also causes wrapped lines to be skipped when moving up and down."
+        },
+        "vim-like.saveFileOnSwitchToNormal": {
+          "type": "boolean",
+          "default": false,
+          "description": "Save document when switching to NORMAL mode."
         }
       }
     }

@@ -157,6 +157,14 @@ export class VimState {
                         editor.options.cursorStyle = vscode.TextEditorCursorStyle.Block;
                     }
                     this.syncVimCursor();
+                    let saveDoc = vscode.workspace
+                        .getConfiguration('vim-like')
+                        .get('saveFileOnSwitchToNormal');
+                    if (saveDoc) {
+                        if (editor.document.isDirty) {
+                            editor.document.save();
+                        }
+                    }
                     break;
                 }
 
