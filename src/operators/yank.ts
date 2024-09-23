@@ -35,6 +35,7 @@ export class Yank {
 
         VimState.syncSelectionAndExec(async () => {
             let text = OH.editor!.selections.map(r => OH.editor!.document.getText(r));
+            OH!.lastOperatedRange = OH.editor.selections.map(sel => sel);
             VimState.register.write(text, 'yank', linewise);
 
             highlightText(OH.editor!.selections);

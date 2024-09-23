@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { VimState } from './vimState';
-import { Keymap } from './keyHandler';
+import { KeyHandler, Keymap } from './keyHandler';
 import { Logger } from './util';
+import { default as OperatorHandler } from './operatorHandler';
 
 type SearchDir = 1 | -1;
 
@@ -676,6 +677,22 @@ export class MotionHandler {
             positions
         };
     }
+
+    static lastOperatedRange(to: 'start' | 'end'): MotionData {
+        let positions = VimState.cursor.selections.map((sel, i) => {
+            if (!OperatorHandler.lastOperatedRange) {
+                return sel.active;
+            }
+            if (to === 'start') {
+                return OperatorHandler.lastOperatedRange[i].start;
+            } else {
+                return OperatorHandler.lastOperatedRange[i].end;
+            }
+        });
+        return {
+            positions
+        };
+    }
 }
 
 export const executeMotion = (motion: Motion, syncVsCodeCursor: boolean, ...args: any[]): MotionData | void => {
@@ -951,5 +968,19 @@ export const motionKeymap: Keymap[] = [
         action: MotionHandler.repeatWordSearch,
         args: [-1],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
+    },
+    {
+        key: ['\'', '['],
+        type: 'Motion',
+        action: MotionHandler.lastOperatedRange,
+        args: ['start'],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING']
+    },
+    {
+        key: ['\'', ']'],
+        type: 'Motion',
+        action: MotionHandler.lastOperatedRange,
+        args: ['end'],
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING']
     },
 ];

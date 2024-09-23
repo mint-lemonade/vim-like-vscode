@@ -29,6 +29,7 @@ export class OperatorHandler {
     curOpKeymap: OperatorKeymap | undefined;
     matchedSeq: string | undefined;
     repeat: number = 0;
+    lastOperatedRange: vscode.Range[] | undefined;
 
     async execute(op: Operator, args?: OperatorArgs): Promise<KeyParseState> {
         let editor = vscode.window.activeTextEditor;

@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased]
+
+### [Added]
+
+- `\'\[` and `\'\]` Motion to move to start and end of last yanked range.
+
 ## [v0.6.1]
 
 ### [Fixed]
