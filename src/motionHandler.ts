@@ -58,10 +58,10 @@ export class MotionHandler {
 
     static updateInMotionState(now: number) {
         if (!this.isInMotion(now) || !this.inMotionPositions) {
-            console.error("Not in motion..", now - this.lastKeyTime);
+            // console.error("Not in motion..", now - this.lastKeyTime);
             this.inMotionPositions = VimState.cursor.selections.map(sel => sel.active);
         } else {
-            Logger.log("In motion...", now - this.lastKeyTime);
+            // Logger.log("In motion...", now - this.lastKeyTime);
         }
         this.lastKeyTime = now;
     }

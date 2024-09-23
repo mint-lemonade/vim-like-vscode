@@ -137,8 +137,8 @@ export class KeyHandler {
     // returns false if no mapping was found and no action was executed. true otherwise.
     async execute(key: any): Promise<Boolean> {
         let [matched, matchedKeymap] = this.matchKey(key);
-        Logger.log("matched = ", matched);
-        Logger.log("matchedKeymap", matchedKeymap);
+        // Logger.log("matched = ", matched);
+        // Logger.log("matchedKeymap", matchedKeymap);
         this.renderStatusBar();
         if (!matched) {
             if (VimState.subMode !== 'OPERATOR_PENDING') {
