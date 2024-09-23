@@ -15,8 +15,9 @@ export class Yank {
             return KeyParseState.Failed;
         }
 
-        let linewise = false;
+        let initalPositions = VimState.cursor.selections.map(sel => sel.active);
 
+        let linewise = false;
         if (preArgs === 'y') {
             linewise = true;
             VimState.cursor.selections = VimState.cursor.selections.map(sel => {
@@ -42,20 +43,29 @@ export class Yank {
                 // copy range under selection
                 await vscode.commands.executeCommand('editor.action.clipboardCopyAction')
                     .then(_res => {
-                        // VimState.setModeAfterNextSlectionUpdate('INSERT');
                         setImmediate(() => VimState.setMode('NORMAL'));
                     });
             } else {
-                let selections = OH.editor.selections.map(r => ({
-                    anchor: r.start,
-                    active: r.start,
-                }));
-                if (VimState.currentMode !== 'NORMAL') {
-                    VimState.setMode('NORMAL');
+                let selections;
+                if (linewise) {
+                    // move cursor to original position for linewise yank
+                    selections = initalPositions.map(p => ({
+                        anchor: p,
+                        active: p,
+                    }));
+                } else {
+                    // move cursor at start of selection if yank isnt linewise
+                    selections = OH.editor.selections.map(r => ({
+                        anchor: r.start,
+                        active: r.start,
+                    }));
                 }
+                VimState.cursor.selections = selections;
+                VimState.syncVsCodeCursorOrSelection();
                 setImmediate(() => {
-                    VimState.cursor.selections = selections;
-                    VimState.syncVsCodeCursorOrSelection();
+                    if (VimState.currentMode !== 'NORMAL') {
+                        VimState.setMode('NORMAL');
+                    }
                 });
             }
         });
