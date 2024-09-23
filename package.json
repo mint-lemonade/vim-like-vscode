@@ -1,16 +1,16 @@
 {
   "name": "vim-like",
   "displayName": "Vim-Like",
-  "description": "power of vim + ease of vscode",
+  "description": "Power of vim + Ease of vscode",
   "publisher": "TauCeti",
-  "icon": "media/vim-like-icon.png",
+  "icon": "media/vim-like-icon-2.png",
   "version": "0.5.1",
   "engines": {
     "vscode": "^1.87.0"
   },
   "galleryBanner": {
-    "color": "#CFEAFC",
-    "theme": "light"
+    "color": "#0b151b",
+    "theme": "dark"
   },
   "categories": [
     "Keymaps",

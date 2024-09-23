@@ -2,6 +2,8 @@
 
 > Your first Vim experince. Power of Vim + Ease of Vscode.
 
+![alt](/media/vim-like-icon-x200.png)
+
 Goal of this extension is not 100% vim emulation but to bring in as many features of vim as possible, while maintaining and leveraging behaviour of vscode. Some vim behaviour is tweaked to be more sensible and beginner friendly.
 
 ## Some Features
@@ -45,15 +47,10 @@ Operators are used with motion and text objects as ranges to operate on. **op**{
 | `gU` | Transform Range to uppercase       |
 
 - Unlike Vim `d` operator does not write to default register
-
 - `m` operator writes to default register. So in _vim-like_ `y` and `m` behaves like standard copy and cut operations and `d` like standard delete.
-
 - Unlike Vim all `m`oved `y`anked text is moved to numbered `(1-9)` history registers.
-
 - All `d`eleted text that is atleast a line long or more is also moved to `(1-9)` registers.
-
 - `0` register always has the last yanked text.
-
 - If named registers are used then text is not written to any other registers.
 
 > Use `p` to paste last yanked/moved text or `"{reg}p` to paste from a [register](#registers)
