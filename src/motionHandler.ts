@@ -650,7 +650,10 @@ export class MotionHandler {
     }
 
     static moveToParagraph(to: SearchDir): MotionData {
-        let positions = VimState.cursor.selections.map(sel => {
+        let now = new Date().getTime();
+        this.updateInMotionState(now);
+        let positions = this.inMotionPositions.map(p => {
+            let sel = { active: p };
             let l = sel.active.line;
             let startedOnPara = this.editor.document.lineAt(l).isEmptyOrWhitespace;
             while (true) {
@@ -673,6 +676,7 @@ export class MotionHandler {
             }
             return new vscode.Position(l, sel.active.character);
         });
+        this.inMotionPositions = positions;
         return {
             positions
         };
