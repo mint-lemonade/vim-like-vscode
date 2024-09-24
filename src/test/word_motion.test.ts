@@ -46,7 +46,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(5, 29), new vscode.Position(6, 0)],
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -75,7 +75,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(7, 43), new vscode.Position(9, 0)], // skip empty line
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -105,7 +105,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(5, 31), new vscode.Position(6, 2)],
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -132,7 +132,7 @@ suite('Motion Testing', async () => {
 
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -164,7 +164,7 @@ suite('Motion Testing', async () => {
 
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -195,7 +195,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(5, 0), new vscode.Position(4, 20)],
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -221,7 +221,7 @@ suite('Motion Testing', async () => {
             [new vscode.Position(2, 28), new vscode.Position(2, 21)],
         ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;
@@ -256,7 +256,7 @@ suite('Motion Testing', async () => {
         //     }
         // ];
         for (let [i, data] of testData.entries()) {
-            await sleep(100);
+            await sleep(200);
             let startPosition = data[0];
             MotionHandler.editor.selection = new vscode.Selection(startPosition, startPosition);
             VimState.cursor.selections[0].active = startPosition;

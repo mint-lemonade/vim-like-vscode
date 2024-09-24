@@ -184,6 +184,20 @@ Combine motions with number to repeat them. `{num}motion`
 
 # Settings
 
+### <ins>preventCursorPastBoundary
+
+Like Vim, prevent cursor moving past last char on line.
+
+    "default": false
+
+> But this also causes wrapped lines to be skipped when moving up and down and cursor to move into folded code.
+
+### <ins>smartRelativeLineNumbers
+
+User relative line numbers when in Normal, Visual or Visual Line mode.
+
+    "default": true
+
 ### <ins>yankHighlightBackgroundColor
 
 Background color for highlighted yanked text.
@@ -201,12 +215,6 @@ Background color for highlighted yanked text.
 Duration for which yanked should be highlighted (in ms)
 
     "default": 300
-
-### <ins>smartRelativeLineNumbers
-
-User relative line numbers when in Normal, Visual or Visual Line mode.
-
-    "default": true
 
 ### <ins>longStatusBarText
 
@@ -231,14 +239,6 @@ Keybinding to switch from Insert mode to NORMAL mode.
 Keybinding to switch from Insert mode to VISUAL mode.
 
     "default": [ "j" "v" ],
-
-### <ins>preventCursorPastBoundary
-
-Like Vim, prevent cursor moving past last char on line.
-
-    "default": false
-
-> But this also causes wrapped lines to be skipped when moving up and down and cursor to move into folded code.
 
 ### <ins>saveFileOnSwitchToNormal
 
