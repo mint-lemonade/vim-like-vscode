@@ -136,6 +136,8 @@ Combine motions with number to repeat them. `{num}motion`
 | `H`       | Top of screen.                                       |
 | `M`       | Middle of screen.                                    |
 | `L`       | Bottom of screen.                                    |
+| `'[`      | Go to start of last yanked range                     |
+| `']`      | Go to end of last yanked range                       |
 
 ## Other Actions
 
@@ -179,3 +181,67 @@ Combine motions with number to repeat them. `{num}motion`
 | `gm` | Move (cut) to the end of line                                                                |
 | `x`  | Delete selection                                                                             |
 | `s`  | Delete selection and enter Insert mode                                                       |
+
+# Settings
+
+### <ins>yankHighlightBackgroundColor
+
+Background color for highlighted yanked text.
+
+    "default": "#28a5fc"
+
+### <ins>yankHighlightForegroundColor
+
+Background color for highlighted yanked text.
+
+    "default": "#ffffff"
+
+### <ins>yankHighlightDuration
+
+Duration for which yanked should be highlighted (in ms)
+
+    "default": 300
+
+### <ins>smartRelativeLineNumbers
+
+User relative line numbers when in Normal, Visual or Visual Line mode.
+
+    "default": true
+
+### <ins>longStatusBarText
+
+    "default": true
+
+Show more descriptive texts in status bar for current key pressed.
+
+### <ins>spaceScrollByLines
+
+Set how many lines are srolled by spacebar.
+
+    "default": 5
+
+### <ins>switchInsertToNormalKeybinding
+
+Keybinding to switch from Insert mode to NORMAL mode.
+
+    "default": [ "j" "f" ],
+
+### <ins>switchInsertToVisualKeybinding
+
+Keybinding to switch from Insert mode to VISUAL mode.
+
+    "default": [ "j" "v" ],
+
+### <ins>preventCursorPastBoundary
+
+Like Vim, prevent cursor moving past last char on line.
+
+    "default": false
+
+> But this also causes wrapped lines to be skipped when moving up and down and cursor to move into folded code.
+
+### <ins>saveFileOnSwitchToNormal
+
+Save document when switching to NORMAL mode.
+
+    "default": false
