@@ -85,9 +85,9 @@ export class VimState {
         context.subscriptions.push(d0);
 
         let d1 = vscode.window.onDidChangeTextEditorSelection((e) => {
-            Logger.log("Selection Changed: ", e.kind ?
-                vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
-            );
+            // Logger.log("Selection Changed: ", e.kind ?
+            //     vscode.TextEditorSelectionChangeKind[e.kind] : e.kind
+            // );
 
             if (
                 e.kind === vscode.TextEditorSelectionChangeKind.Mouse &&
@@ -464,7 +464,6 @@ export class VimState {
     }
 
     static updateVisualModeCursor(position?: vscode.Position) {
-
         let editor = vscode.window.activeTextEditor;
         if (!editor || !this.cursor.visualModeTextDecoration) { return; }
         Logger.log("Updating visual mode cursor....");
