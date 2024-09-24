@@ -6,6 +6,11 @@
 
 - `\'\[` and `\'\]` Motion to move to start and end of last yanked range.
 
+### [Fixed]
+
+- Minor vertical motion optimization.
+- Fix occasional erratic cursor movement in paragraph motion.
+
 ## [v0.6.1]
 
 ### [Fixed]
