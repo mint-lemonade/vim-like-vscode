@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 suite('NORMAL to {MODE} Switch', () => {
     setup(() => {
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('NORMAL');
         sleep(100);
     });
@@ -63,7 +63,7 @@ suite('NORMAL to {MODE} Switch', () => {
 
 suite('INSERT to {MODE} Switch', () => {
     setup(() => {
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('INSERT');
         sleep(100);
     });
@@ -102,7 +102,7 @@ suite('INSERT to {MODE} Switch', () => {
 
 suite('Selection INSERT <-> VISUAL switch', () => {
     setup(() => {
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('INSERT');
         sleep(100);
     });

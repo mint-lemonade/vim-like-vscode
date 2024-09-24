@@ -5,7 +5,7 @@ import * as BlackBox from './framework/blackbox';
 suite('Yank Paste (preventCursorPastBoundary off)', () => {
     setup(() => {
         vscode.workspace.getConfiguration('vim-like').update('preventCursorPastBoundary', false, true);
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('NORMAL');
         sleep(100);
     });
@@ -38,7 +38,7 @@ suite('Yank Paste (preventCursorPastBoundary off)', () => {
 suite('Yank Paste (preventCursorPastBoundary on)', () => {
     setup(() => {
         vscode.workspace.getConfiguration('vim-like').update('preventCursorPastBoundary', true, true);
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('NORMAL');
         sleep(100);
     });

@@ -19,7 +19,7 @@ suite('Motion Testing', async () => {
 
         let start = new vscode.Position(0, 0);
         editor.selection = new vscode.Selection(start, start);
-        let ext = vscode.extensions.getExtension('self.vim-like');
+        let ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.activate();
         // VimState.init();
         // VimState.setMode('NORMAL');

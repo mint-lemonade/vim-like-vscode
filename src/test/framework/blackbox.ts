@@ -117,7 +117,7 @@ export const run = (testCase: TestCase, before?: (textEditor: TextEditor) => voi
     const expectation = `Inputs: ${testCase.inputs}\n> ${plainFrom}\n< ${plainTo}`;
     let tries = 0;
 
-    const ext = extensions.getExtension('self.vim-like');
+    const ext = extensions.getExtension('TauCeti.vim-like');
     // ext?.exports;
     console.log("is active: ", ext?.isActive);
 
@@ -172,10 +172,10 @@ export async function blackBoxTestRunner(tests: BlackBoxTestCase | BlackBoxTestC
     if (!Array.isArray(tests)) {
         tests = [tests];
     }
-    // let ext = vscode.extensions.getExtension('self.vim-like');
+    // let ext = vscode.extensions.getExtension('TauCeti.vim-like');
     // await ext?.activate();
     // sleep(500);
-    const ext = extensions.getExtension('self.vim-like');
+    const ext = extensions.getExtension('TauCeti.vim-like');
 
     for (let t of tests) {
         let beforeInfo = extractInfo(t.before);

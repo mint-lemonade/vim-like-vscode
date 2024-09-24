@@ -5,7 +5,7 @@ import * as BlackBox from './framework/blackbox';
 suite('NORMAL: Surround', () => {
     setup(() => {
         sleep(100);
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('NORMAL');
         sleep(100);
     });

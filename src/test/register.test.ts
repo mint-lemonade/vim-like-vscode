@@ -5,7 +5,7 @@ import { sleep } from '../util';
 
 suite("Registers", () => {
     suiteSetup(() => {
-        let ext = vscode.extensions.getExtension('self.vim-like');
+        let ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.activate();
         sleep(100);
     });

@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 suite('VISUAL: text object selections', () => {
     setup(() => {
         sleep(100);
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('VISUAL');
         sleep(100);
     });

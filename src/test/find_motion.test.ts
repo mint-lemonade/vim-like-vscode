@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 suite("NORMAL: Find Motions", () => {
     setup(() => {
-        const ext = vscode.extensions.getExtension('self.vim-like');
+        const ext = vscode.extensions.getExtension('TauCeti.vim-like');
         ext?.exports.VimState.setMode('NORMAL');
         sleep(100);
     });
