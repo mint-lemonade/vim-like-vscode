@@ -148,8 +148,15 @@ export class MotionHandler {
                 if (sel.active.line === 0) {
                     return sel.active;
                 }
+
                 // If cursor encounter folded code, skip over it.
-                if (visibleRanges.length > 1 && !isRepeated) {
+                // unless motion is repeated and preventCursorPastBoundary
+                // setting is on. In that case motion will be handeled using
+                // cursorUp command so no need to calculate fold skips
+                if (
+                    visibleRanges.length > 1 &&
+                    !isRepeated && VimState.preventCursorPastBoundary
+                ) {
                     for (let j = visibleRanges.length - 1; j > 0; j--) {
                         // if (i === visibleRanges.length - 1) { break; }
                         if (visibleRanges[j].start.line === sel.active.line) {
@@ -186,7 +193,13 @@ export class MotionHandler {
                 }
 
                 // If cursor encounter folded code, skip over it.
-                if (visibleRanges.length > 1 && !isRepeated) {
+                // unless motion is repeated and preventCursorPastBoundary
+                // setting is on. In that case motion will be handeled using
+                // cursorDown command so no need to caculate fold skips
+                if (
+                    visibleRanges.length > 1 &&
+                    !isRepeated && VimState.preventCursorPastBoundary
+                ) {
                     for (let [j, r] of visibleRanges.entries()) {
                         if (j === visibleRanges.length - 1) { break; }
                         if (r.end.line === sel.active.line) {
@@ -196,6 +209,7 @@ export class MotionHandler {
                         }
                     };
                 }
+
                 return sel.active.translate(1, 0).with({
                     character: this.prevHorizantalPos[i]
                 });
