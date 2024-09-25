@@ -4,7 +4,7 @@
   "description": "Power of vim + Ease of vscode",
   "publisher": "TauCeti",
   "icon": "media/vim-like-icon-2.png",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "engines": {
     "vscode": "^1.87.0"
   },
