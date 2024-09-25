@@ -1,5 +1,11 @@
 # Change Log
 
+## [v0.7.1]
+
+### [Added]
+
+- Added missing 'U' key to redo.
+
 ## [v0.7.0]
 
 ### [Added]

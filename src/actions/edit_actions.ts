@@ -207,6 +207,12 @@ export const editActionKeymap: Keymap[] = [
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
     },
     {
+        key: ['U'],
+        type: 'Action',
+        action: () => { vscode.commands.executeCommand('redo'); },
+        mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE']
+    },
+    {
         key: ['D'],
         type: 'Action',
         action: () => deleteToLineEnd(),
