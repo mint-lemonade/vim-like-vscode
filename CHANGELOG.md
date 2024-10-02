@@ -1,14 +1,11 @@
 # Change Log
 
-## [Unreleased]
-
-### [Added]
-
-- Escape key to reset currently pressed keys.
+## [v0.7.2]
 
 ### [Fixed]
 
 - Fix single quote `'` not working as surround input due to recently added yank motions `'[` `']`
+- Allow Escape key to reset currently pressed keys.
 
 ## [v0.7.1]
 
