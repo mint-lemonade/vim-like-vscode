@@ -19,9 +19,9 @@ export function activate(context: vscode.ExtensionContext) {
 		VimState.type(text.text);
 	}));
 
-	let d1 = vscode.commands.registerCommand('vim-like.goToNormalMode', () => {
+	let d1 = vscode.commands.registerCommand('vim-like.escape', () => {
 		VimState.setMode('NORMAL');
-		return false;
+		VimState.keyHandler.resetKeys();
 	});
 	context.subscriptions.push(d1);
 

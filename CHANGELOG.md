@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### [Added]
+
+- Escape key to reset currently pressed keys.
+
 ### [Fixed]
 
 - Fix single quote `'` not working as surround input due to recently added yank motions `'[` `']`

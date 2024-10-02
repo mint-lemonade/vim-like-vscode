@@ -117,6 +117,11 @@ export class KeyHandler {
                 'vim-like.textInputBackspace', this.textInputBackspace, this
             )
         );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'vim-like.resetKeys', this.resetKeys, this
+            )
+        );
     }
 
     setupKeymaps(keymaps: Keymap[]) {
@@ -168,6 +173,12 @@ export class KeyHandler {
             });
             if (result.parseState === KeyParseState.MoreInput) {
                 this.nextInputType = result.inputType;
+
+                // set context for when clause without setting this.moreInput 
+                // TODO: Ideally both should stay in sync.
+                vscode.commands.executeCommand(
+                    'setContext', "vim-like.moreInput", true
+                );
                 this.renderStatusBar();
                 return false;
             } else {
@@ -210,6 +221,10 @@ export class KeyHandler {
         this.execAction(matchedKeymap).then((parseState) => {
             if (parseState === KeyParseState.MoreInput) {
                 this.renderStatusBar();
+                // set context for when clause without setting this.moreInput 
+                vscode.commands.executeCommand(
+                    'setContext', "vim-like.moreInput", true
+                );
             } else {
                 this.resetKeys();
             }
@@ -252,6 +267,10 @@ export class KeyHandler {
                     TextObjects.repeat = this.repeat;
                     this.matchedSequence = repeat.toString();
                     this.updateStatusBarContent('other');
+                    // set context for when clause without setting this.moreInput 
+                    vscode.commands.executeCommand(
+                        'setContext', "vim-like.moreInput", true
+                    );
                     return [true, undefined];
                 }
             }

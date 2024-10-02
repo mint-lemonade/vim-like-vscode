@@ -36,8 +36,13 @@
     "keybindings": [
       {
         "key": "escape",
-        "command": "vim-like.goToNormalMode",
-        "when": "editorTextFocus && vim-like.mode !== NORMAL && vim-like.subMode !== MULTI_CURSOR"
+        "command": "vim-like.escape",
+        "when": "editorTextFocus && vim-like.mode !== NORMAL && vim-like.subMode !== MULTI_CURSOR && !suggestWidgetVisible && !parameterHintsVisible"
+      },
+      {
+        "key": "escape",
+        "command": "vim-like.resetKeys",
+        "when": "editorTextFocus && vim-like.moreInput"
       },
       {
         "key": "alt+k",
