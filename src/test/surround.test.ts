@@ -16,9 +16,39 @@ suite('NORMAL: Surround', () => {
             to: "i[]f <syncVsCodeCursor> {\n        if (VimState.currentMode === 'NORMAL') {\n            VimState.vimCursor.selections.forEach((sel, i) => {\n                sel.anchor = sel.active;\n            });\n        }\n        VimState.syncVsCodeCursorOrSelection();\n"
         },
         {
+            from: "So[]me 'single-quoted' text. Some in {braces sir}.\nThis one in ({paran and braces})",
+            inputs: 'c s \' "',
+            to: "So[]me \"single-quoted\" text. Some in {braces sir}.\nThis one in ({paran and braces})"
+        },
+        {
+            from: "So[]me 'single-quoted' text. Some in {braces sir}.\nThis one in ({paran and braces})",
+            inputs: 'c s ( {',
+            to: "So[]me 'single-quoted' text. Some in {braces sir}.\nThis one in {{paran and braces}}"
+        },
+        {
+            from: "So[]me 'single-quoted' text. Some in {braces sir}.\nT[]his one in ({paran and braces})",
+            inputs: 'c s { \'',
+            to: "So[]me 'single-quoted' text. Some in 'braces sir'.\nT[]his one in ('paran and braces')"
+        },
+        {
             from: "if (syncVsCodeCursor) {\n        if (VimState.currentMode === 'NORMAL') {\n            VimState.vimCurs[]or.selections.forEach((sel, i) => {\n                sel.anchor = sel.active;\n            });\n        }\n        VimState.syncVsCodeCursorOrSelection();\n",
             inputs: "d s {",
             to: "if (syncVsCodeCursor) {\n        if (VimState.currentMode === 'NORMAL') \n            VimState.vimCurs[]or.selections.forEach((sel, i) => {\n                sel.anchor = sel.active;\n            });\n        \n        VimState.syncVsCodeCursorOrSelection();\n"
+        },
+        {
+            from: "So[]me 'single-quoted' text. Some in {braces sir}.\nThis one in ({paran and braces})",
+            inputs: 'd s (',
+            to: "So[]me 'single-quoted' text. Some in {braces sir}.\nThis one in {paran and braces}"
+        },
+        {
+            from: "So[]me 'single-quoted' text. Some in {braces sir}.\nThis one in ({paran and braces})",
+            inputs: 'd s \'',
+            to: "So[]me single-quoted text. Some in {braces sir}.\nThis one in ({paran and braces})"
+        },
+        {
+            from: "So[]me 'single-quoted' text. Some in {braces sir}.\nT[]his one in ({paran and braces})",
+            inputs: 'd s {',
+            to: "So[]me 'single-quoted' text. Some in braces sir.\nT[]his one in (paran and braces)"
         },
         {
             from: "if (syncVsCodeCursor) {\n        if (VimState.currentMode === 'NORMAL') {\n            VimState.vimCurs[]or.selections.forEach((sel, i) => {\n                sel.anchor = sel.active;\n            });\n        }\n        VimState.syncVsCodeCursorOrSelection();\n",
