@@ -8,6 +8,18 @@ import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
 import { EOL } from 'os';
 import assert from 'assert';
 
+/**
+ * Currently inputs for motions and operators are handled in multiple ways
+ * 1. by specifying {} as a key in a Keymap. eg. keys: ['f', '{}']
+ *    this matches any single char after f.
+ * 2. by setting requireInput as true and inputType as 'char' or 'string' in Keymap.
+ *    single 'char' inputType dont work right now. Only long text 'string' works.
+ * 3. by returning MoreInput parseState and inputType from Operator execution.
+ *    this handles single 'char' input for operators. Not tested with long text 'string'
+ * // TODO: Unify input handling approach. Remove **1**. approach of specifying {} in keys. 
+ *          Make sure inputType apprach of **2** and **3** works for all cases. ie. single char
+ *          for keymaps(**2**) and long-text-string for operators (**3**)
+ */
 export type InputType = 'char' | 'string';
 export type Keymap = {
     // In INSERT mode keys are time sensitive. 
@@ -17,7 +29,6 @@ export type Keymap = {
     mode: (Mode | SubMode)[],
     showInStatusBar?: boolean,
     longDesc?: string[],
-    // textInput?: boolean, // If keymap requires arbitrary long input. 
     requireInput?: boolean,
     inputType?: InputType,
     args?: any[]
