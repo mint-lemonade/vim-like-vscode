@@ -15,6 +15,13 @@ Goal of this extension is not 100% vim emulation but to bring in as many feature
 - Registers supported.
 - [Surround](#surround-operator) plugin built in. Add replace and delete quotes/brackets around text without hassle. (_XML tags support coming soon.._)
 
+## Coming Soon
+
+- `Learner Mode` to help beginners learn vim motions as you work.
+- `.` repeat operator
+- Surround support for more chars
+- `Leader` key
+
 ## Modes
 
 Vim-Like provides 4 main modes: **NORMAL**, **INSERT**, **VISUAL**, **VISUAL-LINE**. \
