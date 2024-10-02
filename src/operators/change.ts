@@ -1,20 +1,20 @@
 import * as vscode from 'vscode';
 import { KeyParseState } from "../keyHandler";
 import { VimState } from "../vimState";
-import { OperatorHandler } from "../operatorHandler";
+import { OperatorHandler, OperatorResult } from "../operatorHandler";
 import { REGISTERS } from "../register";
 import { Logger } from "../util";
 
 export class Change {
     static async exec(OH: OperatorHandler, {
         preArgs = "", postArg = ""
-    }): Promise<KeyParseState> {
+    }): Promise<OperatorResult> {
         Logger.log("Inside operator call.");
         if (preArgs.length > 0 && preArgs !== 'c') {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
         if (postArg.length > 0) {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
 
         let linewise = false;
@@ -57,6 +57,6 @@ export class Change {
                 });
             }
         });
-        return KeyParseState.Success;
+        return { parseState: KeyParseState.Success };
     }
 }

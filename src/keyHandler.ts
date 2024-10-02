@@ -2,12 +2,13 @@
 import * as vscode from 'vscode';
 import { Mode, SubMode, VimState } from "./vimState";
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
-import { Operator, default as OperatorHandler } from './operatorHandler';
+import { Operator, default as OperatorHandler, OperatorResult } from './operatorHandler';
 import { Logger, printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
 import { EOL } from 'os';
 import assert from 'assert';
 
+export type InputType = 'char' | 'string';
 export type Keymap = {
     // In INSERT mode keys are time sensitive. 
     // So if sequence doesn't match or timeout occurs, typing is delegated to vscode.
@@ -16,7 +17,9 @@ export type Keymap = {
     mode: (Mode | SubMode)[],
     showInStatusBar?: boolean,
     longDesc?: string[],
-    textInput?: boolean, // If keymap requires arbitrary long input. 
+    // textInput?: boolean, // If keymap requires arbitrary long input. 
+    requireInput?: boolean,
+    inputType?: InputType,
     args?: any[]
 } & (MotionKeymap | OperatorKeymap | ActionKeymap | TextObjectKeymap);
 
@@ -74,6 +77,7 @@ export class KeyHandler {
     moreInput: boolean;
     sequenceTimeout: number = 200; // in milliseconds
 
+    nextInputType: InputType | undefined;
     textInput: {
         input: string,
         forKm: Keymap,
@@ -147,11 +151,12 @@ export class KeyHandler {
             }
 
             // In OPERATOR_PENDING
-            let parseState = await OperatorHandler.execute(this.operator!.op, {
+            let result = await OperatorHandler.execute(this.operator!.op, {
                 postArg: key, preArgs: this.operator?.preArgs,
                 // km: this.operator!.km
             });
-            if (parseState === KeyParseState.MoreInput) {
+            if (result.parseState === KeyParseState.MoreInput) {
+                this.nextInputType = result.inputType;
                 this.renderStatusBar();
                 return false;
             } else {
@@ -170,8 +175,9 @@ export class KeyHandler {
             return true;
         }
 
-        if (matchedKeymap.textInput && !this.textInput) {
+        if (matchedKeymap.requireInput && matchedKeymap.inputType === 'string' && !this.textInput) {
             this.moreInput = true;
+            this.nextInputType = matchedKeymap.inputType;
             vscode.commands.executeCommand(
                 'setContext', "vim-like.moreInput", this.moreInput
             );
@@ -201,7 +207,10 @@ export class KeyHandler {
     }
 
     matchKey(key: string): [boolean, Keymap | undefined] {
-        if (this.textInput) {
+        if (this.nextInputType === 'char') {
+            return [false, undefined];
+        }
+        if (this.nextInputType === 'string' && this.textInput) {
             if (key === EOL) {
                 this.textInput.on = false;
                 // push input into keymap args, so can be passed when executing
@@ -337,36 +346,38 @@ export class KeyHandler {
         printCursorPositions("Before start execution");
 
         if (VimState.subMode === 'OPERATOR_PENDING') {
+            let result: OperatorResult;
             if (km.type === 'Motion') {
-                let parseState = await OperatorHandler.execute(this.operator!.op, {
+                result = await OperatorHandler.execute(this.operator!.op, {
                     motion: km.action, motionArgs: km.args || [],
                     preArgs: this.operator?.preArgs, postArgKm: km, km: this.operator?.km
                 });
-                return parseState;
             }
             else if (km.type === 'Operator') {
                 let preArgs = this.operator!.key;
-                let parseState = await OperatorHandler.execute(km.action, { preArgs, km });
-                if (parseState === KeyParseState.MoreInput) {
+                result = await OperatorHandler.execute(km.action, { preArgs, km });
+                if (result.parseState === KeyParseState.MoreInput) {
                     this.operator = {
                         op: km.action, key: km.key[0], km,
                         preArgs,
                     };
                 }
-                return parseState;
             }
             else if (km.type === 'TextObject') {
                 TextObjects.currentSeq = this.matchedSequence;
-                let parseState = await OperatorHandler.execute(this.operator!.op, {
+                result = await OperatorHandler.execute(this.operator!.op, {
                     textObject: km.action, textObjectArgs: km.args || [],
                     km: this.operator?.km, postArgKm: km
                 });
-                return parseState;
             }
             else if (km.type === 'Action') {
                 console.error(`Action '${km.key}' cannot be executed in OPERATOR_PENDING!`);
                 return KeyParseState.Failed;
             }
+            if (result!.inputType) {
+                this.nextInputType = result!.inputType;
+            }
+            return result!.parseState;
         } else {
             if (km.type === 'Motion') {
                 executeMotion(km.action, true, ...(km.args || []));
@@ -414,6 +425,7 @@ export class KeyHandler {
             'setContext', "vim-like.moreInput", this.moreInput
         );
         this.textInput = undefined;
+        this.nextInputType = undefined;
 
         this.resetStatusBar();
 

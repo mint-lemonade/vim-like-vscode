@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased]
+
+### [Fixed]
+
+- Fix single quote `'` not working as surround input due to recently added yank motions `'[` `']`
+
 ## [v0.7.1]
 
 ### [Added]
@@ -10,7 +16,7 @@
 
 ### [Added]
 
-- `\'\[` and `\'\]` Motion to move to start and end of last yanked range.
+- `'[` and `']` Motion to move to start and end of last yanked range.
 
 ### [Fixed]
 

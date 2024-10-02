@@ -1,19 +1,19 @@
 import * as vscode from 'vscode';
 import { KeyParseState } from "../keyHandler";
 import { VimState } from "../vimState";
-import { OperatorHandler } from "../operatorHandler";
+import { OperatorHandler, OperatorResult } from "../operatorHandler";
 import { REGISTERS } from "../register";
 import { Logger } from "../util";
 
 export class Delete {
-    static async exec(OH: OperatorHandler, { preArgs = "", postArg = "" }): Promise<KeyParseState> {
+    static async exec(OH: OperatorHandler, { preArgs = "", postArg = "" }): Promise<OperatorResult> {
         Logger.log("Inside operator call.");
         Logger.log("preAard: ", preArgs, "--  postArg: ", postArg);
         if (preArgs.length > 0 && preArgs !== 'd') {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
         if (postArg.length > 0) {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
 
         // ranges to be deleted including line break
@@ -67,6 +67,6 @@ export class Delete {
                 });
             }
         });
-        return KeyParseState.Success;
+        return { parseState: KeyParseState.Success };
     }
 }

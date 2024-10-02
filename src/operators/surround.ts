@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { Keymap, KeyParseState } from "../keyHandler";
+import { Keymap, KeyParseState, InputType } from "../keyHandler";
 import { VimState } from '../vimState';
 import { TextObjectData, TextObjects } from '../textObjectHandler';
 import { highlightText } from '../util';
-import { Operator, OperatorHandler } from '../operatorHandler';
-import { executeMotion, MotionData, MotionHandler } from '../motionHandler';
+import { OperatorHandler, OperatorResult } from '../operatorHandler';
+import { executeMotion, MotionData } from '../motionHandler';
 
 const STOP_PARSE = true;
 const CONT_PARSE = false;
@@ -39,34 +39,49 @@ export class Surround {
         preArgs = "", postArg = "", km
     }: {
         preArgs?: string, postArg?: string, km?: Keymap
-    }): Promise<KeyParseState> {
+    }): Promise<OperatorResult> {
         if (vscode.window.activeTextEditor) {
             this.editor = vscode.window.activeTextEditor;
         } else {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
 
         if (this.state === 'off' && !"dcy".includes(preArgs)) {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
         if (this.state === 'off') {
             this.state = 'on';
             this.modifier = preArgs;
             this.updateStatusBar();
-            return KeyParseState.MoreInput;
+            let inputType: InputType;
+            switch (this.modifier) {
+                case 'd':
+                    inputType = 'char';
+                    break;
+                case 'c':
+                    inputType = 'char';
+                    break;
+                case 'y':
+                    break;
+                default:
+                    break;
+            }
+            return {
+                parseState: KeyParseState.MoreInput, ...(inputType! && { inputType })
+            };
         }
 
-        // braces are interpreted as motion, 
+        // braces and single quotes are interpreted as motion, 
         // handle them as any other unknown key instead
-        if (km?.type === 'Motion' && brackets.includes(km.key[0])) {
-            postArg = km.key[0];
-            km = undefined;
-            // remove from status bar, as it will be added again as uknown key.
-            VimState.keyHandler.statusBar.contents.pop();
-        }
+        // if (km?.type === 'Motion' && (brackets.includes(km.key[0]) || quotes.includes(km.key[0]))) {
+        //     postArg = km.key[0];
+        //     km = undefined;
+        //     // remove from status bar, as it will be added again as uknown key.
+        //     VimState.keyHandler.statusBar.contents.pop();
+        // }
 
         if (this.getSurroundInput) {
-            if (km) { return KeyParseState.Failed; }
+            if (km) { return { parseState: KeyParseState.Failed }; }
 
             if (quotes.includes(postArg)) {
                 this.surround_with = {
@@ -79,20 +94,20 @@ export class Surround {
                     end: closingBrackets[postArg]
                 };
             } else {
-                return KeyParseState.Failed;
+                return { parseState: KeyParseState.Failed };
             }
             await this.surround();
-            return KeyParseState.Success;
+            return { parseState: KeyParseState.Success };
         }
 
         let textObjData: TextObjectData;
         let motionData: MotionData;
         if (this.modifier === 'd' || this.modifier === 'c') {
             if (km) {
-                return KeyParseState.Failed;
+                return { parseState: KeyParseState.Failed };
             }
             if (!quotes.includes(postArg) && !brackets.includes(postArg)) {
-                return KeyParseState.Failed;
+                return { parseState: KeyParseState.Failed };
             }
             if (quotes.includes(postArg)) {
                 textObjData = TextObjects.quotesObject(postArg, 'around');
@@ -109,8 +124,9 @@ export class Surround {
             this.updateStatusBar(postArg);
         }
         else if (this.modifier === 'y') {
+            // handle yss for linewise
             if (preArgs === 's') {
-                if (this.linewise) { return KeyParseState.Failed; }
+                if (this.linewise) { return { parseState: KeyParseState.Failed }; }
                 this.linewise = true;
                 this.updateStatusBar();
                 this.getSurroundInput = true;
@@ -121,7 +137,7 @@ export class Surround {
                         end: line.range.end
                     };
                 });
-                return KeyParseState.MoreInput;
+                return { parseState: KeyParseState.MoreInput, inputType: 'char' };
             }
             if (km?.type === 'TextObject') {
                 textObjData = km.action.call(TextObjects, ...(km.args || []));
@@ -141,19 +157,19 @@ export class Surround {
                     };
                 });
             } else {
-                return KeyParseState.Failed;
+                return { parseState: KeyParseState.Failed };
             }
         } else {
             console.error(`Invalid surround modifer ${this.modifier}`);
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
 
         if (this.modifier === 'd') {
             await this.surround();
-            return KeyParseState.Success;
+            return { parseState: KeyParseState.Success };
         }
         this.getSurroundInput = true;
-        return KeyParseState.MoreInput;
+        return { parseState: KeyParseState.MoreInput, inputType: 'char' };
     }
 
     static updateStatusBar(str: string = "") {

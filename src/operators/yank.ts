@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
 import { KeyParseState } from "../keyHandler";
 import { VimState } from "../vimState";
-import { OperatorHandler } from "../operatorHandler";
+import { OperatorHandler, OperatorResult } from "../operatorHandler";
 import { REGISTERS } from "../register";
 import { highlightText, Logger } from "../util";
 
 export class Yank {
-    static async exec(OH: OperatorHandler, { preArgs = "", postArg = "" }): Promise<KeyParseState> {
+    static async exec(OH: OperatorHandler, { preArgs = "", postArg = "" }): Promise<OperatorResult> {
         Logger.log("Inside operator call.");
         if (preArgs.length > 0 && preArgs !== 'y') {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
         if (postArg.length > 0) {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         }
 
         let initalPositions = VimState.cursor.selections.map(sel => sel.active);
@@ -71,6 +71,6 @@ export class Yank {
             }
         });
 
-        return KeyParseState.Success;
+        return { parseState: KeyParseState.Success };
     }
 }

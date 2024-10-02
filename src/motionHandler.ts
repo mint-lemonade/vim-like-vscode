@@ -953,7 +953,8 @@ export const motionKeymap: Keymap[] = [
         key: ['/'],
         type: 'Motion',
         action: MotionHandler.findWord,
-        textInput: true,
+        requireInput: true,
+        inputType: 'string',
         args: ["", 1, 1],
         longDesc: ['( / )search_fwd:  '],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']
@@ -961,7 +962,8 @@ export const motionKeymap: Keymap[] = [
         key: ['?'],
         type: 'Motion',
         action: MotionHandler.findWord,
-        textInput: true,
+        requireInput: true,
+        inputType: 'string',
         args: ["", -1, 1],
         longDesc: ['( ? )search_bwd: '],
         mode: ['NORMAL', 'VISUAL', 'VISUAL_LINE', 'OPERATOR_PENDING', 'MULTI_CURSOR']

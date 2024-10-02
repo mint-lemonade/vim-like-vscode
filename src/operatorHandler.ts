@@ -1,18 +1,19 @@
 import * as vscode from 'vscode';
 import { executeMotion, Motion, MotionHandler } from "./motionHandler";
 import { VimState } from './vimState';
-import { Keymap, KeyParseState, OperatorKeymap } from './keyHandler';
+import { Keymap, KeyParseState, OperatorKeymap, InputType } from './keyHandler';
 import { Logger, printCursorPositions } from './util';
 import { execTextObject, TextObject, TextObjects } from './textObjectHandler';
 import { Surround, Delete, Change, Yank, Move, ToLowerCase, ToUpperCase } from './operators';
 
+export type OperatorResult = { parseState: KeyParseState, inputType?: InputType };
 export interface Operator {
     exec: (
         OH: OperatorHandler, args: {
             ranges?: vscode.Range[],
             preArgs?: string, postArg?: string, km?: Keymap
         }
-    ) => Promise<KeyParseState>;
+    ) => Promise<OperatorResult>;
 
     reset?: () => void;
 }
@@ -31,10 +32,14 @@ export class OperatorHandler {
     repeat: number = 0;
     lastOperatedRange: vscode.Range[] | undefined;
 
-    async execute(op: Operator, args?: OperatorArgs): Promise<KeyParseState> {
+    async execute(op: Operator, args?: OperatorArgs): Promise<{
+        parseState: KeyParseState,
+        inputType?: InputType
+    }> {
+
         let editor = vscode.window.activeTextEditor;
         if (!editor) {
-            return KeyParseState.Failed;
+            return { parseState: KeyParseState.Failed };
         } else {
             this.editor = editor;
             MotionHandler.editor = editor;
@@ -44,7 +49,7 @@ export class OperatorHandler {
         }
         TextObjects.editor = editor;
 
-        let result: KeyParseState;
+        let result;
         if (args?.motion && !(this.curOpKeymap)?.handlePostArgs) {
             // Operator is executed in normal mode with provided motion as range
             let motionData = executeMotion(args.motion, false, ...(args.motionArgs || []));
@@ -65,7 +70,7 @@ export class OperatorHandler {
                 args.textObject, false, ...(args.textObjectArgs || [])
             );
             // If any text Object on any cursor is undefined, end Operation.
-            if (txtObj.some(t => !t)) { return KeyParseState.Failed; }
+            if (txtObj.some(t => !t)) { return { parseState: KeyParseState.Failed }; }
 
             result = await op.exec(this, {
                 preArgs: args.preArgs, postArg: args.postArg
@@ -83,7 +88,7 @@ export class OperatorHandler {
             printCursorPositions("OPERATOR executed!");
         }
 
-        if (result !== KeyParseState.MoreInput) {
+        if (result.parseState !== KeyParseState.MoreInput) {
             if (op.reset) {
                 op.reset();
             }
