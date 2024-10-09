@@ -43,7 +43,12 @@ type MotionKeymap = {
 export type OperatorKeymap = {
     type: 'Operator',
     action: Operator,
-    handlePostArgs?: boolean
+    handlePostArgs?: boolean /**
+     * - when false(default) OperatorHandler handles motion and textObjects
+     *   to provide range for operator.
+     * - when true, motions and textObject are passed as args to operator
+     *   to be handled. 
+     */
     args?: any[],
 };
 
@@ -197,6 +202,10 @@ export class KeyHandler {
             return true;
         }
 
+        /**
+         * If matched Keymap requires long-text-input set state to 
+         * accept further keypresses as that input.
+         */
         if (matchedKeymap.requireInput && matchedKeymap.inputType === 'string' && !this.textInput) {
             this.moreInput = true;
             this.nextInputType = matchedKeymap.inputType;
