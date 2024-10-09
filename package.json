@@ -95,6 +95,26 @@
         "when": "editorTextFocus && (vim-like.mode==NORMAL || vim-like.mode===VISUAL || vim-like.mode===VISUAL_LINE)"
       },
       {
+        "key": "k",
+        "command": "cursorUp",
+        "when": "editorTextFocus && vim-like.mode==NORMAL  && !vim-like.moreInput"
+      },
+      {
+        "key": "j",
+        "command": "cursorDown",
+        "when": "editorTextFocus && vim-like.mode==NORMAL  && !vim-like.moreInput"
+      },
+      {
+        "key": "k",
+        "command": "cursorUpSelect",
+        "when": "editorTextFocus && vim-like.mode==VISUAL  && !vim-like.moreInput"
+      },
+      {
+        "key": "j",
+        "command": "cursorDownSelect",
+        "when": "editorTextFocus && vim-like.mode==VISUAL  && !vim-like.moreInput"
+      },
+      {
         "key": "Tab",
         "command": "selectNextSuggestion",
         "when": "suggestWidgetVisible && textInputFocus && (vim-like.mode==INSERT)"

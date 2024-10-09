@@ -1,5 +1,11 @@
 # Change Log
 
+## [v0.7.3]
+
+### [Fixed]
+
+- Improve performance for 'j' 'k' motions in normal and visual mode
+
 ## [v0.7.2]
 
 ### [Fixed]
